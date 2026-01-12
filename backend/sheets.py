@@ -48,17 +48,25 @@ def get_db_connection():
 
 def get_kindergarten_master():
     """Fetch Kindergarten_Master sheet data."""
-    wb = get_db_connection()
-    if not wb: return []
-    sheet = wb.worksheet("Kindergarten_Master")
-    return sheet.get_all_records()
+    try:
+        wb = get_db_connection()
+        if not wb: return []
+        sheet = wb.worksheet("Kindergarten_Master")
+        return sheet.get_all_records()
+    except Exception as e:
+        print(f"Error fetching Kindergarten_Master: {e}")
+        return []
 
 def get_class_master():
     """Fetch Class_Master sheet data."""
-    wb = get_db_connection()
-    if not wb: return []
-    sheet = wb.worksheet("Class_Master")
-    return sheet.get_all_records()
+    try:
+        wb = get_db_connection()
+        if not wb: return []
+        sheet = wb.worksheet("Class_Master")
+        return sheet.get_all_records()
+    except Exception as e:
+        print(f"Error fetching Class_Master: {e}")
+        return []
 
 def get_order_data(month_prefix=None):
     """
@@ -68,8 +76,12 @@ def get_order_data(month_prefix=None):
     """
     wb = get_db_connection()
     if not wb: return []
-    sheet = wb.worksheet("Order_Data")
-    return sheet.get_all_records()
+    try:
+        sheet = wb.worksheet("Order_Data")
+        return sheet.get_all_records()
+    except Exception as e:
+        print(f"Error fetching Order_Data: {e}")
+        return []
 
 def save_order(order_row):
     """
