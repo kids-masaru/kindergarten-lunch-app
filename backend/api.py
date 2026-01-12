@@ -57,8 +57,8 @@ def login(creds: LoginRequest):
                 "name": user['name'],
                 "settings": {
                     "course_type": user.get('course_type'),
-                    "has_bread_day": user.get('has_bread_day') == 'TRUE',
-                    "has_curry_day": user.get('has_curry_day') == 'TRUE'
+                    "has_bread_day": str(user.get('has_bread_day')).upper() == 'TRUE',
+                    "has_curry_day": str(user.get('has_curry_day')).upper() == 'TRUE'
                 }
             }
         raise HTTPException(status_code=401, detail="Invalid credentials")
