@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   description: "幼稚園給食注文管理システム",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon-192x192.jpg",
-    apple: "/apple-touch-icon.jpg",
+    icon: "/icon-v2-192.jpg",
+    apple: "/icon-v2-apple.jpg",
   },
 };
 
