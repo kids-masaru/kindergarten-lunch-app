@@ -14,11 +14,24 @@ def get_db_connection():
     """Connect to Google Sheets and return the workbook object."""
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     
-    if os.path.exists(CREDENTIALS_FILE):
+    creds = None
+    
+    # 1. Try environment variable (for Railway/Cloud)
+    json_creds = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    if json_creds:
+        try:
+            creds_dict = json.loads(json_creds)
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        except Exception as e:
+            print(f"Error loading credentials from env: {e}")
+
+    # 2. Try local file (for development)
+    if not creds and os.path.exists(CREDENTIALS_FILE):
         creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_FILE, scope)
-    else:
-        # Fallback for when file is not yet uploaded (e.g. initial setup)
-        print("Warning: service_account.json not found.")
+    
+    if not creds:
+        # Fallback for when no credentials found
+        print("Warning: No Google Credentials found (Env or File).")
         return None
 
     client = gspread.authorize(creds)
