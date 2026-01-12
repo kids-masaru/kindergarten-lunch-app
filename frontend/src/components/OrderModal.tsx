@@ -101,7 +101,7 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <div className="bg-white w-full sm:max-w-lg h-[90vh] sm:h-auto rounded-t-2xl sm:rounded-2xl flex flex-col">
+            <div className="bg-white w-full sm:max-w-lg h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl flex flex-col">
                 {/* Header */}
                 <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-orange-50 rounded-t-2xl">
                     <div>
@@ -122,8 +122,8 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                                     key={opt.value}
                                     onClick={() => setMealType(opt.value)}
                                     className={`py-2 px-1 text-sm rounded-lg border font-medium transition-colors ${mealType === opt.value
-                                            ? 'bg-orange-500 text-white border-orange-600'
-                                            : 'bg-white text-gray-600 border-gray-200 hover:bg-orange-50'
+                                        ? 'bg-orange-500 text-white border-orange-600'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:bg-orange-50'
                                         }`}
                                 >
                                     {opt.label}
