@@ -53,3 +53,8 @@ export const updateKindergartenSettings = async (data: {
     const res = await api.put('/masters/kindergarten', data);
     return res.data;
 };
+
+export const updateKindergartenClasses = async (kindergartenId: string, classes: any[]) => {
+    const res = await api.put(`/masters/classes/${kindergartenId}`, { classes });
+    return res.data;
+};
