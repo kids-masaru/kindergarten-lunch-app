@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Save, Loader2 } from 'lucide-react';
-import { getMasters, updateKindergartenSettings } from '@/lib/api';
+import { getMasters, updateKindergartenSettings, updateKindergartenClasses } from '@/lib/api';
 import { ClassMaster, LoginUser } from '@/types';
 
 export default function SettingsPage() {
@@ -78,14 +78,23 @@ export default function SettingsPage() {
             updatedClasses.push(editingClass);
         }
 
-        // Optimistic UI Update (Local only for now, will connect API later)
-        const updatedUser = { ...user, classes: updatedClasses };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        try {
+            setLoading(true);
+            await updateKindergartenClasses(user.kindergarten_id, updatedClasses);
 
-        setIsClassModalOpen(false);
-        // TODO: Call API to save classes
-        alert("※現在は見た目だけ更新されます（API未実装）");
+            // Local Update
+            const updatedUser = { ...user, classes: updatedClasses };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            setIsClassModalOpen(false);
+            alert("クラス情報を保存しました！");
+        } catch (e) {
+            console.error(e);
+            alert("保存に失敗しました");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDeleteClass = async (index: number) => {
@@ -93,13 +102,22 @@ export default function SettingsPage() {
 
         const updatedClasses = user.classes.filter((_, i) => i !== index);
 
-        // Optimistic UI Update
-        const updatedUser = { ...user, classes: updatedClasses };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        try {
+            setLoading(true);
+            await updateKindergartenClasses(user.kindergarten_id, updatedClasses);
 
-        // TODO: Call API to save classes
-        alert("※現在は見た目だけ更新されます（API未実装）");
+            // Local Update
+            const updatedUser = { ...user, classes: updatedClasses };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            alert("クラスを削除しました");
+        } catch (e) {
+            console.error(e);
+            alert("削除に失敗しました");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSave = async () => {

@@ -236,3 +236,63 @@ def update_kindergarten_master(kindergarten_id, data):
     except Exception as e:
         print(f"Error updating kindergarten master: {e}")
         return False
+
+def update_all_classes_for_kindergarten(kindergarten_id, new_classes):
+    """
+    Replace all classes for a specific kindergarten with the new list.
+    new_classes: List of dicts [{'class_name': '...', 'grade': '...', ...}]
+    """
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        sheet = wb.worksheet("Class_Master")
+        
+        # 1. Get current data
+        all_records = sheet.get_all_records()
+        headers = sheet.row_values(1)
+        
+        # 2. Filter out classes belonging to this kindergarten
+        # Keep records where kindergarten_id DOES NOT match
+        kept_records = [r for r in all_records if str(r.get('kindergarten_id')) != kindergarten_id]
+        
+        # 3. Prepare new rows
+        # new_classes contains: class_name, grade, default_student_count, default_allergy_count, default_teacher_count
+        # We need to ensure all headers used in the sheet are populated
+        
+        # Expected headers in sheet:
+        # kindergarten_id, class_name, floor, grade, default_student_count, default_allergy_count, default_teacher_count
+        
+        new_rows_dicts = []
+        for cls in new_classes:
+            row_dict = {
+                'kindergarten_id': kindergarten_id,
+                'class_name': cls.get('class_name'),
+                'floor': cls.get('floor', ''), # Default empty if not provided
+                'grade': cls.get('grade'),
+                'default_student_count': cls.get('default_student_count', 0),
+                'default_allergy_count': cls.get('default_allergy_count', 0),
+                'default_teacher_count': cls.get('default_teacher_count', 0)
+            }
+            new_rows_dicts.append(row_dict)
+            
+        # Combine kept records and new records
+        final_records = kept_records + new_rows_dicts
+        
+        # 4. Convert back to list of lists for writing
+        # Use headers to determine order
+        rows_to_write = [headers] # First row is header
+        
+        for record in final_records:
+            row = []
+            for h in headers:
+                row.append(record.get(h, '')) # safely get value or empty string
+            rows_to_write.append(row)
+            
+        # 5. Write to sheet
+        sheet.clear()
+        sheet.update('A1', rows_to_write)
+        
+        return True
+    except Exception as e:
+        print(f"Error updating all classes: {e}")
+        return False

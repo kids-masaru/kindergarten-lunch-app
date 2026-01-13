@@ -3,7 +3,15 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 from datetime import datetime
-from .sheets import get_kindergarten_master, get_class_master, get_order_data, save_order, update_class_master, update_kindergarten_master
+from backend.sheets import (
+    get_kindergarten_master, 
+    get_class_master, 
+    get_order_data, 
+    save_order, 
+    update_class_master, # This is the single update one (used earlier? maybe not exposed)
+    update_all_classes_for_kindergarten,
+    update_kindergarten_master
+)
 
 router = APIRouter()
 
