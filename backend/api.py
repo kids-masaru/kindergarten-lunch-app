@@ -152,7 +152,42 @@ def get_masters(kindergarten_id: str):
              ]
          }
          
-    my_classes = [c for c in all_classes if str(c.get('kindergarten_id')).strip() == str(kindergarten_id).strip()]
+    # Debug logging
+    print(f"[DEBUG] Fetching masters for ID: {kindergarten_id}")
+    if all_classes:
+        print(f"[DEBUG] First row keys: {list(all_classes[0].keys())}")
+        
+    target_id = str(kindergarten_id).strip()
+    my_classes = []
+    
+    def get_val(row, target_key_partials):
+        """Helper to find value by fuzzy key match"""
+        # target_key_partials is a list of possible key names (clean)
+        for k, v in row.items():
+            # Clean the key from sheet (remove #, spaces)
+            clean_k = str(k).replace('#', '').strip()
+            if clean_k in target_key_partials:
+                return v
+        return None
+
+    for c in all_classes:
+        # 1. Robust ID Check
+        row_id_val = get_val(c, ['kindergarten_id', '幼稚園ID', 'id'])
+        row_id = str(row_id_val).strip() if row_id_val is not None else ""
+        
+        if row_id == target_id:
+            # 2. Key Mapping with fuzzy match
+            mapped_class = {
+                "class_name": get_val(c, ['class_name', 'クラス名', 'クラス']) or "Unknown",
+                "grade": get_val(c, ['grade', '学年']) or "",
+                "default_student_count": get_val(c, ['default_student_count', '園児数', '標準園児数']) or 0,
+                "default_allergy_count": get_val(c, ['default_allergy_count', 'アレルギー数', '標準アレルギー数']) or 0,
+                "default_teacher_count": get_val(c, ['default_teacher_count', '先生数', '標準先生数']) or 0,
+                "floor": get_val(c, ['floor', '階']) or "",
+            }
+            my_classes.append(mapped_class)
+            
+    print(f"[DEBUG] Found {len(my_classes)} classes for {target_id}")
     return {"classes": my_classes}
 
 @router.post("/masters/class")

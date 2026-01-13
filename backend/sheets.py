@@ -256,10 +256,24 @@ def update_all_classes_for_kindergarten(kindergarten_id, new_classes):
         print(f"[DEBUG_SHEET] Headers found: {headers}")
         print(f"[DEBUG_SHEET] Total records before update: {len(all_records)}")
         
+        # Helper for fuzzy key access
+        def get_fuzzy_val(db_record, possible_clean_keys):
+            for k, v in db_record.items():
+                clean_k = str(k).replace('#', '').strip()
+                if clean_k in possible_clean_keys:
+                    return v
+            return None
+
         # 2. Filter out classes belonging to this kindergarten
-        # Keep records where kindergarten_id DOES NOT match
         target_id_str = str(kindergarten_id).strip()
-        kept_records = [r for r in all_records if str(r.get('kindergarten_id')).strip() != target_id_str]
+        kept_records = []
+        
+        for r in all_records:
+            # Check ID using fuzzy match
+            r_id = str(get_fuzzy_val(r, ['kindergarten_id', '幼稚園ID']) or '').strip()
+            if r_id != target_id_str:
+                kept_records.append(r)
+                
         print(f"[DEBUG_SHEET] Records kept (other kindergartens): {len(kept_records)}")
         
         # 3. Prepare new rows
@@ -286,32 +300,22 @@ def update_all_classes_for_kindergarten(kindergarten_id, new_classes):
         for record in final_records:
             row = []
             for h in headers:
-                val = record.get(h, '')
-                # Handle # prefix if still present in keys/headers mapping? 
-                # Actually headers list comes from sheet, so record keys must match headers.
-                # Since we construct record manually above 'row_dict', we might miss keys if headers have #.
-                # Let's simple-map: if h matches one of our known keys, use it.
+                # Determine what this header 'h' maps to in our clean keys
+                clean_h = str(h).replace('#', '').strip()
                 
-                # Known key mapping for writing back
-                clean_h = h.replace('# ', '').strip() # Handle Visual # just in case
-                if clean_h in record:
-                    row.append(record[clean_h])
-                elif h in record:
-                    row.append(record[h])
-                else:
-                    # Try to find matching key in row_dict (e.g. if header is '# default_student_count' and key is 'default_student_count')
-                    found = False
-                    for k in record:
-                        if k in h: # Fuzzy match? No, dangerous.
-                            pass
-                    
-                    # Logic: Our row_dict has clean keys (kindergarten_id, class_name, etc.)
-                    # The 'h' (header) might have '# '.
-                    if clean_h in row_dict and record == row_dict: # If this record is a NEW one
-                         row.append(row_dict.get(clean_h, ''))
-                    else:
-                         # For KEPT records, they have original keys.
-                         row.append(record.get(h, ''))
+                # If record is a NEW row (from row_dict), it has clean keys
+                # If record is a KEPT row (from gspread), it has original dirty keys
+                
+                # Try to find value for this header
+                val = ""
+                # Case A: Record has the exact header key (KEPT rows)
+                if h in record:
+                    val = record[h]
+                # Case B: Record has the clean key (NEW rows)
+                elif clean_h in record:
+                    val = record[clean_h]
+                
+                row.append(val)
             
             rows_to_write.append(row)
             
