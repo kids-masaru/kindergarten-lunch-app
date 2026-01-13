@@ -261,6 +261,18 @@ export default function SettingsPage() {
                             <p className="text-center text-gray-400 text-sm py-4">クラスが登録されていません</p>
                         )}
                     </div>
+
+                    {/* DEBUG INFO - REMOVE AFTER FIX */}
+                    <div className="mt-8 p-4 bg-gray-800 text-green-400 rounded-lg text-xs font-mono overflow-auto max-h-60">
+                        <p className="font-bold border-b border-gray-600 mb-2 pb-1">Debug Info</p>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>ID: {user.kindergarten_id}</div>
+                            <div>Count: {user.classes ? user.classes.length : 'undefined'}</div>
+                        </div>
+                        <pre className="mt-2 text-[10px] leading-tight opacity-80">
+                            {JSON.stringify(user.classes, null, 2)}
+                        </pre>
+                    </div>
                 </div>
 
                 <button
