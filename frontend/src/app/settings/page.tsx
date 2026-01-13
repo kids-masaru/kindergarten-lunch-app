@@ -48,6 +48,60 @@ export default function SettingsPage() {
         setServiceDays(prev => ({ ...prev, [dayKey]: !prev[dayKey] }));
     };
 
+    // Class Handlers
+    const openClassModal = (cls?: ClassMaster, index?: number) => {
+        if (cls && index !== undefined) {
+            setEditingClassIndex(index);
+            setEditingClass({ ...cls });
+        } else {
+            setEditingClassIndex(null);
+            setEditingClass({ class_name: '', grade: '', default_student_count: 0, default_teacher_count: 0, default_allergy_count: 0 });
+        }
+        setIsClassModalOpen(true);
+    };
+
+    const handleSaveClass = async () => {
+        if (!editingClass || !user || !user.classes) return;
+
+        // Validation
+        if (!editingClass.class_name.trim()) {
+            alert("クラス名を入力してください");
+            return;
+        }
+
+        const updatedClasses = [...user.classes];
+        if (editingClassIndex !== null) {
+            // Edit existing
+            updatedClasses[editingClassIndex] = editingClass;
+        } else {
+            // Add new
+            updatedClasses.push(editingClass);
+        }
+
+        // Optimistic UI Update (Local only for now, will connect API later)
+        const updatedUser = { ...user, classes: updatedClasses };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+
+        setIsClassModalOpen(false);
+        // TODO: Call API to save classes
+        alert("※現在は見た目だけ更新されます（API未実装）");
+    };
+
+    const handleDeleteClass = async (index: number) => {
+        if (!user || !user.classes || !confirm("本当にこのクラスを削除しますか？")) return;
+
+        const updatedClasses = user.classes.filter((_, i) => i !== index);
+
+        // Optimistic UI Update
+        const updatedUser = { ...user, classes: updatedClasses };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+
+        // TODO: Call API to save classes
+        alert("※現在は見た目だけ更新されます（API未実装）");
+    };
+
     const handleSave = async () => {
         if (!user) return;
         setLoading(true);

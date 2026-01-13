@@ -14,6 +14,7 @@ export interface LoginUser {
         service_sat?: boolean;
         service_sun?: boolean;
     };
+    classes?: ClassMaster[];
 }
 
 export interface Order {
