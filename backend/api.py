@@ -152,7 +152,31 @@ def get_calendar(kindergarten_id: str, year: int, month: int):
         key = (order.get('date'), order.get('class_name'))
         latest_orders_map[key] = order
     
-    return {"orders": list(latest_orders_map.values())}
+    # Normalize Date Format for Frontend (YYYY-MM-DD)
+    final_orders = []
+    for order in latest_orders_map.values():
+        try:
+            date_val = str(order.get('date'))
+            # Parse again to standardize
+            d = None
+            if '-' in date_val:
+                parts = date_val.split('-')
+                if len(parts) >= 3:
+                     # Re-format to ensure padding (e.g. 2026-1-7 -> 2026-01-07)
+                     d = f"{int(parts[0]):04d}-{int(parts[1]):02d}-{int(parts[2]):02d}"
+            elif '/' in date_val:
+                parts = date_val.split('/')
+                if len(parts) >= 3:
+                     d = f"{int(parts[0]):04d}-{int(parts[1]):02d}-{int(parts[2]):02d}"
+            
+            if d:
+                order['date'] = d
+            
+            final_orders.append(order)
+        except:
+            final_orders.append(order)
+
+    return {"orders": final_orders}
 
 @router.post("/orders")
 def create_order(order: OrderItem):
