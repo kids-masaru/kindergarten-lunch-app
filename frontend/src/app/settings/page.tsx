@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Save, Loader2 } from 'lucide-react';
 import { getMasters, updateKindergartenSettings } from '@/lib/api';
-import { LoginUser } from '@/types';
+import { ClassMaster, LoginUser } from '@/types';
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -14,6 +14,11 @@ export default function SettingsPage() {
         mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false
     });
     const [kindergartenName, setKindergartenName] = useState("");
+
+    // Class Editing State
+    const [isClassModalOpen, setIsClassModalOpen] = useState(false);
+    const [editingClassIndex, setEditingClassIndex] = useState<number | null>(null);
+    const [editingClass, setEditingClass] = useState<ClassMaster | null>(null);
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -158,9 +163,47 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 opacity-50">
-                    <h2 className="font-bold text-gray-800 mb-4">📋 クラス設定 (開発中)</h2>
-                    <p className="text-sm text-gray-500">クラスの追加・削除・名称変更はこちらから行えるようになります。</p>
+                {/* Class Settings Section */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="font-bold text-gray-800 flex items-center gap-2">
+                            <span>📋</span> クラス設定
+                        </h2>
+                        <button
+                            onClick={() => openClassModal()}
+                            className="text-sm bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-100 transition-colors"
+                        >
+                            + クラスを追加
+                        </button>
+                    </div>
+
+                    <div className="space-y-3">
+                        {user.classes && user.classes.map((cls, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl bg-gray-50/50">
+                                <div>
+                                    <div className="font-bold text-gray-800">{cls.class_name}</div>
+                                    <div className="text-xs text-gray-500">{cls.grade || '学年未設定'}</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => openClassModal(cls, index)}
+                                        className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                    >
+                                        <div className="w-5 h-5 flex items-center justify-center">✏️</div>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteClass(index)}
+                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                    >
+                                        <div className="w-5 h-5 flex items-center justify-center">🗑️</div>
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        {user.classes && user.classes.length === 0 && (
+                            <p className="text-center text-gray-400 text-sm py-4">クラスが登録されていません</p>
+                        )}
+                    </div>
                 </div>
 
                 <button
