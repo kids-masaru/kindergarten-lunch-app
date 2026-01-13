@@ -102,8 +102,8 @@ export default function CalendarPage() {
           <button
             onClick={() => setActiveTab('calendar')}
             className={`flex flex-col items-center justify-center p-3 border-b-2 font-bold transition-colors ${activeTab === 'calendar'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50'
+              ? 'border-blue-500 bg-blue-50 text-blue-700'
+              : 'border-transparent text-gray-500 hover:bg-gray-50'
               }`}
           >
             <span className="text-sm">📅 日々の注文</span>
@@ -111,8 +111,8 @@ export default function CalendarPage() {
           <button
             onClick={() => setActiveTab('report')}
             className={`flex flex-col items-center justify-center p-3 border-b-2 font-bold transition-colors ${activeTab === 'report'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50'
+              ? 'border-blue-500 bg-blue-50 text-blue-700'
+              : 'border-transparent text-gray-500 hover:bg-gray-50'
               }`}
           >
             <span className="text-sm flex items-center gap-1"><ClipboardList className="w-4 h-4" /> 月次データ設定</span>
@@ -152,20 +152,43 @@ export default function CalendarPage() {
                   const day = i + 1;
                   const dayOrders = getOrdersForDay(day);
                   const icon = getDayIcon(dayOrders);
+                  const dObj = new Date(year, month - 1, day);
                   const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
+
+                  // Service Day Check
+                  let isServiceDay = true;
+                  if (user && user.settings) {
+                    const dayOfWeek = dObj.getDay(); // 0:Sun, 1:Mon...
+                    const s = user.settings;
+                    switch (dayOfWeek) {
+                      case 0: isServiceDay = s.service_sun !== false; break;
+                      case 1: isServiceDay = s.service_mon !== false; break;
+                      case 2: isServiceDay = s.service_tue !== false; break;
+                      case 3: isServiceDay = s.service_wed !== false; break;
+                      case 4: isServiceDay = s.service_thu !== false; break;
+                      case 5: isServiceDay = s.service_fri !== false; break;
+                      case 6: isServiceDay = s.service_sat !== false; break;
+                    }
+                  }
 
                   return (
                     <button
                       key={day}
-                      onClick={() => handleDateClick(day)}
-                      className={`aspect-square rounded-xl flex flex-col items-center justify-start pt-1 relative border transition-all active:scale-95 ${isToday ? 'bg-orange-50 border-orange-300' : 'bg-white border-gray-100'
-                        } shadow-sm hover:border-orange-200`}
+                      onClick={() => isServiceDay && handleDateClick(day)}
+                      disabled={!isServiceDay}
+                      className={`aspect-square rounded-xl flex flex-col items-center justify-start pt-1 relative border transition-all 
+                        ${!isServiceDay
+                          ? 'bg-gray-100 border-gray-100 text-gray-300 cursor-not-allowed'
+                          : isToday
+                            ? 'bg-orange-50 border-orange-300 active:scale-95 shadow-sm hover:border-orange-200'
+                            : 'bg-white border-gray-100 active:scale-95 shadow-sm hover:border-orange-200'
+                        }`}
                     >
-                      <span className={`text-sm font-bold ${isToday ? 'text-orange-600' : 'text-gray-700'}`}>{day}</span>
+                      <span className={`text-sm font-bold ${!isServiceDay ? 'text-gray-300' : isToday ? 'text-orange-600' : 'text-gray-700'}`}>{day}</span>
                       <div className="mt-1 text-2xl lg:text-3xl">
-                        {icon || <span className="text-xs text-gray-200 mt-2 block">未</span>}
+                        {!isServiceDay ? <span className="text-xs">休み</span> : (icon || <span className="text-xs text-gray-200 mt-2 block">未</span>)}
                       </div>
-                      {dayOrders.length > 0 && (
+                      {dayOrders.length > 0 && isServiceDay && (
                         <div className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-green-500"></div>
                       )}
                     </button>
