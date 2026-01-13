@@ -71,35 +71,40 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
                 </h2>
             </div>
 
-            <div className="p-4 overflow-y-auto flex-1">
-                <div className="text-xs text-gray-500 mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100 leading-relaxed">
-                    ※ここでの設定値が<strong>来月の初期値</strong>になります。
+            <div className="p-2 overflow-y-auto flex-1">
+                <div className="text-xs text-gray-500 mb-2 bg-gray-50 p-2 rounded border border-gray-100">
+                    ※来月の初期値設定
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
+                    {/* Header Row */}
+                    <div className="flex text-[10px] text-gray-400 px-2">
+                        <div className="w-20">クラス</div>
+                        <div className="flex-1 text-center">園児</div>
+                        <div className="flex-1 text-center">アレ</div>
+                        <div className="flex-1 text-center">先生</div>
+                    </div>
+
                     {classes.map(cls => (
-                        <div key={cls.class_name} className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
-                            {/* Header: Class Name & Grade */}
-                            <div className="flex items-center gap-2 mb-2 pb-1 border-b border-gray-50">
-                                <span className="text-sm font-bold text-blue-800">{cls.class_name}</span>
-                                <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">{cls.grade}</span>
+                        <div key={cls.class_name} className="bg-white p-1.5 rounded border border-gray-200 shadow-sm flex items-center gap-1">
+                            {/* Class Name */}
+                            <div className="w-20 flex flex-col leading-none">
+                                <span className="text-sm font-bold text-blue-800 truncate">{cls.class_name}</span>
+                                <span className="text-[9px] text-gray-400">{cls.grade}</span>
                             </div>
 
-                            {/* Counters Grid - Compact */}
-                            <div className="grid grid-cols-3 gap-2">
-                                <EditCounter
-                                    label="園児"
+                            {/* Counters Row */}
+                            <div className="flex-1 flex justify-between gap-1">
+                                <MiniCounter
                                     value={edits[cls.class_name]?.default_student_count || 0}
                                     onChange={(d) => updateCount(cls.class_name, 'default_student_count', d)}
                                 />
-                                <EditCounter
-                                    label="アレルギー"
+                                <MiniCounter
                                     value={edits[cls.class_name]?.default_allergy_count || 0}
                                     onChange={(d) => updateCount(cls.class_name, 'default_allergy_count', d)}
-                                    color="text-red-600"
+                                    color="text-red-600 bg-red-50"
                                 />
-                                <EditCounter
-                                    label="先生"
+                                <MiniCounter
                                     value={edits[cls.class_name]?.default_teacher_count || 0}
                                     onChange={(d) => updateCount(cls.class_name, 'default_teacher_count', d)}
                                 />
@@ -123,15 +128,12 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
     );
 }
 
-function EditCounter({ label, value, onChange, color = "text-gray-900" }: { label: string, value: number, onChange: (d: number) => void, color?: string }) {
+function MiniCounter({ value, onChange, color = "text-gray-800 bg-gray-50" }: { value: number, onChange: (d: number) => void, color?: string }) {
     return (
-        <div className="flex flex-col items-center w-full">
-            <span className="text-[10px] text-gray-400 mb-1">{label}</span>
-            <div className="flex items-center justify-between w-full bg-white rounded border border-gray-200 p-0.5">
-                <button onClick={() => onChange(-1)} className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded"><Minus className="w-3 h-3" /></button>
-                <span className={`font-bold text-base flex-1 text-center ${color}`}>{value}</span>
-                <button onClick={() => onChange(1)} className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded"><Plus className="w-3 h-3" /></button>
-            </div>
+        <div className={`flex items-center justify-between flex-1 rounded border border-gray-100 p-0.5 h-8 ${color}`}>
+            <button onClick={() => onChange(-1)} className="w-5 h-full flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-black/5 rounded"><Minus className="w-3 h-3" /></button>
+            <span className="font-bold text-sm lg:text-base">{value}</span>
+            <button onClick={() => onChange(1)} className="w-5 h-full flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-black/5 rounded"><Plus className="w-3 h-3" /></button>
         </div>
     );
 }
