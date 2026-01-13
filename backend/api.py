@@ -38,6 +38,7 @@ class ClassUpdateRequest(BaseModel):
 
 class KindergartenUpdateRequest(BaseModel):
     kindergarten_id: str
+    name: Optional[str] = None
     service_mon: Optional[bool] = None
     service_tue: Optional[bool] = None
     service_wed: Optional[bool] = None
@@ -75,9 +76,18 @@ def login(creds: LoginRequest):
                 "name": user['name'],
                 "settings": {
                     "course_type": user.get('course_type'),
-                    "has_bread_day": str(user.get('has_bread_day')).upper() == 'TRUE',
-                    "has_curry_day": str(user.get('has_curry_day')).upper() == 'TRUE'
+                    "has_bread_day": str(user.get('has_bread_day', 'FALSE')).upper() == 'TRUE',
+                    "has_curry_day": str(user.get('has_curry_day', 'FALSE')).upper() == 'TRUE',
+                    # Service Days (Default to True for Mon-Fri if missing)
+                    "service_mon": str(user.get('service_mon', 'TRUE')).upper() != 'FALSE',
+                    "service_tue": str(user.get('service_tue', 'TRUE')).upper() != 'FALSE',
+                    "service_wed": str(user.get('service_wed', 'TRUE')).upper() != 'FALSE',
+                    "service_thu": str(user.get('service_thu', 'TRUE')).upper() != 'FALSE',
+                    "service_fri": str(user.get('service_fri', 'TRUE')).upper() != 'FALSE',
+                    "service_sat": str(user.get('service_sat', 'FALSE')).upper() == 'TRUE',
+                    "service_sun": str(user.get('service_sun', 'FALSE')).upper() == 'TRUE',
                 }
+            }
             }
         raise HTTPException(status_code=401, detail="Invalid credentials")
     except Exception as e:

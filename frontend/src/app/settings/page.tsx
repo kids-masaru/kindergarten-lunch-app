@@ -13,6 +13,7 @@ export default function SettingsPage() {
     const [serviceDays, setServiceDays] = useState({
         mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false
     });
+    const [kindergartenName, setKindergartenName] = useState("");
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
@@ -20,9 +21,27 @@ export default function SettingsPage() {
             router.push('/login');
             return;
         }
-        setUser(JSON.parse(userData));
-        // TODO: Load actual settings from API
+        const u = JSON.parse(userData);
+        setUser(u);
+        setKindergartenName(u.name || "");
+
+        // Initialize service days from user settings if available
+        if (u.settings) {
+            setServiceDays({
+                mon: u.settings.service_mon !== false,
+                tue: u.settings.service_tue !== false,
+                wed: u.settings.service_wed !== false,
+                thu: u.settings.service_thu !== false,
+                fri: u.settings.service_fri !== false,
+                sat: u.settings.service_sat === true,
+                sun: u.settings.service_sun === true,
+            });
+        }
     }, [router]);
+
+    const toggleDay = (dayKey: keyof typeof serviceDays) => {
+        setServiceDays(prev => ({ ...prev, [dayKey]: !prev[dayKey] }));
+    };
 
     const handleSave = async () => {
         if (!user) return;
@@ -30,6 +49,7 @@ export default function SettingsPage() {
         try {
             const newSettings = {
                 kindergarten_id: user.kindergarten_id,
+                name: kindergartenName,
                 service_mon: serviceDays.mon,
                 service_tue: serviceDays.tue,
                 service_wed: serviceDays.wed,
@@ -44,6 +64,7 @@ export default function SettingsPage() {
             // Update local state and localStorage so other pages see changes immediately
             const updatedUser = {
                 ...user,
+                name: kindergartenName,
                 settings: {
                     ...user.settings,
                     ...newSettings
@@ -66,33 +87,32 @@ export default function SettingsPage() {
     return (
         <div className="min-h-screen bg-gray-50 pb-20">
             {/* Header */}
-            <div className="bg-white p-4 shadow-sm sticky top-0 z-10 flex items-center gap-2">
-                <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full">
-                    <ChevronLeft className="w-6 h-6 text-gray-600" />
-                </button>
-                <h1 className="font-bold text-gray-800 text-lg">設定</h1>
+            <div className="bg-white shadow-sm sticky top-0 z-10 p-3 mb-6">
+                <div className="max-w-xl mx-auto flex items-center gap-2">
+                    <button onClick={() => router.back()} className="p-1 -ml-2 text-gray-500 hover:bg-gray-100 rounded-full">
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <h1 className="font-bold text-lg text-gray-800">設定</h1>
+                </div>
             </div>
 
-            <div className="max-w-2xl mx-auto p-4 space-y-6">
+            <div className="max-w-xl mx-auto px-4 space-y-6">
 
-                {/* Service Days */}
+                {/* Service Days Section */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <span>📅 給食提供日の設定</span>
+                        <span>🗓️</span> 給食提供日の設定
                     </h2>
-                    <div className="grid grid-cols-4 gap-3">
-                        {['月', '火', '水', '木', '金', '土', '日'].map((day, i) => {
-                            const key = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][i];
-                            // @ts-ignore
-                            const isActive = serviceDays[key];
+                    <div className="grid grid-cols-4 gap-2 mb-2">
+                        {['月', '火', '水', '木'].map((day, i) => {
+                            const key = ['mon', 'tue', 'wed', 'thu'][i] as keyof typeof serviceDays;
                             return (
                                 <button
-                                    key={day}
-                                    // @ts-ignore
-                                    onClick={() => setServiceDays(prev => ({ ...prev, [key]: !isActive }))}
-                                    className={`p-3 rounded-xl border font-bold transition-all ${isActive
-                                        ? 'bg-blue-500 text-white border-blue-600 shadow-md'
-                                        : 'bg-white text-gray-400 border-gray-200'
+                                    key={key}
+                                    onClick={() => toggleDay(key)}
+                                    className={`p-3 rounded-lg font-bold transition-all ${serviceDays[key]
+                                        ? 'bg-blue-500 text-white shadow-md'
+                                        : 'bg-gray-100 text-gray-400'
                                         }`}
                                 >
                                     {day}
@@ -100,22 +120,44 @@ export default function SettingsPage() {
                             );
                         })}
                     </div>
-                    <p className="text-xs text-gray-500 mt-3">
-                        ※ここで選択した曜日が、カレンダー上で強調表示されます（開発中）
-                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                        {['金', '土', '日'].map((day, i) => {
+                            const key = ['fri', 'sat', 'sun'][i] as keyof typeof serviceDays;
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => toggleDay(key)}
+                                    className={`p-3 rounded-lg font-bold transition-all ${serviceDays[key]
+                                        ? 'bg-blue-500 text-white shadow-md'
+                                        : 'bg-gray-100 text-gray-400'
+                                        }`}
+                                >
+                                    {day}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-3">※ここで選択した曜日が、カレンダー上で有効になります</p>
                 </div>
 
-                {/* Master Edit Placeholder */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 opacity-50">
-                    <h2 className="font-bold text-gray-800 mb-4">🏫 園情報の編集 (開発中)</h2>
+                {/* Kindergarten Info Section */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span>🏫</span> 園情報の編集
+                    </h2>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">園名</label>
-                            <input type="text" value={user.name} disabled className="w-full border rounded-lg p-3 bg-gray-50" />
+                            <label className="block text-sm font-bold text-gray-600 mb-1">園名</label>
+                            <input
+                                type="text"
+                                value={kindergartenName}
+                                onChange={(e) => setKindergartenName(e.target.value)}
+                                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="例：テスト幼稚園"
+                            />
                         </div>
                     </div>
                 </div>
-
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 opacity-50">
                     <h2 className="font-bold text-gray-800 mb-4">📋 クラス設定 (開発中)</h2>
                     <p className="text-sm text-gray-500">クラスの追加・削除・名称変更はこちらから行えるようになります。</p>
