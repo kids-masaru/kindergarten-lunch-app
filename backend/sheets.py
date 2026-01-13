@@ -197,3 +197,42 @@ def update_class_master(kindergarten_id, class_name, data):
     except Exception as e:
         print(f"Error updating class master: {e}")
         return False
+
+def update_kindergarten_master(kindergarten_id, data):
+    """
+    Update Kindergarten_Master sheet data.
+    data: dict containing keys to update (e.g. {'service_mon': True})
+    """
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        sheet = wb.worksheet("Kindergarten_Master")
+        
+        all_records = sheet.get_all_records()
+        headers = sheet.row_values(1)
+        
+        # Find row index
+        row_index = -1
+        for i, record in enumerate(all_records):
+            if str(record.get('kindergarten_id')) == kindergarten_id:
+                row_index = i + 2 # +1 for 0-index, +1 for header
+                break
+        
+        if row_index == -1:
+            print(f"Kindergarten ID {kindergarten_id} not found")
+            return False
+            
+        # Update each field
+        for key, value in data.items():
+            if key in headers:
+                col_index = headers.index(key) + 1
+                # Convert booleans to TRUE/FALSE strings for Sheets if needed, or let gspread handle it
+                # gspread handles python types well usually
+                sheet.update_cell(row_index, col_index, value)
+            else:
+                print(f"Warning: Column {key} not found in Kindergarten_Master")
+                
+        return True
+    except Exception as e:
+        print(f"Error updating kindergarten master: {e}")
+        return False

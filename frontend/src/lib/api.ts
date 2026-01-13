@@ -39,3 +39,17 @@ export const updateClassMaster = async (data: {
     const res = await api.post('/masters/class', data);
     return res.data;
 };
+
+export const updateKindergartenSettings = async (data: {
+    kindergarten_id: string;
+    service_mon?: boolean;
+    service_tue?: boolean;
+    service_wed?: boolean;
+    service_thu?: boolean;
+    service_fri?: boolean;
+    service_sat?: boolean;
+    service_sun?: boolean;
+}) => {
+    const res = await api.put('/masters/kindergarten', data);
+    return res.data;
+};

@@ -1,14 +1,13 @@
-"use client";
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Save } from 'lucide-react';
-import { getMasters } from '@/lib/api';
+import { ChevronLeft, Save, Loader2 } from 'lucide-react';
+import { getMasters, updateKindergartenSettings } from '@/lib/api';
 import { LoginUser } from '@/types';
 
 export default function SettingsPage() {
     const router = useRouter();
     const [user, setUser] = useState<LoginUser | null>(null);
+    const [loading, setLoading] = useState(false);
     const [serviceDays, setServiceDays] = useState({
         mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false
     });
@@ -23,8 +22,27 @@ export default function SettingsPage() {
         // TODO: Load actual settings from API
     }, [router]);
 
-    const handleSave = () => {
-        alert("設定保存機能は現在開発中です🙇‍♂️");
+    const handleSave = async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            await updateKindergartenSettings({
+                kindergarten_id: user.kindergarten_id,
+                service_mon: serviceDays.mon,
+                service_tue: serviceDays.tue,
+                service_wed: serviceDays.wed,
+                service_thu: serviceDays.thu,
+                service_fri: serviceDays.fri,
+                service_sat: serviceDays.sat,
+                service_sun: serviceDays.sun
+            });
+            alert("設定を保存しました！");
+        } catch (e) {
+            console.error(e);
+            alert("保存に失敗しました。");
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (!user) return null;
@@ -89,8 +107,10 @@ export default function SettingsPage() {
 
                 <button
                     onClick={handleSave}
-                    className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg"
+                    disabled={loading}
+                    className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 shadow-lg flex items-center justify-center gap-2"
                 >
+                    {loading ? <Loader2 className="animate-spin" /> : <Save className="w-5 h-5" />}
                     設定を保存する
                 </button>
 

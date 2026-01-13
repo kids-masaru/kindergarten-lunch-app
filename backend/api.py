@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 from datetime import datetime
-from .sheets import get_kindergarten_master, get_class_master, get_order_data, save_order, update_class_master
+from .sheets import get_kindergarten_master, get_class_master, get_order_data, save_order, update_class_master, update_kindergarten_master
 
 router = APIRouter()
 
@@ -33,7 +33,18 @@ class ClassUpdateRequest(BaseModel):
     class_name: str
     default_student_count: int
     default_allergy_count: int
+    default_allergy_count: int
     default_teacher_count: int
+
+class KindergartenUpdateRequest(BaseModel):
+    kindergarten_id: str
+    service_mon: Optional[bool] = None
+    service_tue: Optional[bool] = None
+    service_wed: Optional[bool] = None
+    service_thu: Optional[bool] = None
+    service_fri: Optional[bool] = None
+    service_sat: Optional[bool] = None
+    service_sun: Optional[bool] = None
 
 # --- Endpoints ---
 
@@ -101,6 +112,20 @@ def update_class(req: ClassUpdateRequest):
     )
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update class master")
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update class master")
+    return {"status": "success"}
+
+@router.put("/masters/kindergarten")
+def update_kindergarten(req: KindergartenUpdateRequest):
+    # Filter out None values to only update sent fields
+    data = {k: v for k, v in req.dict().items() if k != 'kindergarten_id' and v is not None}
+    
+    success = update_kindergarten_master(req.kindergarten_id, data)
+    
+    if not success:
+        # It might fail if columns don't exist in sheet yet, but we'll return 500
+        raise HTTPException(status_code=500, detail="Failed to update kindergarten master")
     return {"status": "success"}
 
 @router.get("/calendar")
