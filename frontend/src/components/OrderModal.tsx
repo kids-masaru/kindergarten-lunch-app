@@ -16,24 +16,25 @@ interface OrderModalProps {
 }
 
 export default function OrderModal({ date, isOpen, onClose, user, classes, existingOrders, onSave }: OrderModalProps) {
-    const [mealType, setMealType] = useState('通常');
-    // Include order_id in state to track per-class orders
-    const [classOrders, setClassOrders] = useState<Record<string, { order_id?: string, student: number, allergy: number, teacher: number, memo: string }>>({});
+    const [mealType, setMealType] = useState('通常'); // Used for Bulk Apply
+    // Include order_id and meal_type in state to track per-class orders
+    const [classOrders, setClassOrders] = useState<Record<string, { order_id?: string, meal_type: string, student: number, allergy: number, teacher: number, memo: string }>>({});
     const [loading, setLoading] = useState(false);
 
     // Initial State Setup
     useEffect(() => {
         if (isOpen) {
             const initialOrders: any = {};
-            // Determine meal type from first order if exists, otherwise "通常"
+            // Determine bulk meal type from first order if exists, otherwise "通常"
             const firstOrder = existingOrders[0];
-            if (firstOrder) setMealType(firstOrder.meal_type);
+            if (firstOrder) setMealType(firstOrder.meal_type); # This is just for initial UI state of bulk selector
             else setMealType('通常');
 
             classes.forEach(cls => {
                 const order = existingOrders.find(o => o.class_name === cls.class_name);
                 initialOrders[cls.class_name] = {
                     order_id: order?.order_id,
+                    meal_type: order ? order.meal_type : '通常',
                     student: order ? order.student_count : cls.default_student_count,
                     allergy: order ? order.allergy_count : (cls.default_allergy_count || 0),
                     teacher: order ? order.teacher_count : cls.default_teacher_count,
@@ -55,24 +56,40 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
 
     // Filter Meal Types based on Settings
     const mealOptions = [
-        { value: '通常', label: '通常給食' },
-        ...(user.settings.has_curry_day ? [{ value: 'カレー', label: 'カレー給食' }] : []),
-        ...(user.settings.has_bread_day ? [{ value: 'パン', label: 'パン給食' }] : []),
+        { value: '通常', label: '通常' },
+        ...(user.settings.has_curry_day ? [{ value: 'カレー', label: 'カレー' }] : []),
+        ...(user.settings.has_bread_day ? [{ value: 'パン', label: 'パン' }] : []),
         ...(user.settings.has_birthday_party ? [{ value: '誕生会', label: '誕生会' }] : []),
         { value: 'ピクニック', label: 'ピクニック' },
-        { value: '飯なし', label: '給食なし' }
+        { value: '飯なし', label: 'なし' }
     ];
 
     const updateCount = (clsName: string, field: 'student' | 'allergy' | 'teacher', diff: number) => {
         setClassOrders(prev => {
-            const current = prev[clsName] || { student: 0, allergy: 0, teacher: 0, memo: "" };
+            const current = prev[clsName];
+            if (!current) return prev;
             const newVal = Math.max(0, current[field] + diff);
             return { ...prev, [clsName]: { ...current, [field]: newVal } };
         });
     };
 
+    const updateMealType = (clsName: string, type: string) => {
+        setClassOrders(prev => ({ ...prev, [clsName]: { ...prev[clsName], meal_type: type } }));
+    };
+
     const updateMemo = (clsName: string, val: string) => {
         setClassOrders(prev => ({ ...prev, [clsName]: { ...prev[clsName], memo: val } }));
+    };
+
+    const applyBulkMealType = (type: string) => {
+        setMealType(type);
+        setClassOrders(prev => {
+            const next = { ...prev };
+            Object.keys(next).forEach(key => {
+                next[key] = { ...next[key], meal_type: type };
+            });
+            return next;
+        });
     };
 
     const handleSave = async () => {
@@ -86,14 +103,12 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                     kindergarten_id: user.kindergarten_id,
                     date: dateStr,
                     class_name: cls.class_name,
-                    meal_type: mealType,
+                    meal_type: data.meal_type, // Use per-class meal type
                     student_count: data.student,
                     allergy_count: data.allergy,
                     teacher_count: data.teacher,
                     memo: data.memo
                 };
-                // If update logic requires order_id, we'd need to map it. 
-                // For MVP append-only/simple, straightforward save.
                 return saveOrder(orderData);
             });
             await Promise.all(promises);
@@ -108,7 +123,7 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <div className="bg-white w-full sm:max-w-lg h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl flex flex-col">
+            <div className="bg-white w-full sm:max-w-lg h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl flex flex-col shadow-xl">
                 {/* Header */}
                 <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-orange-50 rounded-t-2xl">
                     <div>
@@ -120,16 +135,16 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                 </div>
 
                 <div className="p-4 overflow-y-auto flex-1">
-                    {/* Meal Type Selector */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-bold text-gray-700 mb-2">本日の給食区分</label>
-                        <div className="grid grid-cols-3 gap-2">
+                    {/* Bulk Meal Type Selector */}
+                    <div className="mb-6 bg-orange-50/50 p-3 rounded-xl border border-orange-100">
+                        <label className="block text-xs font-bold text-orange-800 mb-2">まとめて設定 (本日の給食)</label>
+                        <div className="flex flex-wrap gap-2">
                             {mealOptions.map(opt => (
                                 <button
                                     key={opt.value}
-                                    onClick={() => setMealType(opt.value)}
-                                    className={`py-2 px-1 text-sm rounded-lg border font-medium transition-colors ${mealType === opt.value
-                                        ? 'bg-orange-500 text-white border-orange-600'
+                                    onClick={() => applyBulkMealType(opt.value)}
+                                    className={`py-1.5 px-3 text-xs rounded-full border font-medium transition-colors ${mealType === opt.value
+                                        ? 'bg-orange-500 text-white border-orange-600 shadow-sm'
                                         : 'bg-white text-gray-600 border-gray-200 hover:bg-orange-50'
                                         }`}
                                 >
@@ -140,14 +155,33 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                     </div>
 
                     {/* Class List */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         {classes.map(cls => (
-                            <div key={cls.class_name} className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                <h3 className="font-bold text-gray-800 mb-3 flex items-center justify-between">
-                                    <span>{cls.class_name} <span className="text-xs font-normal text-gray-500">({cls.grade})</span></span>
-                                </h3>
+                            <div key={cls.class_name} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                                <div className="flex justify-between items-start mb-3">
+                                    <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                        {cls.class_name}
+                                        <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{cls.grade}</span>
+                                    </h3>
 
-                                <div className="grid grid-cols-3 gap-4 mb-3">
+                                    {/* Per-Class Meal Type Selector */}
+                                    <select
+                                        value={classOrders[cls.class_name]?.meal_type || '通常'}
+                                        onChange={(e) => updateMealType(cls.class_name, e.target.value)}
+                                        className={`text-sm font-bold py-1 px-2 rounded border focus:outline-none focus:ring-2 focus:ring-orange-500 ${classOrders[cls.class_name]?.meal_type === 'カレー' ? 'bg-yellow-50 text-yellow-800 border-yellow-200' :
+                                                classOrders[cls.class_name]?.meal_type === 'パン' ? 'bg-orange-50 text-orange-800 border-orange-200' :
+                                                    classOrders[cls.class_name]?.meal_type === 'ピクニック' ? 'bg-green-50 text-green-800 border-green-200' :
+                                                        classOrders[cls.class_name]?.meal_type === '飯なし' ? 'bg-gray-100 text-gray-500 border-gray-200' :
+                                                            'bg-white text-gray-700 border-gray-200'
+                                            }`}
+                                    >
+                                        {mealOptions.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-3 mb-3">
                                     {/* Student Count */}
                                     <Counter
                                         label="園児"
@@ -173,7 +207,7 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                                     placeholder="備考 (例: 10:20納品)"
                                     value={classOrders[cls.class_name]?.memo || ""}
                                     onChange={(e) => updateMemo(cls.class_name, e.target.value)}
-                                    className="w-full text-sm border border-gray-300 rounded-lg p-2"
+                                    className="w-full text-xs border border-gray-300 rounded-lg p-2 bg-gray-50 focus:bg-white transition-colors"
                                 />
                             </div>
                         ))}
