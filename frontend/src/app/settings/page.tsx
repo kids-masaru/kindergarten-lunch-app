@@ -28,7 +28,7 @@ export default function SettingsPage() {
         if (!user) return;
         setLoading(true);
         try {
-            await updateKindergartenSettings({
+            const newSettings = {
                 kindergarten_id: user.kindergarten_id,
                 service_mon: serviceDays.mon,
                 service_tue: serviceDays.tue,
@@ -37,7 +37,21 @@ export default function SettingsPage() {
                 service_fri: serviceDays.fri,
                 service_sat: serviceDays.sat,
                 service_sun: serviceDays.sun
-            });
+            };
+
+            await updateKindergartenSettings(newSettings);
+
+            // Update local state and localStorage so other pages see changes immediately
+            const updatedUser = {
+                ...user,
+                settings: {
+                    ...user.settings,
+                    ...newSettings
+                }
+            };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
             alert("設定を保存しました！");
         } catch (e) {
             console.error(e);
