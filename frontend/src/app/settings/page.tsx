@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Save } from 'lucide-react';
-import { getMasters, updateKindergartenSettings } from '@/lib/api'; // Assumption: updateKindergartenSettings needs to be created or mocked
+import { getMasters } from '@/lib/api';
 import { LoginUser } from '@/types';
 
 export default function SettingsPage() {
@@ -57,8 +57,8 @@ export default function SettingsPage() {
                                     // @ts-ignore
                                     onClick={() => setServiceDays(prev => ({ ...prev, [key]: !isActive }))}
                                     className={`p-3 rounded-xl border font-bold transition-all ${isActive
-                                            ? 'bg-blue-500 text-white border-blue-600 shadow-md'
-                                            : 'bg-white text-gray-400 border-gray-200'
+                                        ? 'bg-blue-500 text-white border-blue-600 shadow-md'
+                                        : 'bg-white text-gray-400 border-gray-200'
                                         }`}
                                 >
                                     {day}
