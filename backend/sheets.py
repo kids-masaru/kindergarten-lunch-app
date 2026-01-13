@@ -116,25 +116,32 @@ def save_order(order_row):
     ]
     
     try:
-        # Upsert Logic
-        # 1. Get all Order IDs (Column A) to check existence
-        # This reduces reads compared to getting full records
+        # Upsert Logic with Explicit Row Calculation
+        wb = get_db_connection()
+        if not wb: return False
+        sheet = wb.worksheet("Order_Data")
+
+        # Get all Order IDs (Column A)
+        # This is our source of truth for row positions
         order_ids = sheet.col_values(1) 
         
         target_id = order_row.get('order_id')
         row_index = -1
         
-        if target_id in order_ids:
-            # Found existing ID -> Update
+        if target_id and target_id in order_ids:
+            # UPDATE: ID exists
+            print(f"[DEBUG] Found existing ID {target_id} at index {order_ids.index(target_id) + 1}")
             row_index = order_ids.index(target_id) + 1 # 1-based index
-            
-            # Update the entire row
-            # Define range A{row}:J{row}
-            cell_range = f"A{row_index}:J{row_index}"
-            sheet.update(cell_range, [row_values])
         else:
-            # New -> Append
-            sheet.append_row(row_values)
+            # INSERT: ID not found, append to end
+            # +1 because 1-based, +1 for next empty row
+            row_index = len(order_ids) + 1
+            print(f"[DEBUG] New ID {target_id}. Appending to row {row_index}")
+
+        # Update the row explicitly
+        # Range A{row}:J{row}
+        cell_range = f"A{row_index}:J{row_index}"
+        sheet.update(cell_range, [row_values])
             
         return True
     except Exception as e:
