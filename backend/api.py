@@ -63,6 +63,7 @@ def health_check():
 
 @router.post("/login")
 def login(creds: LoginRequest):
+    print(f"[DEBUG] Login attempt for: {creds.login_id}")
     try:
         # Always allow mock login for development
         if creds.login_id == "admin" and creds.password == "pass":
@@ -74,14 +75,36 @@ def login(creds: LoginRequest):
 
         masters = get_kindergarten_master()
         if not masters:
+            print("[ERROR] No masters returned from Sheet")
             raise HTTPException(status_code=500, detail="Database connection failed")
-
-        user = next((u for u in masters if str(u.get('login_id')) == creds.login_id), None)
         
-        if user and str(user.get('password')) == creds.password:
+        print(f"[DEBUG] Fetched {len(masters)} rows from Kindergarten_Master")
+
+        # Robust User Finding
+        input_login_id = str(creds.login_id).strip()
+        input_password = str(creds.password).strip()
+        
+        user = None
+        for u in masters:
+            # Check for various key possibilities just in case
+            sheet_login_id = str(u.get('login_id') or u.get('ログインID') or '').strip()
+            
+            if sheet_login_id == input_login_id:
+                user = u
+                break
+        
+        if not user:
+            print(f"[DEBUG] User {input_login_id} not found in sheet")
+            raise HTTPException(status_code=401, detail="Invalid credentials (User not found)")
+            
+        # Check Password
+        sheet_password = str(user.get('password') or u.get('パスワード') or '').strip()
+        
+        if sheet_password == input_password:
+            print(f"[DEBUG] Login successful for {input_login_id}")
             return {
-                "kindergarten_id": user['kindergarten_id'],
-                "name": user['name'],
+                "kindergarten_id": user.get('kindergarten_id'),
+                "name": user.get('name'),
                 "settings": {
                     "course_type": user.get('course_type'),
                     "has_bread_day": str(user.get('has_bread_day', 'FALSE')).upper() == 'TRUE',
@@ -96,9 +119,15 @@ def login(creds: LoginRequest):
                     "service_sun": str(user.get('service_sun', 'FALSE')).upper() == 'TRUE',
                 }
             }
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+            
+        print(f"[DEBUG] Password mismatch for {input_login_id}")
+        raise HTTPException(status_code=401, detail="Invalid credentials (Password mismatch)")
+    except HTTPException as he:
+        raise he
     except Exception as e:
         import traceback
+        print(f"[ERROR] Login Exception: {e}")
+        traceback.print_exc()
         return {"error": str(e), "traceback": traceback.format_exc()}
 
 @router.get("/masters/{kindergarten_id}")
