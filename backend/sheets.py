@@ -99,6 +99,9 @@ def save_order(order_row):
     # Format values as list based on headers
     # Headers: order_id, kindergarten_id, date, class_name, meal_type, student_count, allergy_count, teacher_count, memo, updated_at
     
+    # Format values as list based on headers
+    # Headers: order_id, kindergarten_id, date, class_name, meal_type, student_count, allergy_count, teacher_count, memo, updated_at
+    
     row_values = [
         order_row.get('order_id'),
         order_row.get('kindergarten_id'),
@@ -112,10 +115,31 @@ def save_order(order_row):
         order_row.get('updated_at')
     ]
     
-    # TODO: Implement update logic if order_id exists
-    # For MVP, we'll just append. Real app should update.
-    sheet.append_row(row_values)
-    return True
+    try:
+        # Upsert Logic
+        # 1. Get all Order IDs (Column A) to check existence
+        # This reduces reads compared to getting full records
+        order_ids = sheet.col_values(1) 
+        
+        target_id = order_row.get('order_id')
+        row_index = -1
+        
+        if target_id in order_ids:
+            # Found existing ID -> Update
+            row_index = order_ids.index(target_id) + 1 # 1-based index
+            
+            # Update the entire row
+            # Define range A{row}:J{row}
+            cell_range = f"A{row_index}:J{row_index}"
+            sheet.update(cell_range, [row_values])
+        else:
+            # New -> Append
+            sheet.append_row(row_values)
+            
+        return True
+    except Exception as e:
+        print(f"Error saving order: {e}")
+        return False
 
 def update_class_master(kindergarten_id, class_name, data):
     """
