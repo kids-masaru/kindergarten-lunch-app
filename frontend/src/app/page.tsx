@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList } from 'lucid
 import OrderModal from '@/components/OrderModal';
 import ClassReportModal from '@/components/ClassReportModal';
 
+// Version: Modal Update 1.1
 export default function CalendarPage() {
   const router = useRouter();
   const [user, setUser] = useState<LoginUser | null>(null);
