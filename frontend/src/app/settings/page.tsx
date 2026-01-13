@@ -180,31 +180,14 @@ export default function SettingsPage() {
                     <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                         <span>🗓️</span> 給食提供日の設定
                     </h2>
-                    <div className="grid grid-cols-4 gap-2 mb-2">
-                        {['月', '火', '水', '木'].map((day, i) => {
-                            const key = ['mon', 'tue', 'wed', 'thu'][i] as keyof typeof serviceDays;
+                    <div className="grid grid-cols-7 gap-1">
+                        {['月', '火', '水', '木', '金', '土', '日'].map((day, i) => {
+                            const key = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'][i] as keyof typeof serviceDays;
                             return (
                                 <button
                                     key={key}
                                     onClick={() => toggleDay(key)}
-                                    className={`p-3 rounded-lg font-bold transition-all ${serviceDays[key]
-                                        ? 'bg-blue-500 text-white shadow-md'
-                                        : 'bg-gray-100 text-gray-400'
-                                        }`}
-                                >
-                                    {day}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                        {['金', '土', '日'].map((day, i) => {
-                            const key = ['fri', 'sat', 'sun'][i] as keyof typeof serviceDays;
-                            return (
-                                <button
-                                    key={key}
-                                    onClick={() => toggleDay(key)}
-                                    className={`p-3 rounded-lg font-bold transition-all ${serviceDays[key]
+                                    className={`p-2 rounded-lg font-bold text-sm transition-all ${serviceDays[key]
                                         ? 'bg-blue-500 text-white shadow-md'
                                         : 'bg-gray-100 text-gray-400'
                                         }`}
