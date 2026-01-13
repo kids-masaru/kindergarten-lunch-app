@@ -17,7 +17,8 @@ interface OrderModalProps {
 
 export default function OrderModal({ date, isOpen, onClose, user, classes, existingOrders, onSave }: OrderModalProps) {
     const [mealType, setMealType] = useState('通常');
-    const [classOrders, setClassOrders] = useState<Record<string, { student: number, allergy: number, teacher: number, memo: string }>>({});
+    // Include order_id in state to track per-class orders
+    const [classOrders, setClassOrders] = useState<Record<string, { order_id?: string, student: number, allergy: number, teacher: number, memo: string }>>({});
     const [loading, setLoading] = useState(false);
 
     // Initial State Setup
@@ -32,6 +33,7 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
             classes.forEach(cls => {
                 const order = existingOrders.find(o => o.class_name === cls.class_name);
                 initialOrders[cls.class_name] = {
+                    order_id: order?.order_id,
                     student: order ? order.student_count : cls.default_student_count,
                     allergy: order ? order.allergy_count : (cls.default_allergy_count || 0),
                     teacher: order ? order.teacher_count : cls.default_teacher_count,
@@ -80,6 +82,7 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
             const promises = classes.map(cls => {
                 const data = classOrders[cls.class_name];
                 const orderData: Order = {
+                    order_id: data.order_id, // include ID if exists
                     kindergarten_id: user.kindergarten_id,
                     date: dateStr,
                     class_name: cls.class_name,
