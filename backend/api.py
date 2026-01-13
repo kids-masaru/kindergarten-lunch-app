@@ -88,7 +88,6 @@ def login(creds: LoginRequest):
                     "service_sun": str(user.get('service_sun', 'FALSE')).upper() == 'TRUE',
                 }
             }
-            }
         raise HTTPException(status_code=401, detail="Invalid credentials")
     except Exception as e:
         import traceback
