@@ -71,22 +71,22 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
                 </h2>
             </div>
 
-            {/* Content */}
             <div className="p-4 overflow-y-auto flex-1">
-                <div className="text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    ここで設定した人数が、<strong>来月の注文入力時の初期値</strong>になります。<br />
-                    （変更があった場合のみ修正してください）
+                <div className="text-xs text-gray-500 mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100 leading-relaxed">
+                    ※ここでの設定値が<strong>来月の初期値</strong>になります。
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-2">
                     {classes.map(cls => (
-                        <div key={cls.class_name} className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="font-bold text-gray-800 min-w-[100px]">
-                                {cls.class_name}
-                                <span className="ml-2 text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">{cls.grade}</span>
+                        <div key={cls.class_name} className="bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+                            {/* Header: Class Name & Grade */}
+                            <div className="flex items-center gap-2 mb-2 pb-1 border-b border-gray-50">
+                                <span className="text-sm font-bold text-blue-800">{cls.class_name}</span>
+                                <span className="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">{cls.grade}</span>
                             </div>
 
-                            <div className="flex gap-4 justify-between sm:justify-end flex-1">
+                            {/* Counters Grid - Compact */}
+                            <div className="grid grid-cols-3 gap-2">
                                 <EditCounter
                                     label="園児"
                                     value={edits[cls.class_name]?.default_student_count || 0}
@@ -125,12 +125,12 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
 
 function EditCounter({ label, value, onChange, color = "text-gray-900" }: { label: string, value: number, onChange: (d: number) => void, color?: string }) {
     return (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center w-full">
             <span className="text-[10px] text-gray-400 mb-1">{label}</span>
-            <div className="flex items-center gap-1 bg-white rounded-lg border border-gray-200 p-0.5">
-                <button onClick={() => onChange(-1)} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded"><Minus className="w-3 h-3" /></button>
-                <span className={`font-bold text-lg w-8 text-center ${color}`}>{value}</span>
-                <button onClick={() => onChange(1)} className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded"><Plus className="w-3 h-3" /></button>
+            <div className="flex items-center justify-between w-full bg-white rounded border border-gray-200 p-0.5">
+                <button onClick={() => onChange(-1)} className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded"><Minus className="w-3 h-3" /></button>
+                <span className={`font-bold text-base flex-1 text-center ${color}`}>{value}</span>
+                <button onClick={() => onChange(1)} className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded"><Plus className="w-3 h-3" /></button>
             </div>
         </div>
     );
