@@ -113,7 +113,7 @@ def get_masters(kindergarten_id: str):
              ]
          }
          
-    my_classes = [c for c in all_classes if c['kindergarten_id'] == kindergarten_id]
+    my_classes = [c for c in all_classes if str(c.get('kindergarten_id')) == str(kindergarten_id)]
     return {"classes": my_classes}
 
 @router.post("/masters/class")
