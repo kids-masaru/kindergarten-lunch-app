@@ -27,7 +27,7 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
             const initialOrders: any = {};
             // Determine bulk meal type from first order if exists, otherwise "通常"
             const firstOrder = existingOrders[0];
-            if (firstOrder) setMealType(firstOrder.meal_type); # This is just for initial UI state of bulk selector
+            if (firstOrder) setMealType(firstOrder.meal_type); // This is just for initial UI state of bulk selector
             else setMealType('通常');
 
             classes.forEach(cls => {
@@ -169,10 +169,10 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                                         value={classOrders[cls.class_name]?.meal_type || '通常'}
                                         onChange={(e) => updateMealType(cls.class_name, e.target.value)}
                                         className={`text-sm font-bold py-1 px-2 rounded border focus:outline-none focus:ring-2 focus:ring-orange-500 ${classOrders[cls.class_name]?.meal_type === 'カレー' ? 'bg-yellow-50 text-yellow-800 border-yellow-200' :
-                                                classOrders[cls.class_name]?.meal_type === 'パン' ? 'bg-orange-50 text-orange-800 border-orange-200' :
-                                                    classOrders[cls.class_name]?.meal_type === 'ピクニック' ? 'bg-green-50 text-green-800 border-green-200' :
-                                                        classOrders[cls.class_name]?.meal_type === '飯なし' ? 'bg-gray-100 text-gray-500 border-gray-200' :
-                                                            'bg-white text-gray-700 border-gray-200'
+                                            classOrders[cls.class_name]?.meal_type === 'パン' ? 'bg-orange-50 text-orange-800 border-orange-200' :
+                                                classOrders[cls.class_name]?.meal_type === 'ピクニック' ? 'bg-green-50 text-green-800 border-green-200' :
+                                                    classOrders[cls.class_name]?.meal_type === '飯なし' ? 'bg-gray-100 text-gray-500 border-gray-200' :
+                                                        'bg-white text-gray-700 border-gray-200'
                                             }`}
                                     >
                                         {mealOptions.map(opt => (
