@@ -41,8 +41,18 @@ class ClassUpdateRequest(BaseModel):
     class_name: str
     default_student_count: int
     default_allergy_count: int
+    default_teacher_count: int
+
+class ClassUpdateItem(BaseModel):
+    class_name: str
+    grade: str
+    floor: Optional[str] = ""
+    default_student_count: int
     default_allergy_count: int
     default_teacher_count: int
+
+class ClassListUpdateRequest(BaseModel):
+    classes: List[ClassUpdateItem]
 
 class KindergartenUpdateRequest(BaseModel):
     kindergarten_id: str
