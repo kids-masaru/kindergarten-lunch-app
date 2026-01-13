@@ -95,11 +95,21 @@ def get_calendar(kindergarten_id: str, year: int, month: int):
     # Filter by ID and Month (YYYY-MM)
     year_month = f"{year}-{month:02d}"
     
-    my_orders = [
+    filtered_orders = [
         order for order in all_orders 
         if order.get('kindergarten_id') == kindergarten_id and str(order.get('date')).startswith(year_month)
     ]
-    return {"orders": my_orders}
+
+    # Dedup: Keep only the latest order for each (date, class_name)
+    # Sort by updated_at (assuming ISO format strings sort correctly)
+    filtered_orders.sort(key=lambda x: x.get('updated_at', ''), reverse=False)
+
+    latest_orders_map = {}
+    for order in filtered_orders:
+        key = (order.get('date'), order.get('class_name'))
+        latest_orders_map[key] = order
+    
+    return {"orders": list(latest_orders_map.values())}
 
 @router.post("/orders")
 def create_order(order: OrderItem):

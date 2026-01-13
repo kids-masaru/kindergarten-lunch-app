@@ -45,7 +45,11 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
     if (!isOpen) return null;
 
     const formattedDate = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
-    const dateStr = date.toISOString().split('T')[0];
+    // Fix: Use local time construction to avoid UTC shift
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
 
     // Filter Meal Types based on Settings
     const mealOptions = [
