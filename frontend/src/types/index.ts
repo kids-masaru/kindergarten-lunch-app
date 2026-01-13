@@ -5,7 +5,14 @@ export interface LoginUser {
         course_type: string;
         has_bread_day: boolean;
         has_curry_day: boolean;
-        has_birthday_party: boolean; // Added based on context, though optional in masters return
+        has_birthday_party: boolean;
+        service_mon?: boolean;
+        service_tue?: boolean;
+        service_wed?: boolean;
+        service_thu?: boolean;
+        service_fri?: boolean;
+        service_sat?: boolean;
+        service_sun?: boolean;
     };
 }
 
