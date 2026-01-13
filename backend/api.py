@@ -115,12 +115,33 @@ def get_calendar(kindergarten_id: str, year: int, month: int):
          return {"orders": []}
 
     # Filter by ID and Month (YYYY-MM)
-    year_month = f"{year}-{month:02d}"
+    # Robust Date Parsing
+    target_year = year
+    target_month = month
     
-    filtered_orders = [
-        order for order in all_orders 
-        if order.get('kindergarten_id') == kindergarten_id and str(order.get('date')).startswith(year_month)
-    ]
+    filtered_orders = []
+    
+    for order in all_orders:
+        if order.get('kindergarten_id') != kindergarten_id:
+            continue
+            
+        date_val = str(order.get('date'))
+        try:
+            # Handle standard formats: YYYY-MM-DD, YYYY/MM/DD
+            d = None
+            if '-' in date_val:
+                parts = date_val.split('-')
+                if len(parts) >= 2:
+                     d = (int(parts[0]), int(parts[1]))
+            elif '/' in date_val:
+                parts = date_val.split('/')
+                if len(parts) >= 2:
+                     d = (int(parts[0]), int(parts[1]))
+            
+            if d and d[0] == target_year and d[1] == target_month:
+                filtered_orders.append(order)
+        except:
+            continue
 
     # Dedup: Keep only the latest order for each (date, class_name)
     # Sort by updated_at (assuming ISO format strings sort correctly)

@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCalendar, getMasters } from '@/lib/api';
 import { LoginUser, Order, ClassMaster } from '@/types';
-import { ChevronLeft, ChevronRight, LogOut, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList } from 'lucide-react';
 import OrderModal from '@/components/OrderModal';
+import ClassReportModal from '@/components/ClassReportModal';
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function CalendarPage() {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -150,6 +152,18 @@ export default function CalendarPage() {
           onSave={() => fetchOrders(user.kindergarten_id, year, month)}
         />
       )}
+
+      {/* Report Modal */}
+      <ClassReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        user={user}
+        classes={classes}
+        onSaved={() => {
+          // Refresh masters to get new defaults
+          getMasters(user.kindergarten_id).then(res => setClasses(res.classes));
+        }}
+      />
     </div>
   );
 }
