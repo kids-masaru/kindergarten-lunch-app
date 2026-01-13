@@ -63,14 +63,11 @@ export default function CalendarPage() {
   const getDayIcon = (dayOrders: Order[]) => {
     if (dayOrders.length === 0) return null;
     const type = dayOrders[0].meal_type;
-    switch (type) {
-      case 'カレー': return '🍛';
-      case 'パン': return '🥖';
-      case '誕生会': return '🎂';
-      case 'ピクニック': return '🍱';
-      case '飯なし': return '❌';
-      default: return '✅'; // Usually rice
-    }
+    // Special case for "No Meal" explicitly
+    if (type === '飯なし') return '❌';
+
+    // For ALL other types (Curry, Bread, Rice, Birthday, etc.), show generic Circle
+    return '⭕️';
   };
 
   const daysInMonth = new Date(year, month, 0).getDate();
@@ -171,6 +168,20 @@ export default function CalendarPage() {
                     }
                   }
 
+                  // Icon Logic
+                  let displayIcon = null;
+                  if (!isServiceDay) {
+                    displayIcon = <span className="text-xs text-gray-300">－</span>;
+                  } else if (dayOrders.length > 0) {
+                    // Has Order -> Checkmark (Unified)
+                    const type = dayOrders[0].meal_type;
+                    if (type === '飯なし') displayIcon = '❌';
+                    else displayIcon = '✅';
+                  } else {
+                    // Service Day but No Order -> Blank (to avoid confusion)
+                    displayIcon = null;
+                  }
+
                   return (
                     <button
                       key={day}
@@ -178,15 +189,15 @@ export default function CalendarPage() {
                       disabled={!isServiceDay}
                       className={`aspect-square rounded-xl flex flex-col items-center justify-start pt-1 relative border transition-all 
                         ${!isServiceDay
-                          ? 'bg-gray-100 border-gray-100 text-gray-300 cursor-not-allowed'
+                          ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed opacity-50'
                           : isToday
                             ? 'bg-orange-50 border-orange-300 active:scale-95 shadow-sm hover:border-orange-200'
-                            : 'bg-white border-gray-100 active:scale-95 shadow-sm hover:border-orange-200'
+                            : 'bg-white border-gray-200 active:scale-95 shadow-sm hover:border-orange-200'
                         }`}
                     >
                       <span className={`text-sm font-bold ${!isServiceDay ? 'text-gray-300' : isToday ? 'text-orange-600' : 'text-gray-700'}`}>{day}</span>
                       <div className="mt-1 text-2xl lg:text-3xl">
-                        {!isServiceDay ? <span className="text-xs">休み</span> : (icon || <span className="text-xs text-gray-200 mt-2 block">未</span>)}
+                        {displayIcon}
                       </div>
                       {dayOrders.length > 0 && isServiceDay && (
                         <div className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-green-500"></div>
