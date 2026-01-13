@@ -124,6 +124,7 @@ def update_class(req: ClassUpdateRequest):
         {
             "default_student_count": req.default_student_count,
             "default_allergy_count": req.default_allergy_count,
+            "default_allergy_count": req.default_allergy_count,
             "default_teacher_count": req.default_teacher_count
         }
     )
@@ -132,6 +133,28 @@ def update_class(req: ClassUpdateRequest):
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update class master")
     return {"status": "success"}
+
+@router.put("/masters/classes/{kindergarten_id}")
+def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRequest):
+    print(f"[DEBUG] Received class update for {kindergarten_id}")
+    print(f"[DEBUG] Validating {len(request.classes)} classes")
+    try:
+        data_to_save = [c.dict() for c in request.classes]
+        print(f"[DEBUG] Payload sample: {data_to_save[0] if data_to_save else 'Empty'}")
+        
+        success = update_all_classes_for_kindergarten(kindergarten_id, data_to_save)
+        
+        if not success:
+            print(f"[ERROR] update_all_classes_for_kindergarten returned False")
+            raise HTTPException(status_code=500, detail="Failed to update classes in sheet")
+            
+        print(f"[DEBUG] Successfully updated classes for {kindergarten_id}")
+        return {"status": "success", "message": "Classes updated"}
+    except Exception as e:
+        print(f"[CRITICAL ERROR] {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Server Error: {str(e)}")
 
 @router.put("/masters/kindergarten")
 def update_kindergarten(req: KindergartenUpdateRequest):

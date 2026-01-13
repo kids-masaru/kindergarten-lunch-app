@@ -242,57 +242,89 @@ def update_all_classes_for_kindergarten(kindergarten_id, new_classes):
     Replace all classes for a specific kindergarten with the new list.
     new_classes: List of dicts [{'class_name': '...', 'grade': '...', ...}]
     """
+    print(f"[DEBUG_SHEET] update_all_classes called for {kindergarten_id}")
     try:
         wb = get_db_connection()
-        if not wb: return False
+        if not wb: 
+            print("[ERROR_SHEET] No DB connection")
+            return False
         sheet = wb.worksheet("Class_Master")
         
         # 1. Get current data
         all_records = sheet.get_all_records()
         headers = sheet.row_values(1)
+        print(f"[DEBUG_SHEET] Headers found: {headers}")
+        print(f"[DEBUG_SHEET] Total records before update: {len(all_records)}")
         
         # 2. Filter out classes belonging to this kindergarten
         # Keep records where kindergarten_id DOES NOT match
-        kept_records = [r for r in all_records if str(r.get('kindergarten_id')) != kindergarten_id]
+        target_id_str = str(kindergarten_id).strip()
+        kept_records = [r for r in all_records if str(r.get('kindergarten_id')).strip() != target_id_str]
+        print(f"[DEBUG_SHEET] Records kept (other kindergartens): {len(kept_records)}")
         
         # 3. Prepare new rows
-        # new_classes contains: class_name, grade, default_student_count, default_allergy_count, default_teacher_count
-        # We need to ensure all headers used in the sheet are populated
-        
-        # Expected headers in sheet:
-        # kindergarten_id, class_name, floor, grade, default_student_count, default_allergy_count, default_teacher_count
-        
         new_rows_dicts = []
         for cls in new_classes:
             row_dict = {
                 'kindergarten_id': kindergarten_id,
                 'class_name': cls.get('class_name'),
-                'floor': cls.get('floor', ''), # Default empty if not provided
+                'floor': cls.get('floor', ''), 
                 'grade': cls.get('grade'),
                 'default_student_count': cls.get('default_student_count', 0),
                 'default_allergy_count': cls.get('default_allergy_count', 0),
                 'default_teacher_count': cls.get('default_teacher_count', 0)
             }
             new_rows_dicts.append(row_dict)
+        print(f"[DEBUG_SHEET] New records to append: {len(new_rows_dicts)}")
             
         # Combine kept records and new records
         final_records = kept_records + new_rows_dicts
         
         # 4. Convert back to list of lists for writing
-        # Use headers to determine order
         rows_to_write = [headers] # First row is header
         
         for record in final_records:
             row = []
             for h in headers:
-                row.append(record.get(h, '')) # safely get value or empty string
+                val = record.get(h, '')
+                # Handle # prefix if still present in keys/headers mapping? 
+                # Actually headers list comes from sheet, so record keys must match headers.
+                # Since we construct record manually above 'row_dict', we might miss keys if headers have #.
+                # Let's simple-map: if h matches one of our known keys, use it.
+                
+                # Known key mapping for writing back
+                clean_h = h.replace('# ', '').strip() # Handle Visual # just in case
+                if clean_h in record:
+                    row.append(record[clean_h])
+                elif h in record:
+                    row.append(record[h])
+                else:
+                    # Try to find matching key in row_dict (e.g. if header is '# default_student_count' and key is 'default_student_count')
+                    found = False
+                    for k in record:
+                        if k in h: # Fuzzy match? No, dangerous.
+                            pass
+                    
+                    # Logic: Our row_dict has clean keys (kindergarten_id, class_name, etc.)
+                    # The 'h' (header) might have '# '.
+                    if clean_h in row_dict and record == row_dict: # If this record is a NEW one
+                         row.append(row_dict.get(clean_h, ''))
+                    else:
+                         # For KEPT records, they have original keys.
+                         row.append(record.get(h, ''))
+            
             rows_to_write.append(row)
             
+        print(f"[DEBUG_SHEET] Total rows to write: {len(rows_to_write)}")
+
         # 5. Write to sheet
         sheet.clear()
         sheet.update('A1', rows_to_write)
+        print("[DEBUG_SHEET] Update successful")
         
         return True
     except Exception as e:
-        print(f"Error updating all classes: {e}")
+        print(f"[ERROR_SHEET] Exception in update_all_classes: {e}")
+        import traceback
+        traceback.print_exc()
         return False

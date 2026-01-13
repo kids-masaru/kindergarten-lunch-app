@@ -89,9 +89,10 @@ export default function SettingsPage() {
 
             setIsClassModalOpen(false);
             alert("クラス情報を保存しました！");
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("保存に失敗しました");
+            const msg = e.response?.data?.detail || e.message || "Unknown error";
+            alert(`保存に失敗しました: ${msg}`);
         } finally {
             setLoading(false);
         }
@@ -112,9 +113,10 @@ export default function SettingsPage() {
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
             alert("クラスを削除しました");
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("削除に失敗しました");
+            const msg = e.response?.data?.detail || e.message || "Unknown error";
+            alert(`削除に失敗しました: ${msg}`);
         } finally {
             setLoading(false);
         }
