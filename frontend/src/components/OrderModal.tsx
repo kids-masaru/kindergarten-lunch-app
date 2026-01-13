@@ -158,27 +158,27 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                     <div className="space-y-4">
                         {classes.map(cls => (
                             <div key={cls.class_name} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                                <div className="flex justify-between items-start mb-3">
-                                    <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+                                    <h3 className="font-bold text-gray-800 flex items-center gap-2 mb-1 sm:mb-0">
                                         {cls.class_name}
                                         <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{cls.grade}</span>
                                     </h3>
 
-                                    {/* Per-Class Meal Type Selector */}
-                                    <select
-                                        value={classOrders[cls.class_name]?.meal_type || '通常'}
-                                        onChange={(e) => updateMealType(cls.class_name, e.target.value)}
-                                        className={`text-sm font-bold py-1 px-2 rounded border focus:outline-none focus:ring-2 focus:ring-orange-500 ${classOrders[cls.class_name]?.meal_type === 'カレー' ? 'bg-yellow-50 text-yellow-800 border-yellow-200' :
-                                            classOrders[cls.class_name]?.meal_type === 'パン' ? 'bg-orange-50 text-orange-800 border-orange-200' :
-                                                classOrders[cls.class_name]?.meal_type === 'ピクニック' ? 'bg-green-50 text-green-800 border-green-200' :
-                                                    classOrders[cls.class_name]?.meal_type === '飯なし' ? 'bg-gray-100 text-gray-500 border-gray-200' :
-                                                        'bg-white text-gray-700 border-gray-200'
-                                            }`}
-                                    >
+                                    {/* Per-Class Meal Type Selector (Scrollable Buttons) */}
+                                    <div className="flex gap-1 overflow-x-auto pb-2 no-scrollbar scroll-smooth w-full sm:w-auto mt-2 sm:mt-0">
                                         {mealOptions.map(opt => (
-                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            <button
+                                                key={opt.value}
+                                                onClick={() => updateMealType(cls.class_name, opt.value)}
+                                                className={`whitespace-nowrap py-1 px-2.5 text-xs rounded-full border font-medium transition-colors flex-shrink-0 ${(classOrders[cls.class_name]?.meal_type || '通常') === opt.value
+                                                    ? 'bg-orange-500 text-white border-orange-600 shadow-sm ring-1 ring-orange-200'
+                                                    : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                                                    }`}
+                                            >
+                                                {opt.label}
+                                            </button>
                                         ))}
-                                    </select>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-3 gap-3 mb-3">
