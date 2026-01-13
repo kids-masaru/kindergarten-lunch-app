@@ -80,9 +80,14 @@ export default function CalendarPage() {
       {/* Header */}
       <div className="bg-white p-4 shadow-sm sticky top-0 z-10 flex justify-between items-center">
         <h1 className="font-bold text-gray-800">{user.name}</h1>
-        <button onClick={() => { localStorage.removeItem('user'); router.push('/login'); }} className="text-gray-400 hover:text-gray-600">
-          <LogOut className="w-5 h-5" />
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => router.push('/report')} className="flex items-center gap-1 text-sm bg-blue-50 text-blue-600 px-3 py-2 rounded-lg font-bold hover:bg-blue-100">
+            <span>クラス報告</span>
+          </button>
+          <button onClick={() => { localStorage.removeItem('user'); router.push('/login'); }} className="text-gray-400 hover:text-gray-600 p-2">
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Calendar Controls */}

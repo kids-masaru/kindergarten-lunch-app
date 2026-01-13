@@ -116,3 +116,53 @@ def save_order(order_row):
     # For MVP, we'll just append. Real app should update.
     sheet.append_row(row_values)
     return True
+
+def update_class_master(kindergarten_id, class_name, data):
+    """
+    Update a specific class's master data.
+    data: dict containing default_student_count, etc.
+    """
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        sheet = wb.worksheet("Class_Master")
+        
+        # 1. Fetch all data to find the row index
+        # This is expensive for large sheets but fine for this scale
+        all_records = sheet.get_all_records()
+        
+        # 2. Find row index (1-based, +1 for header)
+        row_index = -1
+        for i, record in enumerate(all_records):
+            if str(record.get('kindergarten_id')) == kindergarten_id and \
+               str(record.get('class_name')) == class_name:
+                row_index = i + 2 # +1 for 0-index, +1 for header
+                break
+        
+        if row_index == -1:
+            return False
+            
+        # 3. Update cells
+        # Assumes headers: kindergarten_id, class_name, floor, grade, default_student_count, default_allergy_count, default_teacher_count
+        # We need to map data keys to column indices or use update_cell logic
+        
+        # Finding column indices from headers
+        headers = sheet.row_values(1)
+        
+        updates = []
+        if 'default_student_count' in data:
+            col = headers.index('default_student_count') + 1
+            sheet.update_cell(row_index, col, data['default_student_count'])
+            
+        if 'default_allergy_count' in data:
+            col = headers.index('default_allergy_count') + 1
+            sheet.update_cell(row_index, col, data['default_allergy_count'])
+            
+        if 'default_teacher_count' in data:
+            col = headers.index('default_teacher_count') + 1
+            sheet.update_cell(row_index, col, data['default_teacher_count'])
+            
+        return True
+    except Exception as e:
+        print(f"Error updating class master: {e}")
+        return False

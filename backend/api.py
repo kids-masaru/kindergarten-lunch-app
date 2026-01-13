@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 from datetime import datetime
-from .sheets import get_kindergarten_master, get_class_master, get_order_data, save_order
+from .sheets import get_kindergarten_master, get_class_master, get_order_data, save_order, update_class_master
 
 router = APIRouter()
 
@@ -27,6 +27,13 @@ class MonthRequest(BaseModel):
     year: int
     month: int
     kindergarten_id: str
+
+class ClassUpdateRequest(BaseModel):
+    kindergarten_id: str
+    class_name: str
+    default_student_count: int
+    default_allergy_count: int
+    default_teacher_count: int
 
 # --- Endpoints ---
 
@@ -80,6 +87,21 @@ def get_masters(kindergarten_id: str):
          
     my_classes = [c for c in all_classes if c['kindergarten_id'] == kindergarten_id]
     return {"classes": my_classes}
+
+@router.post("/masters/class")
+def update_class(req: ClassUpdateRequest):
+    success = update_class_master(
+        req.kindergarten_id,
+        req.class_name,
+        {
+            "default_student_count": req.default_student_count,
+            "default_allergy_count": req.default_allergy_count,
+            "default_teacher_count": req.default_teacher_count
+        }
+    )
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update class master")
+    return {"status": "success"}
 
 @router.get("/calendar")
 def get_calendar(kindergarten_id: str, year: int, month: int):

@@ -28,3 +28,14 @@ export const saveOrder = async (orderData: any) => {
     const res = await api.post('/orders', orderData);
     return res.data;
 };
+
+export const updateClassMaster = async (data: {
+    kindergarten_id: string;
+    class_name: string;
+    default_student_count: number;
+    default_allergy_count: number;
+    default_teacher_count: number;
+}) => {
+    const res = await api.post('/masters/class', data);
+    return res.data;
+};
