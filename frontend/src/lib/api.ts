@@ -58,13 +58,12 @@ export const updateKindergartenClasses = async (kindergartenId: string, classes:
     const res = await api.put(`/masters/classes/${kindergartenId}`, { classes });
     return res.data;
 };
-    return res.data;
-};
+
 
 export const uploadMenu = async (year: number, month: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     const res = await api.post('/menus/upload', formData, {
         params: { year, month },
         headers: {

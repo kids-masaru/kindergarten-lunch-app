@@ -7,3 +7,4 @@ pydantic
 python-multipart
 openpyxl
 pandas
+google-api-python-client

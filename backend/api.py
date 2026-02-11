@@ -336,6 +336,15 @@ async def upload_menu_excel(year: int, month: int, file: UploadFile = File(...))
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
+        # Drive Backup
+        try:
+             from backend.drive import upload_file_to_drive
+             upload_filename = f"Raw_Menu_{year}_{month}.xlsx"
+             print(f"Uploading raw menu to Drive: {upload_filename}")
+             upload_file_to_drive(temp_path, upload_filename, mime_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        except Exception as e:
+             print(f"Drive Upload Failed (Non-critical): {e}")
+
         # Parse
         print(f"Parsing uploaded file: {temp_path}")
         menu_table = parse_menu_excel(temp_path, year, month)
@@ -380,11 +389,18 @@ def generate_menu_file(req: MenuGenerationRequest):
         if 'kindergarten_name' not in req.options:
             req.options['kindergarten_name'] = k_name
             
+        # 2. Generate Excel (Sync for now)
         file_path = generate_kondate_excel(req.kindergarten_id, req.year, req.month, req.options)
         
-        if not os.path.exists(file_path):
-             raise HTTPException(status_code=500, detail="Generated file not found")
-             
+        # 3. Upload to Drive (Backup)
+        filename = os.path.basename(file_path)
+        try:
+             from backend.drive import upload_file_to_drive
+             upload_file_to_drive(file_path, filename, mime_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        except Exception as e:
+             print(f"Drive Upload Failed (Non-critical): {e}")
+
+        # 3. Return File
         filename = os.path.basename(file_path)
         return FileResponse(
             path=file_path, 

@@ -4,13 +4,14 @@ import os
 import json
 from typing import Dict, List, Optional
 from backend.models import MenuTable, DailyMenu, MenuDish, normalize_key
+from backend.drive import upload_file_to_drive, download_file_from_drive
 
 # Directory to store Menu Masters (JSON) and Generated Files
 DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
 
 def save_menu_master(table: MenuTable):
-    """Saves the parsed MenuTable to a JSON file."""
+    """Saves the parsed MenuTable to a JSON file and uploads to Drive."""
     filename = f"menu_master_{table.year}_{table.month}.json"
     filepath = os.path.join(DATA_DIR, filename)
     
@@ -30,15 +31,23 @@ def save_menu_master(table: MenuTable):
                 
              json.dump(table.dict(), f, default=json_serial, ensure_ascii=False, indent=2)
              
+    # Upload to Drive
+    print(f"Uploading Master to Drive: {filename}")
+    upload_file_to_drive(filepath, filename, mime_type='application/json')
+             
     return filepath
 
 def load_menu_master(year: int, month: int) -> Optional[MenuTable]:
-    """Loads a MenuTable from JSON."""
+    """Loads a MenuTable from JSON (Downloads from Drive if needed)."""
     filename = f"menu_master_{year}_{month}.json"
     filepath = os.path.join(DATA_DIR, filename)
     
     if not os.path.exists(filepath):
-        return None
+        # Try to download from Drive
+        print(f"Local master not found. Checking Drive for: {filename}")
+        success = download_file_from_drive(filename, filepath)
+        if not success:
+            return None
         
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
