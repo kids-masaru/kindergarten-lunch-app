@@ -58,3 +58,30 @@ export const updateKindergartenClasses = async (kindergartenId: string, classes:
     const res = await api.put(`/masters/classes/${kindergartenId}`, { classes });
     return res.data;
 };
+    return res.data;
+};
+
+export const uploadMenu = async (year: number, month: number, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const res = await api.post('/menus/upload', formData, {
+        params: { year, month },
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return res.data;
+};
+
+export const generateMenu = async (kindergartenId: string, year: number, month: number, options: any = {}) => {
+    const res = await api.post('/menus/generate', {
+        kindergarten_id: kindergartenId,
+        year,
+        month,
+        options
+    }, {
+        responseType: 'blob', // Important for file download
+    });
+    return res.data; // This will be a Blob
+};

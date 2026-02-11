@@ -3,6 +3,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 import os
 import json
 from dotenv import load_dotenv
+from typing import List, Dict, Optional, Any
+from backend.models import KindergartenMaster, ClassMaster, OrderData, normalize_key
 
 load_dotenv()
 
@@ -46,163 +48,330 @@ def get_db_connection():
         print(f"Error connecting to spreadsheet: {e}")
         return None
 
-def get_kindergarten_master():
+# --- Helper: Robust Header Mapping ---
+def find_col_index(headers: List[str], target_keys: List[str]) -> Optional[int]:
+    """
+    Find 1-based column index given a list of possible header names.
+    normalize_key is used to ignore spaces and '#'.
+    """
+    cleaned_headers = [normalize_key(h) for h in headers]
+    for key in target_keys:
+        clean_key = normalize_key(key)
+        if clean_key in cleaned_headers:
+            return cleaned_headers.index(clean_key) + 1
+    return None
+
+def records_to_models(records: List[Dict], ModelClass) -> List[Any]:
+    """Convert gspread records to Pydantic models, filtering invalid ones."""
+    models = []
+    for r in records:
+        try:
+            # Pydantic's alias matching handles the key mapping if defined in Model
+            # We assume gspread returns dicts with keys matching the Sheet Headers
+            # The Model should have aliases corresponding to actual Sheet Headers
+            
+            # Since we allowed extra fields and populate_by_name, this usually works well.
+            # However, standard get_all_records uses exact string matching.
+            # If sheet has "幼稚園ID" and model expects "kindergarten_id" (alias="幼稚園ID"), it works.
+            
+            # To be extra robust against "ID" vs "幼稚園ID", we might need to normalize keys first?
+            # For now, let's rely on Pydantic's alias feature.
+            # We might need to map "Japanese Keys" to "English Keys" if the Model expects English.
+            # But here we defined Aliases in the Model to match English (internal) to English (sheet)?
+            # Wait, the current sheet likely has Japanese headers or mixed.
+            # Let's inspect what the API currently expects. The API uses English keys.
+            # So the Sheet likely has English keys OR the code was mapping them previously.
+            # The previous code had fuzzy logic: get_val(c, ['kindergarten_id', '幼稚園ID', 'id'])
+            # So the sheet could have ANY of these.
+            
+            # Strategy: Pre-process record keys to match Model fields (English)
+            # This is complex. For now, let's trust get_all_records returns what represents the row,
+            # and we try to parse it.
+            
+            # To support the aliases we defined in models.py (which are 1:1 currently), 
+            # we need to ensure the incoming dict keys match either the field name OR the alias.
+            # The previous fuzzy logic suggests we need to support multiple aliases per field.
+            # Pydantic V2 supports validation_alias which can be a list of choices.
+            # But we are likely on V1 or simple usage.
+            
+            # Simplified approach:
+            # Check all keys in the record. If any match a known alias, map it to the standard key.
+            # But for now, let's just pass the dict to Pydantic and let it try.
+            # IMPORTANT: The current models.py uses `alias='kindergarten_id'` which expects exact match.
+            # To support '幼稚園ID', we need to manually map or use advanced Pydantic features.
+            
+            # Let's do a manual map approach for maximum robustness here.
+            
+            normalized_data = {}
+            row_keys_cleaned = {normalize_key(k): v for k, v in r.items()}
+            
+            # Map for KindergartenMaster
+            if ModelClass == KindergartenMaster:
+                # Map specific Japanese/Variations to standard keys
+                if '幼稚園ID' in r: normalized_data['kindergarten_id'] = r['幼稚園ID']
+                elif 'kindergarten_id' in r: normalized_data['kindergarten_id'] = r['kindergarten_id']
+                elif 'id' in r: normalized_data['kindergarten_id'] = r['id']
+                
+                # ... repeat for other fields? Or just let Pydantic handle the English ones if present.
+                # If we just merge `r` into `normalized_data`, Pydantic takes what it knows.
+                normalized_data.update(r)
+                
+                # Handle fuzzy keys for critical fields if strictly needed
+                def fuzzy_get(keys):
+                    for k in keys:
+                        nk = normalize_key(k)
+                        if nk in row_keys_cleaned: return row_keys_cleaned[nk]
+                    return None
+                    
+                kad = fuzzy_get(['kindergarten_id', '幼稚園ID', 'id'])
+                if kad: normalized_data['kindergarten_id'] = kad
+                
+                nm = fuzzy_get(['name', '幼稚園名', '名称'])
+                if nm: normalized_data['name'] = nm
+                
+                lid = fuzzy_get(['login_id', 'ログインID'])
+                if lid: normalized_data['login_id'] = lid
+                
+                pw = fuzzy_get(['password', 'パスワード', 'pass'])
+                if pw: normalized_data['password'] = pw
+
+            elif ModelClass == ClassMaster:
+                def fuzzy_get(keys):
+                    for k in keys:
+                        nk = normalize_key(k)
+                        if nk in row_keys_cleaned: return row_keys_cleaned[nk]
+                    return None
+                
+                kid = fuzzy_get(['kindergarten_id', '幼稚園ID'])
+                if kid: normalized_data['kindergarten_id'] = kid
+                
+                cn = fuzzy_get(['class_name', 'クラス名', 'クラス'])
+                if cn: normalized_data['class_name'] = cn
+                
+                gr = fuzzy_get(['grade', '学年'])
+                if gr: normalized_data['grade'] = gr
+                
+                sc = fuzzy_get(['default_student_count', '園児数', '標準園児数'])
+                if sc: normalized_data['default_student_count'] = sc
+
+                ac = fuzzy_get(['default_allergy_count', 'アレルギー数', '標準アレルギー数'])
+                if ac: normalized_data['default_allergy_count'] = ac
+
+                tc = fuzzy_get(['default_teacher_count', '先生数', '標準先生数'])
+                if tc: normalized_data['default_teacher_count'] = tc
+
+                # Merge original to keep others
+                # But prioritizing our found values
+                base = r.copy()
+                base.update(normalized_data)
+                normalized_data = base
+            
+            else:
+                 # OrderData (usually standard English keys based on save_order)
+                 normalized_data = r
+
+            m = ModelClass(**normalized_data)
+            models.append(m)
+        except Exception as e:
+            # print(f"Skipping invalid row: {e}")
+            continue
+    return models
+
+# --- Data Access ---
+
+def get_kindergarten_master() -> List[KindergartenMaster]:
     """Fetch Kindergarten_Master sheet data."""
     try:
         wb = get_db_connection()
         if not wb: return []
         sheet = wb.worksheet("Kindergarten_Master")
-        return sheet.get_all_records()
+        records = sheet.get_all_records()
+        return records_to_models(records, KindergartenMaster)
     except Exception as e:
         print(f"Error fetching Kindergarten_Master: {e}")
         return []
 
-def get_class_master():
+def get_class_master() -> List[ClassMaster]:
     """Fetch Class_Master sheet data."""
     try:
         wb = get_db_connection()
         if not wb: return []
         sheet = wb.worksheet("Class_Master")
-        return sheet.get_all_records()
+        records = sheet.get_all_records()
+        return records_to_models(records, ClassMaster)
     except Exception as e:
         print(f"Error fetching Class_Master: {e}")
         return []
 
-def get_order_data(month_prefix=None):
-    """
-    Fetch Order_Data. 
-    Optional: filter by month (simple client-side filter here for simplicity DB-side).
-    Realistically simpler to fetch all and filter, or query if data grows large.
-    """
+def get_order_data(month_prefix=None) -> List[OrderData]:
+    """Fetch Order_Data."""
     wb = get_db_connection()
     if not wb: return []
     try:
         sheet = wb.worksheet("Order_Data")
-        return sheet.get_all_records()
+        records = sheet.get_all_records()
+        return records_to_models(records, OrderData)
     except Exception as e:
         print(f"Error fetching Order_Data: {e}")
         return []
 
-def save_order(order_row):
-    """
-    Save or Update an order row.
-    order_row: dict
-    """
+def save_order(order_row: Dict) -> bool:
+    """Save or Update an order row using Robust Column Mapping."""
     wb = get_db_connection()
     if not wb: return False
-    sheet = wb.worksheet("Order_Data")
-    
-    # Check if exists (simple check by ID)
-    # This is a naive implementation; for production, bulk updates or row-finding is better
-    # For now, append new row.
-    
-    # Format values as list based on headers
-    # Headers: order_id, kindergarten_id, date, class_name, meal_type, student_count, allergy_count, teacher_count, memo, updated_at
-    
-    # Format values as list based on headers
-    # Headers: order_id, kindergarten_id, date, class_name, meal_type, student_count, allergy_count, teacher_count, memo, updated_at
-    
-    row_values = [
-        order_row.get('order_id'),
-        order_row.get('kindergarten_id'),
-        order_row.get('date'),
-        order_row.get('class_name'),
-        order_row.get('meal_type'),
-        order_row.get('student_count'),
-        order_row.get('allergy_count'),
-        order_row.get('teacher_count'),
-        order_row.get('memo'),
-        order_row.get('updated_at')
-    ]
-    
     try:
-        # Upsert Logic with Explicit Row Calculation
-        wb = get_db_connection()
-        if not wb: return False
         sheet = wb.worksheet("Order_Data")
+        
+        # 1. Get Headers to find column indices dynamically
+        headers = sheet.row_values(1)
+        
+        # Define mapping: Model Field -> List of Possible Headers
+        # OrderData is newly created by us so we largely control headers, 
+        # but to be safe we check common names.
+        col_map = {
+            'order_id': ['order_id'],
+            'kindergarten_id': ['kindergarten_id'],
+            'date': ['date'],
+            'class_name': ['class_name'],
+            'meal_type': ['meal_type'],
+            'student_count': ['student_count'],
+            'allergy_count': ['allergy_count'],
+            'teacher_count': ['teacher_count'],
+            'memo': ['memo'],
+            'updated_at': ['updated_at']
+        }
+        
+        # Calculate target indices once
+        # dict: field_name -> col_index (1-based)
+        target_cols = {}
+        for field, possibilities in col_map.items():
+            idx = find_col_index(headers, possibilities)
+            if idx:
+                target_cols[field] = idx
+            else:
+                # If a critical column is missing, we might need to error out or append?
+                # For now, if missing, we just won't write to it (safest for updates)
+                pass
 
-        # Get all Order IDs (Column A)
-        # This is our source of truth for row positions
-        order_ids = sheet.col_values(1) 
+        # 2. Find Row Index
+        # We need to find the row by order_id.
+        # We need the column index for 'order_id' first.
+        order_id_col = target_cols.get('order_id')
+        if not order_id_col:
+            print("Error: 'order_id' column not found in Order_Data.")
+            return False
+
+        order_ids = sheet.col_values(order_id_col)
+        # remove header from search usually, but col_values includes it.
+        # order_ids[0] is header.
         
         target_id = order_row.get('order_id')
         row_index = -1
         
         if target_id and target_id in order_ids:
-            # UPDATE: ID exists
-            print(f"[DEBUG] Found existing ID {target_id} at index {order_ids.index(target_id) + 1}")
-            row_index = order_ids.index(target_id) + 1 # 1-based index
+            # Existing Row
+            row_index = order_ids.index(target_id) + 1
         else:
-            # INSERT: ID not found, append to end
-            # +1 because 1-based, +1 for next empty row
+            # New Row
             row_index = len(order_ids) + 1
-            print(f"[DEBUG] New ID {target_id}. Appending to row {row_index}")
-
-        # Update the row explicitly
-        # Range A{row}:J{row}
-        cell_range = f"A{row_index}:J{row_index}"
-        sheet.update(cell_range, [row_values])
+            # If new row, we need to append. 
+            # Appending a list is safer than cell updates for new rows because it handles all cols.
+            # But constructing the list requires knowing the order of headers.
             
+            # Construct row based on current headers
+            new_row_list = []
+            for h in headers:
+                # Find which field this header maps to
+                found_field = None
+                normalized_h = normalize_key(h)
+                
+                for field, possibilities in col_map.items():
+                    if normalized_h in [normalize_key(p) for p in possibilities]:
+                        found_field = field
+                        break
+                
+                if found_field:
+                    new_row_list.append(order_row.get(found_field, ""))
+                else:
+                    new_row_list.append("") # Unknown column, leave empty
+            
+            sheet.append_row(new_row_list)
+            return True
+
+        # 3. Update Cells (For existing row)
+        # Using batch_update is better, but update_cell loop is fine for single row update
+        cells_to_update = []
+        for field, val in order_row.items():
+            if field in target_cols:
+                col = target_cols[field]
+                # gspread update_cell is slow one by one. 
+                # Better: Construct a list of Cell objects and update_cells?
+                # Or just update_cell for now as it's not frequent.
+                sheet.update_cell(row_index, col, val)
+        
         return True
+
     except Exception as e:
         print(f"Error saving order: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def update_class_master(kindergarten_id, class_name, data):
-    """
-    Update a specific class's master data.
-    data: dict containing default_student_count, etc.
-    """
+    """Update class master using robust column finding."""
     try:
         wb = get_db_connection()
         if not wb: return False
         sheet = wb.worksheet("Class_Master")
         
-        # 1. Fetch all data to find the row index
-        # This is expensive for large sheets but fine for this scale
         all_records = sheet.get_all_records()
+        headers = sheet.row_values(1)
         
-        # 2. Find row index (1-based, +1 for header)
+        # 1. Find Row
+        # Filter logic similar to models conversion not needed for finding usage, 
+        # effectively we just scan.
         row_index = -1
+        
+        # Helper to check record match robustly
+        def record_matches(r):
+            # Check ID
+            r_kid = str(r.get('kindergarten_id') or r.get('幼稚園ID') or '').strip()
+            # Check Class Name
+            r_cname = str(r.get('class_name') or r.get('クラス名') or '').strip()
+            
+            return r_kid == str(kindergarten_id).strip() and r_cname == str(class_name).strip()
+
         for i, record in enumerate(all_records):
-            if str(record.get('kindergarten_id')) == kindergarten_id and \
-               str(record.get('class_name')) == class_name:
-                row_index = i + 2 # +1 for 0-index, +1 for header
+            if record_matches(record):
+                row_index = i + 2
                 break
         
         if row_index == -1:
             return False
             
-        # 3. Update cells
-        # Assumes headers: kindergarten_id, class_name, floor, grade, default_student_count, default_allergy_count, default_teacher_count
-        # We need to map data keys to column indices or use update_cell logic
+        # 2. Update Cells
+        # Map data keys to potential headers
+        field_header_map = {
+            'default_student_count': ['default_student_count', '園児数', '標準園児数'],
+            'default_allergy_count': ['default_allergy_count', 'アレルギー数', '標準アレルギー数'],
+            'default_teacher_count': ['default_teacher_count', '先生数', '標準先生数']
+        }
         
-        # Finding column indices from headers
-        headers = sheet.row_values(1)
-        
-        updates = []
-        if 'default_student_count' in data:
-            col = headers.index('default_student_count') + 1
-            sheet.update_cell(row_index, col, data['default_student_count'])
-            
-        if 'default_allergy_count' in data:
-            col = headers.index('default_allergy_count') + 1
-            sheet.update_cell(row_index, col, data['default_allergy_count'])
-            
-        if 'default_teacher_count' in data:
-            col = headers.index('default_teacher_count') + 1
-            sheet.update_cell(row_index, col, data['default_teacher_count'])
-            
+        for key, value in data.items():
+            if key in field_header_map:
+                col_idx = find_col_index(headers, field_header_map[key])
+                if col_idx:
+                    sheet.update_cell(row_index, col_idx, value)
+                else:
+                    print(f"Warning: Column for {key} not found in Class_Master")
+                    
         return True
     except Exception as e:
         print(f"Error updating class master: {e}")
         return False
 
 def update_kindergarten_master(kindergarten_id, data):
-    """
-    Update Kindergarten_Master sheet data.
-    data: dict containing keys to update (e.g. {'service_mon': True})
-    """
+    """Update kindergarten master using robust column finding."""
     try:
         wb = get_db_connection()
         if not wb: return False
@@ -211,24 +380,39 @@ def update_kindergarten_master(kindergarten_id, data):
         all_records = sheet.get_all_records()
         headers = sheet.row_values(1)
         
-        # Find row index
+        # 1. Find Row
         row_index = -1
         for i, record in enumerate(all_records):
-            if str(record.get('kindergarten_id')) == kindergarten_id:
-                row_index = i + 2 # +1 for 0-index, +1 for header
+            r_id = str(record.get('kindergarten_id') or record.get('幼稚園ID') or '').strip()
+            if r_id == str(kindergarten_id).strip():
+                row_index = i + 2
                 break
         
         if row_index == -1:
             print(f"Kindergarten ID {kindergarten_id} not found")
             return False
             
-        # Update each field
+        # 2. Update Fields
+        # Data keys are from our Internal Model (English).
+        # We need to find corresponding Sheet Column (English or Japanese).
+        
+        # We assume data keys match what we want to find, but we need aliases.
+        
         for key, value in data.items():
-            if key in headers:
-                col_index = headers.index(key) + 1
-                # Convert booleans to TRUE/FALSE strings for Sheets if needed, or let gspread handle it
-                # gspread handles python types well usually
-                sheet.update_cell(row_index, col_index, value)
+            # Create a list of candidates. 
+            # 1. The key itself (e.g. 'service_mon')
+            # 2. Maybe common aliases if strict match fails?
+            # For now, let's assume the key itself is enough if using the English template.
+            # If Japanese headers used, we need a map.
+            
+            candidates = [key]
+            # Add ad-hoc aliases if known likely
+            if key == 'name': candidates.append('幼稚園名')
+            
+            col_idx = find_col_index(headers, candidates)
+            
+            if col_idx:
+                sheet.update_cell(row_index, col_idx, value)
             else:
                 print(f"Warning: Column {key} not found in Kindergarten_Master")
                 
@@ -239,94 +423,95 @@ def update_kindergarten_master(kindergarten_id, data):
 
 def update_all_classes_for_kindergarten(kindergarten_id, new_classes):
     """
-    Replace all classes for a specific kindergarten with the new list.
-    new_classes: List of dicts [{'class_name': '...', 'grade': '...', ...}]
+    Replace all classes for a specific kindergarten.
+    Robust implementation preserves other columns even if we don't know them.
     """
     print(f"[DEBUG_SHEET] update_all_classes called for {kindergarten_id}")
     try:
         wb = get_db_connection()
-        if not wb: 
-            print("[ERROR_SHEET] No DB connection")
-            return False
+        if not wb: return False
         sheet = wb.worksheet("Class_Master")
         
-        # 1. Get current data
         all_records = sheet.get_all_records()
         headers = sheet.row_values(1)
-        print(f"[DEBUG_SHEET] Headers found: {headers}")
-        print(f"[DEBUG_SHEET] Total records before update: {len(all_records)}")
         
-        # Helper for fuzzy key access
-        def get_fuzzy_val(db_record, possible_clean_keys):
-            for k, v in db_record.items():
-                clean_k = str(k).replace('#', '').strip()
-                if clean_k in possible_clean_keys:
-                    return v
-            return None
-
-        # 2. Filter out classes belonging to this kindergarten
+        # 1. Separate records
         target_id_str = str(kindergarten_id).strip()
         kept_records = []
         
+        # Helper to checking ID
+        def get_id(r):
+            return str(r.get('kindergarten_id') or r.get('幼稚園ID') or '').strip()
+            
         for r in all_records:
-            # Check ID using fuzzy match
-            r_id = str(get_fuzzy_val(r, ['kindergarten_id', '幼稚園ID']) or '').strip()
-            if r_id != target_id_str:
+            if get_id(r) != target_id_str:
                 kept_records.append(r)
-                
-        print(f"[DEBUG_SHEET] Records kept (other kindergartens): {len(kept_records)}")
         
-        # 3. Prepare new rows
-        new_rows_dicts = []
+        # 2. Convert new_classes (dicts) to match Schema
+        # We need to map `new_classes` keys to `headers` structure.
+        
+        new_rows_data = [] # List of dicts matching header structure
+        
+        # Define mappings for new class data
+        field_map = {
+            'kindergarten_id': ['kindergarten_id', '幼稚園ID'],
+            'class_name': ['class_name', 'クラス名', 'クラス'],
+            'grade': ['grade', '学年'],
+            'floor': ['floor', '階'],
+            'default_student_count': ['default_student_count', '園児数'],
+            'default_allergy_count': ['default_allergy_count', 'アレルギー数'],
+            'default_teacher_count': ['default_teacher_count', '先生数']
+        }
+        
         for cls in new_classes:
-            row_dict = {
-                'kindergarten_id': kindergarten_id,
-                'class_name': cls.get('class_name'),
-                'floor': cls.get('floor', ''), 
-                'grade': cls.get('grade'),
-                'default_student_count': cls.get('default_student_count', 0),
-                'default_allergy_count': cls.get('default_allergy_count', 0),
-                'default_teacher_count': cls.get('default_teacher_count', 0)
-            }
-            new_rows_dicts.append(row_dict)
-        print(f"[DEBUG_SHEET] New records to append: {len(new_rows_dicts)}")
+            # We want to create a row dict that has keys matching the *actual headers*
+            row_data = {}
             
-        # Combine kept records and new records
-        final_records = kept_records + new_rows_dicts
+            # Determine which header corresponds to which field
+            for field, value in cls.items():
+                # Special handling for kindergarten_id injection if missing
+                if field == 'kindergarten_id' and not value: value = kindergarten_id
+                
+                # Find the header for this field
+                candidates = field_map.get(field, [field])
+                
+                # Search headers for match
+                matched_header = None
+                for h in headers:
+                    if normalize_key(h) in [normalize_key(c) for c in candidates]:
+                        matched_header = h
+                        break
+                
+                if matched_header:
+                    row_data[matched_header] = value
+            
+            # Ensure kindergarten_id is set
+            if not any(k in row_data for k in ['kindergarten_id', '幼稚園ID', 'id']):
+                 # Find header for ID
+                 for h in headers:
+                     if normalize_key(h) in ['kindergarten_id', '幼稚園id', 'id']:
+                         row_data[h] = kindergarten_id
+                         break
+            
+            new_rows_data.append(row_data)
+            
+        # 3. Write ALL records back
+        # We execute a full rewrite of the sheet to ensure consistency
+        # Combine kept + new
+        final_list = kept_records + new_rows_data
         
-        # 4. Convert back to list of lists for writing
-        rows_to_write = [headers] # First row is header
-        
-        for record in final_records:
-            row = []
+        rows_to_write = [headers]
+        for r in final_list:
+            row_vec = []
             for h in headers:
-                # Determine what this header 'h' maps to in our clean keys
-                clean_h = str(h).replace('#', '').strip()
-                
-                # If record is a NEW row (from row_dict), it has clean keys
-                # If record is a KEPT row (from gspread), it has original dirty keys
-                
-                # Try to find value for this header
-                val = ""
-                # Case A: Record has the exact header key (KEPT rows)
-                if h in record:
-                    val = record[h]
-                # Case B: Record has the clean key (NEW rows)
-                elif clean_h in record:
-                    val = record[clean_h]
-                
-                row.append(val)
+                row_vec.append(r.get(h, ""))
+            rows_to_write.append(row_vec)
             
-            rows_to_write.append(row)
-            
-        print(f"[DEBUG_SHEET] Total rows to write: {len(rows_to_write)}")
-
-        # 5. Write to sheet
         sheet.clear()
         sheet.update('A1', rows_to_write)
         print("[DEBUG_SHEET] Update successful")
-        
         return True
+        
     except Exception as e:
         print(f"[ERROR_SHEET] Exception in update_all_classes: {e}")
         import traceback

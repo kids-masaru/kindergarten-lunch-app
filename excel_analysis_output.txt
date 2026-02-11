@@ -1,0 +1,487 @@
+
+==================== メニュー表2026.2 -2.xlsx ====================
+Sheets: ['ふたば', '原紙', 'パン 火', 'パン木', 'パン金', 'OJ火', 'スープ', 'ピク']
+
+--- Sheet: ふたば ---
+Columns: ['Unnamed: 0', '２月のこんだてひょう', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', '福岡雙葉小学校', 'Unnamed: 8', 'Unnamed: 9', '２月のアレルギーこんだてひょう', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', '福岡雙葉小学校.1']
+Rows:
+  Unnamed: 0  ２月のこんだてひょう    Unnamed: 2   Unnamed: 3  Unnamed: 4            Unnamed: 5   Unnamed: 6 福岡雙葉小学校  Unnamed: 8 Unnamed: 9 ２月のアレルギーこんだてひょう   Unnamed: 11  Unnamed: 12 Unnamed: 13           Unnamed: 14  Unnamed: 15 福岡雙葉小学校.1
+0        NaN       献　立　名  材料の種類と体内での働き          NaN         NaN                   調味料          栄養量      備考         NaN        NaN           献　立　名  材料の種類と体内での働き          NaN         NaN                   調味料          栄養量        備考
+1          日         NaN      血や肉となる食品   熱や力の源になる食品  体の調子を整える食品                   NaN          NaN     NaN         NaN          日             NaN      血や肉となる食品   熱や力の源になる食品  体の調子を整える食品                   NaN          NaN       NaN
+2        （曜）         NaN           NaN          NaN         NaN                   NaN          NaN     NaN         NaN        （曜）             NaN           NaN          NaN         NaN                   NaN          NaN       NaN
+3        NaN      わかめごはん         わかめの素           米飯         NaN                   NaN  エネルギー（ｋｃａｌ）     NaN         NaN        NaN          わかめごはん         わかめの素           米飯         NaN                   NaN  エネルギー（ｋｃａｌ）       NaN
+4        NaN  鶏つくねのこってり煮           鶏挽肉  砂糖　ﾊﾟﾝ粉　片栗粉    人参　玉葱　生姜  醤油　塩ｺｼｮｳ　料理酒　みりん　ﾀﾞｼ        603.9     NaN         NaN        NaN      鶏つくねのこってり煮           鶏挽肉  砂糖　ﾊﾟﾝ粉　片栗粉    人参　玉葱　生姜  醤油　塩ｺｼｮｳ　料理酒　みりん　ﾀﾞｼ        577.3       NaN
+>> Nutrition Info found in this sheet.
+
+--- Sheet: 原紙 ---
+Columns: ['Unnamed: 0', '２月のこんだてひょう', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', '２月のアレルギーこんだてひょう', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0   ２月のこんだてひょう    Unnamed: 2   Unnamed: 3  Unnamed: 4            Unnamed: 5   Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 ２月のアレルギーこんだてひょう   Unnamed: 11  Unnamed: 12 Unnamed: 13           Unnamed: 14  Unnamed: 15 Unnamed: 16
+0        NaN        献　立　名  材料の種類と体内での働き          NaN         NaN                   調味料          栄養量         備考         NaN        NaN           献　立　名  材料の種類と体内での働き          NaN         NaN                   調味料          栄養量          備考
+1          日          NaN      血や肉となる食品   熱や力の源になる食品  体の調子を整える食品                   NaN          NaN        NaN         NaN          日             NaN      血や肉となる食品   熱や力の源になる食品  体の調子を整える食品                   NaN          NaN         NaN
+2        （曜）          NaN           NaN          NaN         NaN                   NaN          NaN        NaN         NaN        （曜）             NaN           NaN          NaN         NaN                   NaN          NaN         NaN
+3        NaN       わかめごはん         わかめの素           米飯         NaN                   NaN  エネルギー（ｋｃａｌ）        NaN         NaN        NaN          わかめごはん         わかめの素           米飯         NaN                   NaN  エネルギー（ｋｃａｌ）         NaN
+4        NaN  とりつくねのこってりに           鶏挽肉  砂糖　ﾊﾟﾝ粉　片栗粉    人参　玉葱　生姜  醤油　塩ｺｼｮｳ　料理酒　みりん　ﾀﾞｼ        492.3        NaN         NaN        NaN     とりつくねのこってりに           鶏挽肉  砂糖　ﾊﾟﾝ粉　片栗粉    人参　玉葱　生姜  醤油　塩ｺｼｮｳ　料理酒　みりん　ﾀﾞｼ        476.1         NaN
+>> Nutrition Info found in this sheet.
+
+--- Sheet: パン 火 ---
+Columns: ['火', 'パンカップ', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', '志免中央', 'Unnamed: 8', '火.1', 'パンカップ.1', 'アレルギー', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', '志免中央.1']
+Rows:
+     火              パンカップ    Unnamed: 2                   Unnamed: 3  Unnamed: 4            Unnamed: 5   Unnamed: 6 志免中央  Unnamed: 8  火.1             パンカップ.1         アレルギー                Unnamed: 12 Unnamed: 13           Unnamed: 14  Unnamed: 15 志免中央.1
+0  NaN              献　立　名  材料の種類と体内での働き                          NaN         NaN                   調味料          栄養量   備考         NaN  NaN               献　立　名  材料の種類と体内での働き                        NaN         NaN                   調味料          栄養量     備考
+1    日                NaN      血や肉となる食品                   熱や力の源になる食品  体の調子を整える食品                   NaN          NaN  NaN         NaN    日                 NaN      血や肉となる食品                 熱や力の源になる食品  体の調子を整える食品                   NaN          NaN    NaN
+2  （曜）                NaN           NaN                          NaN         NaN                   NaN          NaN  NaN         NaN  （曜）                 NaN           NaN                        NaN         NaN                   NaN          NaN    NaN
+3  NaN              ロールパン           NaN                       ﾛｰﾙﾊﾟﾝ         NaN                   NaN  エネルギー（ｋｃａｌ）  NaN         NaN  NaN             アレルギーパン           NaN                  ｱﾚﾙｷﾞｰﾊﾟﾝ         NaN                   NaN  エネルギー（ｋｃａｌ）    NaN
+4  NaN  あじのなんばんづけ　タルタルソース            あじ  小麦粉　片栗粉　砂糖　油　ﾀﾙﾀﾙｿｰｽ　ﾏﾖﾈｰｽﾞ       ﾚﾓﾝ果汁  醤油　料理酒　みりん　ﾀﾞｼ　酢　ﾜｲﾝ        513.9  NaN         NaN  NaN  さわらのなんばんづけ　タルタルソース           さわら  小麦粉　片栗粉　砂糖　油　ﾉﾝｴｯｸﾞﾏﾖﾈｰｽﾞ    ﾚﾓﾝ果汁　玉葱  醤油　料理酒　みりん　ﾀﾞｼ　酢　ﾜｲﾝ          383    NaN
+>> Nutrition Info found in this sheet.
+
+--- Sheet: パン木 ---
+Columns: ['木', 'パン弁当', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', '大野南', 'Unnamed: 8', '木.1', 'パン弁当.1', 'ｱﾚﾙｷﾞｰ', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', '大野南.1']
+Rows:
+     木   パン弁当    Unnamed: 2  Unnamed: 3  Unnamed: 4            Unnamed: 5   Unnamed: 6  大野南  Unnamed: 8  木.1   パン弁当.1        ｱﾚﾙｷﾞｰ Unnamed: 12 Unnamed: 13           Unnamed: 14  Unnamed: 15 大野南.1
+0  NaN  献　立　名  材料の種類と体内での働き         NaN         NaN                   調味料          栄養量   備考         NaN  NaN    献　立　名  材料の種類と体内での働き         NaN         NaN                   調味料          栄養量    備考
+1    日    NaN      血や肉となる食品  熱や力の源になる食品  体の調子を整える食品                   NaN          NaN  NaN         NaN    日      NaN      血や肉となる食品  熱や力の源になる食品  体の調子を整える食品                   NaN          NaN   NaN
+2  （曜）    NaN           NaN         NaN         NaN                   NaN          NaN  NaN         NaN  （曜）      NaN           NaN         NaN         NaN                   NaN          NaN   NaN
+3  NaN  ロールパン           NaN      ﾛｰﾙﾊﾟﾝ         NaN                   NaN  エネルギー（ｋｃａｌ）  NaN         NaN  NaN  アレルギーパン           NaN   ｱﾚﾙｷﾞｰﾊﾟﾝ         NaN                   NaN  エネルギー（ｋｃａｌ）   NaN
+4  NaN   とんかつ            豚肉  小麦粉　ﾊﾟﾝ粉　油         NaN  塩ｺｼｮｳ　とんかつｿｰｽ　ｹﾁｬｯﾌﾟ        387.9  NaN         NaN  NaN     とんかつ            豚肉  小麦粉　ﾊﾟﾝ粉　油         NaN  塩ｺｼｮｳ　とんかつｿｰｽ　ｹﾁｬｯﾌﾟ        352.1   NaN
+>> Nutrition Info found in this sheet.
+
+--- Sheet: パン金 ---
+Columns: ['金', 'パンカップ', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', '志免', 'Unnamed: 8', '金.1', 'パンカップ.1', 'アレルギー', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', '志免.1']
+Rows:
+     金       パンカップ    Unnamed: 2  Unnamed: 3  Unnamed: 4  Unnamed: 5   Unnamed: 6   志免  Unnamed: 8  金.1     パンカップ.1         アレルギー Unnamed: 12 Unnamed: 13 Unnamed: 14  Unnamed: 15 志免.1
+0  NaN       献　立　名  材料の種類と体内での働き         NaN         NaN         調味料          栄養量   備考         NaN  NaN       献　立　名  材料の種類と体内での働き         NaN         NaN         調味料          栄養量   備考
+1    日         NaN      血や肉となる食品  熱や力の源になる食品  体の調子を整える食品         NaN          NaN  NaN         NaN    日         NaN      血や肉となる食品  熱や力の源になる食品  体の調子を整える食品         NaN          NaN  NaN
+2  （曜）         NaN           NaN         NaN         NaN         NaN          NaN  NaN         NaN  （曜）         NaN           NaN         NaN         NaN         NaN          NaN  NaN
+3  NaN       ロールパン           NaN      ﾛｰﾙﾊﾟﾝ         NaN         NaN  エネルギー（ｋｃａｌ）  NaN         NaN  NaN     アレルギーパン           NaN   ｱﾚﾙｷﾞｰﾊﾟﾝ         NaN         NaN  エネルギー（ｋｃａｌ）  NaN
+4  NaN  チキンのスタミナやき            鶏肉          ごま     にんにく　生姜  醤油　料理酒　みりん          379  NaN         NaN  NaN  チキンのスタミナやき            鶏肉         NaN     にんにく　生姜  醤油　料理酒　みりん        222.4  NaN
+>> Nutrition Info found in this sheet.
+
+--- Sheet: OJ火 ---
+Columns: ['火', 'オレンジ（スープ付）', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', '笹丘', 'Unnamed: 8', '火.1', 'オレンジ（スープ付）.1', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', '笹丘.1']
+Rows:
+     火         オレンジ（スープ付）    Unnamed: 2                   Unnamed: 3  Unnamed: 4            Unnamed: 5   Unnamed: 6   笹丘  Unnamed: 8  火.1        オレンジ（スープ付）.1   Unnamed: 11                Unnamed: 12 Unnamed: 13           Unnamed: 14  Unnamed: 15 笹丘.1
+0  NaN                NaN  材料の種類と体内での働き                          NaN         NaN                   NaN          NaN  NaN         NaN  NaN                 NaN  材料の種類と体内での働き                        NaN         NaN                   NaN          NaN  NaN
+1    日              献　立　名      血や肉となる食品                   熱や力の源になる食品  体の調子を整える食品                   調味料          栄養量   備考         NaN    日               献　立　名      血や肉となる食品                 熱や力の源になる食品  体の調子を整える食品                   調味料          栄養量   備考
+2  （曜）                NaN           NaN                          NaN         NaN                   NaN          NaN  NaN         NaN  （曜）                 NaN           NaN                        NaN         NaN                   NaN          NaN  NaN
+3  NaN              しろごはん           NaN                           米飯         NaN                   NaN  エネルギー（ｋｃａｌ）  NaN         NaN  NaN               しろごはん           NaN                         米飯         NaN                   NaN  エネルギー（ｋｃａｌ）  NaN
+4  NaN  あじのなんばんづけ　タルタルソース            あじ  小麦粉　片栗粉　砂糖　油　ﾀﾙﾀﾙｿｰｽ　ﾏﾖﾈｰｽﾞ       ﾚﾓﾝ果汁  醤油　料理酒　みりん　ﾀﾞｼ　酢　ﾜｲﾝ        464.8  NaN         NaN  NaN  さわらのなんばんづけ　タルタルソース           さわら  小麦粉　片栗粉　砂糖　油　ﾉﾝｴｯｸﾞﾏﾖﾈｰｽﾞ    ﾚﾓﾝ果汁　玉葱  醤油　料理酒　みりん　ﾀﾞｼ　酢　ﾜｲﾝ        473.3  NaN
+>> Nutrition Info found in this sheet.
+
+--- Sheet: スープ ---
+Columns: ['Unnamed: 0', 'スープ', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6']
+Rows:
+  Unnamed: 0      スープ    Unnamed: 2  Unnamed: 3           Unnamed: 4  Unnamed: 5 Unnamed: 6
+0        NaN      NaN  材料の種類と体内での働き         NaN                  NaN         NaN        NaN
+1          日    献　立　名      血や肉となる食品  熱や力の源になる食品           体の調子を整える食品         調味料        NaN
+2        （曜）      NaN           NaN         NaN                  NaN         NaN        NaN
+3        NaN  コンソメスープ           NaN         NaN  ﾏｯｼｭﾙｰﾑ缶　玉葱　人参　ﾊﾟｾﾘ  ｺﾝｿﾒ　塩ｺｼｮｳ        NaN
+4        NaN  コンソメスープ           NaN        じゃが芋           玉葱　人参　ﾊﾟｾﾘ  ｺﾝｿﾒ　塩ｺｼｮｳ        NaN
+
+--- Sheet: ピク ---
+Columns: ['Unnamed: 0', 'ピクニック', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0    ピクニック    Unnamed: 2    Unnamed: 3  Unnamed: 4      Unnamed: 5   Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9         Unnamed: 10   Unnamed: 11   Unnamed: 12 Unnamed: 13             Unnamed: 14  Unnamed: 15 Unnamed: 16
+0        NaN    献　立　名  材料の種類と体内での働き           NaN         NaN             調味料          栄養量         備考         NaN        NaN               献　立　名  材料の種類と体内での働き           NaN         NaN                     調味料          栄養量          備考
+1          日      NaN      血や肉となる食品    熱や力の源になる食品  体の調子を整える食品             NaN          NaN        NaN         NaN          日                 NaN      血や肉となる食品    熱や力の源になる食品  体の調子を整える食品                     NaN          NaN         NaN
+2        （曜）      NaN           NaN           NaN         NaN             NaN          NaN        NaN         NaN        （曜）                 NaN           NaN           NaN         NaN                     NaN          NaN         NaN
+3        NaN  わかめおにぎり         わかめの素            米飯         NaN             NaN  エネルギー（ｋｃａｌ）        NaN         NaN        NaN             わかめおにぎり         わかめの素            米飯         NaN                     NaN  エネルギー（ｋｃａｌ）         NaN
+4        NaN  とりのからあげ            鶏肉  砂糖　小麦粉　片栗粉　油         NaN  醤油　料理酒　塩　塩ｺｼｮｳ        548.6      ピクニック         NaN        NaN  とりのからあげとミートボールのうまに    鶏肉　ﾐｰﾄﾎﾞｰﾙ  砂糖　小麦粉　片栗粉　油         NaN  醤油　料理酒　塩　塩ｺｼｮｳ　みりん　ﾀﾞｼ        532.5       ピクニック
+>> Nutrition Info found in this sheet.
+
+==================== 幼稚園新聞2026.2.xlsx ====================
+Sheets: ['1', 'ｱﾚ1', '2', 'ｱﾚ2', '3', 'ｱﾚ3', '4', 'ｱﾚ4', '5', 'ｱﾚ5', '6', 'ｱﾚ6', '7', 'ｱﾚ7', '8', 'ｱﾚ8', '9', 'ｱﾚ9', '10', 'ｱﾚ10', '11', 'ｱﾚ11', '12', 'ｱﾚ12', '13', 'ｱﾚ13', '14', 'ｱﾚ14', '15', 'ｱﾚ15', '16', 'ｱﾚ16', '17', 'ｱﾚ17', '18毎日', 'ｱﾚ18毎日', '奈良屋', 'お手紙つき']
+
+--- Sheet: 1 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ1 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 2 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ2 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 3 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ3 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 4 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ4 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 5 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ5 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 6 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ6 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 7 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ7 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 8 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ8 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 9 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ9 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 10 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ10 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 11 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: ｱﾚ11 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考
+
+--- Sheet: 12 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: ｱﾚ12 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: 13 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: ｱﾚ13 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: 14 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: ｱﾚ14 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: 15 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: ｱﾚ15 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: 16 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: ｱﾚ16 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: 17 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: ｱﾚ17 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: 18毎日 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: ｱﾚ18毎日 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2    Unnamed: 3    Unnamed: 4 Unnamed: 5 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10   Unnamed: 11   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN           NaN           NaN        幼稚園        NaN        NaN         NaN        NaN         NaN  材料の種類と体内での働き           NaN           NaN         NaN         NaN         NaN
+1        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN          日       献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品         調味料         栄養量          備考
+2        NaN        NaN           NaN           NaN           NaN        NaN        NaN        NaN         NaN        （曜）         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN  材料の種類と体内での働き           NaN           NaN        NaN        NaN        NaN         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+4          日      献　立　名    赤　血や肉となる食品  黄　熱や力の源になる食品  緑　体の調子を整える食品        調味料        栄養量         備考         NaN        NaN         NaN           NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: 奈良屋 ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', '令和8年1月31日発行', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', '材料の種類と体内での働き', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1    Unnamed: 2 Unnamed: 3 Unnamed: 4 令和8年1月31日発行 Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10 材料の種類と体内での働き   Unnamed: 12   Unnamed: 13 Unnamed: 14 Unnamed: 15 Unnamed: 16
+0        NaN        NaN           NaN        NaN        NaN         NaN        NaN        NaN         NaN          日       献　立　名  　　　血や肉となる食品  　　熱や力の源になる食品  　　体の調子を整える食品         調味料         栄養量          備考
+1        NaN        NaN           NaN        NaN        NaN         NaN        NaN        NaN         NaN        （曜）         NaN          NaN           NaN           NaN         NaN         NaN         NaN
+2        NaN        NaN           NaN        NaN        NaN      奈良屋幼稚園        NaN        NaN         NaN        NaN         NaN          NaN           NaN           NaN         NaN         NaN         NaN
+3        NaN        NaN           NaN        NaN        NaN         NaN        NaN        NaN         NaN        NaN         NaN          NaN           NaN           NaN         NaN         NaN         NaN
+4        NaN        NaN  材料の種類と体内での働き        NaN        NaN         NaN        NaN        NaN         NaN        NaN         NaN          NaN           NaN           NaN         NaN         NaN         NaN
+
+--- Sheet: お手紙つき ---
+Columns: ['Unnamed: 0', 'Unnamed: 1']
+Rows:
+   Unnamed: 0       Unnamed: 1
+0         NaN         　幼稚園　　さま
+1         NaN              NaN
+2         NaN  いつもお世話になっております。
+3         NaN      のこんだてひょうです。
+4         NaN         ご確認ください。
+
+==================== 配膳給食　2026.2-1.xlsx ====================
+Sheets: ['基本 (2)']
+
+--- Sheet: 基本 (2) ---
+Columns: ['Unnamed: 0', 'Unnamed: 1', 'Unnamed: 2', '2026年\u3000\u3000 \u30002月', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', '2026年\u3000\u3000 \u30002月.1', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16']
+Rows:
+  Unnamed: 0 Unnamed: 1                Unnamed: 2                 2026年　　 　2月                  Unnamed: 4 Unnamed: 5  Unnamed: 6 Unnamed: 7  Unnamed: 8 Unnamed: 9 Unnamed: 10      Unnamed: 11      2026年　　 　2月.1                         Unnamed: 13 Unnamed: 14  Unnamed: 15 Unnamed: 16
+0        NaN        NaN                       NaN                         NaN                         NaN        NaN         NaN        NaN         NaN        NaN         NaN              NaN                NaN                                 NaN         NaN          NaN         NaN
+1          日    献  立  名                       NaN                 材　  　料　　  名                         NaN        NaN         NaN        NaN         NaN          日       アレルギー              NaN        材　  　料　　  名                                 NaN         NaN          NaN         NaN
+2        NaN        NaN                血や肉や骨になるもの                    熱や力になるもの                  体の調子を整えるもの        NaN         NaN        NaN         NaN        NaN         NaN       血や肉や骨になるもの           熱や力になるもの                          体の調子を整えるもの         NaN          NaN         NaN
+3          2        ごはん  魚（カレイ）／ロースハム／米みそ(甘みそ)／牛乳  精白米／オリーブ油／三温糖／植物油／コーンスープの素  キャベツ／きゅうり／にんじん／ｽｲｰﾄｺｰﾝ／パセリ     ｴﾈﾙｷﾞｰ       374.0       kcal         NaN          2         ごはん  魚（カレイ）／米みそ(甘みそ)  精白米／オリーブ油／三温糖／植物油  キャベツ／きゅうり／にんじん／ｽｲｰﾄｺｰﾝ／パセリ／クリームコーン      ｴﾈﾙｷﾞｰ        325.0        kcal
+4          ／    魚のハーブ焼き                       NaN                         NaN                         NaN      たんぱく質        15.7          ｇ         NaN          ／    ●魚のハーブ焼き              NaN                NaN                                 NaN       たんぱく質         13.5           ｇ
+>> Nutrition Info found in this sheet.

@@ -8,14 +8,24 @@ from backend.sheets import (
     get_class_master, 
     get_order_data, 
     save_order, 
-    update_class_master, # This is the single update one (used earlier? maybe not exposed)
+    update_class_master, 
     update_all_classes_for_kindergarten,
     update_kindergarten_master
 )
+from fastapi import File, UploadFile
+from fastapi.responses import FileResponse
+import shutil
+import os
+from backend.menu_parser import parse_menu_excel
+from backend.menu_generator import save_menu_master, generate_kondate_excel
+
 
 router = APIRouter()
 
-# --- Models ---
+# --- Models (API Request/Response) ---
+# We keep these separate from Backend Models to decouple API from internal representation if needed.
+# But effectively they map closely.
+
 class LoginRequest(BaseModel):
     login_id: str
     password: str
@@ -90,43 +100,38 @@ def login(creds: LoginRequest):
         
         print(f"[DEBUG] Fetched {len(masters)} rows from Kindergarten_Master")
 
-        # Robust User Finding
         input_login_id = str(creds.login_id).strip()
         input_password = str(creds.password).strip()
         
         user = None
         for u in masters:
-            # Check for various key possibilities just in case
-            sheet_login_id = str(u.get('login_id') or u.get('ログインID') or '').strip()
-            
-            if sheet_login_id == input_login_id:
+            # u is now a Pydantic Model (Keys are English/Standardized)
+            if u.login_id == input_login_id:
                 user = u
                 break
         
         if not user:
-            print(f"[DEBUG] User {input_login_id} not found in sheet")
+            print(f"[DEBUG] User {input_login_id} not found")
             raise HTTPException(status_code=401, detail="Invalid credentials (User not found)")
             
         # Check Password
-        sheet_password = str(user.get('password') or u.get('パスワード') or '').strip()
-        
-        if sheet_password == input_password:
+        if user.password == input_password:
             print(f"[DEBUG] Login successful for {input_login_id}")
             return {
-                "kindergarten_id": user.get('kindergarten_id'),
-                "name": user.get('name'),
+                "kindergarten_id": user.kindergarten_id,
+                "name": user.name,
                 "settings": {
-                    "course_type": user.get('course_type'),
-                    "has_bread_day": str(user.get('has_bread_day', 'FALSE')).upper() == 'TRUE',
-                    "has_curry_day": str(user.get('has_curry_day', 'FALSE')).upper() == 'TRUE',
-                    # Service Days (Default to True for Mon-Fri if missing)
-                    "service_mon": str(user.get('service_mon', 'TRUE')).upper() != 'FALSE',
-                    "service_tue": str(user.get('service_tue', 'TRUE')).upper() != 'FALSE',
-                    "service_wed": str(user.get('service_wed', 'TRUE')).upper() != 'FALSE',
-                    "service_thu": str(user.get('service_thu', 'TRUE')).upper() != 'FALSE',
-                    "service_fri": str(user.get('service_fri', 'TRUE')).upper() != 'FALSE',
-                    "service_sat": str(user.get('service_sat', 'FALSE')).upper() == 'TRUE',
-                    "service_sun": str(user.get('service_sun', 'FALSE')).upper() == 'TRUE',
+                    "course_type": user.course_type,
+                    "has_bread_day": user.has_bread_day,
+                    "has_curry_day": user.has_curry_day,
+                    # Service Days
+                    "service_mon": user.service_mon,
+                    "service_tue": user.service_tue,
+                    "service_wed": user.service_wed,
+                    "service_thu": user.service_thu,
+                    "service_fri": user.service_fri,
+                    "service_sat": user.service_sat,
+                    "service_sun": user.service_sun,
                 }
             }
             
@@ -154,36 +159,21 @@ def get_masters(kindergarten_id: str):
          
     # Debug logging
     print(f"[DEBUG] Fetching masters for ID: {kindergarten_id}")
-    if all_classes:
-        print(f"[DEBUG] First row keys: {list(all_classes[0].keys())}")
+    # all_classes is list of ClassMaster models
         
     target_id = str(kindergarten_id).strip()
     my_classes = []
     
-    def get_val(row, target_key_partials):
-        """Helper to find value by fuzzy key match"""
-        # target_key_partials is a list of possible key names (clean)
-        for k, v in row.items():
-            # Clean the key from sheet (remove #, spaces)
-            clean_k = str(k).replace('#', '').strip()
-            if clean_k in target_key_partials:
-                return v
-        return None
-
     for c in all_classes:
-        # 1. Robust ID Check
-        row_id_val = get_val(c, ['kindergarten_id', '幼稚園ID', 'id'])
-        row_id = str(row_id_val).strip() if row_id_val is not None else ""
-        
-        if row_id == target_id:
-            # 2. Key Mapping with fuzzy match
+        # c is Pydantic Model
+        if c.kindergarten_id == target_id:
             mapped_class = {
-                "class_name": get_val(c, ['class_name', 'クラス名', 'クラス']) or "Unknown",
-                "grade": get_val(c, ['grade', '学年']) or "",
-                "default_student_count": get_val(c, ['default_student_count', '園児数', '標準園児数']) or 0,
-                "default_allergy_count": get_val(c, ['default_allergy_count', 'アレルギー数', '標準アレルギー数']) or 0,
-                "default_teacher_count": get_val(c, ['default_teacher_count', '先生数', '標準先生数']) or 0,
-                "floor": get_val(c, ['floor', '階']) or "",
+                "class_name": c.class_name,
+                "grade": c.grade,
+                "default_student_count": c.default_student_count,
+                "default_allergy_count": c.default_allergy_count,
+                "default_teacher_count": c.default_teacher_count,
+                "floor": c.floor,
             }
             my_classes.append(mapped_class)
             
@@ -198,12 +188,9 @@ def update_class(req: ClassUpdateRequest):
         {
             "default_student_count": req.default_student_count,
             "default_allergy_count": req.default_allergy_count,
-            "default_allergy_count": req.default_allergy_count,
             "default_teacher_count": req.default_teacher_count
         }
     )
-    if not success:
-        raise HTTPException(status_code=500, detail="Failed to update class master")
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update class master")
     return {"status": "success"}
@@ -253,18 +240,16 @@ def get_calendar(kindergarten_id: str, year: int, month: int):
     if not all_orders:
          return {"orders": []}
 
-    # Filter by ID and Month (YYYY-MM)
-    # Robust Date Parsing
     target_year = year
     target_month = month
     
     filtered_orders = []
     
     for order in all_orders:
-        if order.get('kindergarten_id') != kindergarten_id:
+        if order.kindergarten_id != kindergarten_id:
             continue
             
-        date_val = str(order.get('date'))
+        date_val = order.date
         try:
             # Handle standard formats: YYYY-MM-DD, YYYY/MM/DD
             d = None
@@ -278,7 +263,7 @@ def get_calendar(kindergarten_id: str, year: int, month: int):
                      d = (int(parts[0]), int(parts[1]))
             
             if d and d[0] == target_year and d[1] == target_month:
-                filtered_orders.append(order)
+                filtered_orders.append(order.dict()) # Convert model to dict for response
         except:
             continue
 
@@ -333,4 +318,83 @@ def create_order(order: OrderItem):
         return {"status": "success", "order_id": order.order_id, "mock": True}
         
     return {"status": "success", "order_id": order.order_id}
+
+
+# --- Menu Generation Endpoints ---
+
+@router.post("/menus/upload")
+async def upload_menu_excel(year: int, month: int, file: UploadFile = File(...)):
+    """
+    Uploads the Menu Excel, parses it, and saves the Menu Master.
+    """
+    try:
+        # Save uploaded file temporarily
+        temp_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
+        os.makedirs(temp_dir, exist_ok=True)
+        temp_path = os.path.join(temp_dir, f"upload_menu_{year}_{month}.xlsx")
+        
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Parse
+        print(f"Parsing uploaded file: {temp_path}")
+        menu_table = parse_menu_excel(temp_path, year, month)
+        
+        # Save Master JSON
+        saved_path = save_menu_master(menu_table)
+        
+        return {
+            "status": "success",
+            "message": "Menu parsed and saved.",
+            "base_menus": len(menu_table.base_menus),
+            "special_menus": len(menu_table.special_menus),
+            "sheets_found": list(menu_table.kindergarten_sheets.keys())
+        }
+    except Exception as e:
+        print(f"Error processing upload: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+class MenuGenerationRequest(BaseModel):
+    kindergarten_id: str
+    year: int
+    month: int
+    options: Optional[dict] = {}
+
+@router.post("/menus/generate")
+def generate_menu_file(req: MenuGenerationRequest):
+    """
+    Generates the specific Kondate for a Kindergarten.
+    """
+    try:
+        masters = get_kindergarten_master()
+        k_name = "Unknown"
+        if masters:
+            for k in masters:
+                if k.kindergarten_id == req.kindergarten_id:
+                     k_name = k.name
+                     break
+        
+        # Inject name into options for generator
+        if 'kindergarten_name' not in req.options:
+            req.options['kindergarten_name'] = k_name
+            
+        file_path = generate_kondate_excel(req.kindergarten_id, req.year, req.month, req.options)
+        
+        if not os.path.exists(file_path):
+             raise HTTPException(status_code=500, detail="Generated file not found")
+             
+        filename = os.path.basename(file_path)
+        return FileResponse(
+            path=file_path, 
+            filename=filename, 
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+    except Exception as e:
+        print(f"Error generating menu: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 

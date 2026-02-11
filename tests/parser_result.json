@@ -1,0 +1,387 @@
+{
+  "base_menus_count": 20,
+  "special_menus_count": 11,
+  "base_menus_sample": [
+    {
+      "date": "2026-02-02",
+      "dishes": [
+        {
+          "name": "ポテト",
+          "energy": null
+        },
+        {
+          "name": "ポテト",
+          "energy": null
+        }
+      ],
+      "total_energy": 0.0
+    },
+    {
+      "date": "2026-02-03",
+      "dishes": [
+        {
+          "name": "さつまあげ",
+          "energy": null
+        }
+      ],
+      "total_energy": 0.0
+    },
+    {
+      "date": "2026-02-04",
+      "dishes": [
+        {
+          "name": "ブロッコリー",
+          "energy": null
+        },
+        {
+          "name": "マカロニサラダ",
+          "energy": null
+        }
+      ],
+      "total_energy": 0.0
+    }
+  ],
+  "special_menus_sample": [
+    {
+      "date": null,
+      "dishes": [
+        {
+          "name": "とうふチャンプルー",
+          "energy": 12.0
+        },
+        {
+          "name": "ウィンナー",
+          "energy": null
+        },
+        {
+          "name": "パインかん",
+          "energy": 19.1
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "あじのなんばんづけ　タルタルソース",
+          "energy": 433.7
+        },
+        {
+          "name": "カレー",
+          "energy": 11.7
+        },
+        {
+          "name": "みかんかん",
+          "energy": null
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "ぶたにくのあまからからあげ",
+          "energy": 438.8
+        },
+        {
+          "name": "コールスローサラダ",
+          "energy": 8.0
+        },
+        {
+          "name": "アスパラ",
+          "energy": null
+        },
+        {
+          "name": "おうとうかん",
+          "energy": 9.7
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "ホイコーロー",
+          "energy": 368.1
+        },
+        {
+          "name": "nan",
+          "energy": null
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "とりのからあげ",
+          "energy": 413.8
+        },
+        {
+          "name": "とうふチャンプルー",
+          "energy": 12.0
+        },
+        {
+          "name": "ウィンナー",
+          "energy": null
+        },
+        {
+          "name": "パインかん",
+          "energy": 19.1
+        },
+        {
+          "name": "ビーフカレー",
+          "energy": null
+        },
+        {
+          "name": "カレー",
+          "energy": 11.7
+        },
+        {
+          "name": "みかんかん",
+          "energy": null
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "ぶたにくのあまからからあげ",
+          "energy": 438.8
+        },
+        {
+          "name": "nan",
+          "energy": 9.6
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "ホイコーロー",
+          "energy": 368.1
+        }
+      ],
+      "total_energy": 368.1
+    },
+    {
+      "date": null,
+      "dishes": [
+        {
+          "name": "じゃがいものポトフ",
+          "energy": 12.2
+        },
+        {
+          "name": "オレンジ",
+          "energy": null
+        },
+        {
+          "name": "ふりかけごはん",
+          "energy": null
+        },
+        {
+          "name": "しろみざかなのたつたあげ",
+          "energy": 375.0
+        },
+        {
+          "name": "イタリアンサラダ",
+          "energy": 11.2
+        },
+        {
+          "name": "はくとうかん",
+          "energy": null
+        },
+        {
+          "name": "ポテトサラダ",
+          "energy": 7.4
+        },
+        {
+          "name": "みかんかん",
+          "energy": null
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "タンドリーチキン",
+          "energy": 395.4
+        },
+        {
+          "name": "にくやさいいため",
+          "energy": 13.0
+        },
+        {
+          "name": "おうとうかん",
+          "energy": null
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "てづくりメンチカツ",
+          "energy": 463.7
+        },
+        {
+          "name": "nan",
+          "energy": 9.6
+        },
+        {
+          "name": "ロールパン",
+          "energy": null
+        },
+        {
+          "name": "しろみざかなのたつたあげ",
+          "energy": 340.6
+        },
+        {
+          "name": "イタリアンサラダ",
+          "energy": 11.2
+        },
+        {
+          "name": "はくとうかん",
+          "energy": null
+        },
+        {
+          "name": "ボアパン",
+          "energy": null
+        },
+        {
+          "name": "とりのたつたあげ",
+          "energy": 352.8
+        },
+        {
+          "name": "ポテトサラダ",
+          "energy": 7.4
+        },
+        {
+          "name": "みかんかん",
+          "energy": null
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "タンドリーチキン",
+          "energy": 358.0
+        },
+        {
+          "name": "にくやさいいため",
+          "energy": 13.0
+        },
+        {
+          "name": "おうとうかん",
+          "energy": null
+        },
+        {
+          "name": "メロンパン",
+          "energy": null
+        },
+        {
+          "name": "しろみざかなのカレーたつたあげ",
+          "energy": 329.4
+        }
+      ],
+      "total_energy": 329.4
+    },
+    {
+      "date": null,
+      "dishes": [
+        {
+          "name": "マカロニサラダ",
+          "energy": 11.0
+        },
+        {
+          "name": "みかんかん",
+          "energy": null
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "とんかつ",
+          "energy": 432.1
+        },
+        {
+          "name": "nan",
+          "energy": null
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "とりのたつたあげ",
+          "energy": 431.8
+        },
+        {
+          "name": "スパニッシュエッグ",
+          "energy": 11.4
+        },
+        {
+          "name": "おうとうかん",
+          "energy": null
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "ぎょろっけ　オーロラソース",
+          "energy": 437.2
+        },
+        {
+          "name": "トマトスパゲティ",
+          "energy": 12.4
+        },
+        {
+          "name": "チンゲンさいソテー",
+          "energy": null
+        },
+        {
+          "name": "パインかん",
+          "energy": 15.6
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "しろみざかなのカレーたつたあげ",
+          "energy": 387.4
+        },
+        {
+          "name": "nan",
+          "energy": 13.1
+        },
+        {
+          "name": "しろごはん",
+          "energy": null
+        },
+        {
+          "name": "チキンのスタミナやき",
+          "energy": 294.1
+        },
+        {
+          "name": "おふのみそしる",
+          "energy": 11.4
+        },
+        {
+          "name": "しろパン",
+          "energy": null
+        },
+        {
+          "name": "チキンカツ",
+          "energy": 356.3
+        }
+      ],
+      "total_energy": 356.3
+    }
+  ],
+  "kindergarten_sheets": [
+    "福岡雙葉小学校",
+    "志免中央",
+    "大野南",
+    "志免",
+    "笹丘"
+  ]
+}

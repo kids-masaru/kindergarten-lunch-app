@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCalendar, getMasters } from '@/lib/api';
+import { getCalendar, getMasters, generateMenu } from '@/lib/api';
 import { LoginUser, Order, ClassMaster } from '@/types';
-import { ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, FileDown } from 'lucide-react';
 import OrderModal from '@/components/OrderModal';
 import ClassReportPanel from '@/components/ClassReportPanel';
 
@@ -45,6 +45,31 @@ export default function CalendarPage() {
       setOrders(res.orders);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleDownloadMenu = async () => {
+    if (!user) return;
+    try {
+      // Simple loading indicator (could be better)
+      const originalText = document.getElementById('dl-btn-text');
+      if (originalText) originalText.innerText = '生成中...';
+
+      const blob = await generateMenu(user.kindergarten_id, year, month);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${user.name}_献立表_${year}年${month}月.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (e) {
+      alert("献立表の生成に失敗しました。");
+      console.error(e);
+    } finally {
+      const originalText = document.getElementById('dl-btn-text');
+      if (originalText) originalText.innerText = '献立表DL';
     }
   };
 
@@ -126,12 +151,23 @@ export default function CalendarPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
               {/* Calendar Controls */}
               <div className="flex justify-between items-center mb-4">
-                <button onClick={() => setMonth(m => m === 1 ? 12 : m - 1)} className="p-2 bg-gray-50 rounded-full border hover:bg-gray-100">
-                  <ChevronLeft className="w-6 h-6 text-gray-600" />
-                </button>
-                <h2 className="text-xl font-bold text-gray-900">{year}年 {month}月</h2>
-                <button onClick={() => setMonth(m => m === 12 ? 1 : m + 1)} className="p-2 bg-gray-50 rounded-full border hover:bg-gray-100">
-                  <ChevronRight className="w-6 h-6 text-gray-600" />
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setMonth(m => m === 1 ? 12 : m - 1)} className="p-2 bg-gray-50 rounded-full border hover:bg-gray-100">
+                    <ChevronLeft className="w-6 h-6 text-gray-600" />
+                  </button>
+                  <h2 className="text-xl font-bold text-gray-900">{year}年 {month}月</h2>
+                  <button onClick={() => setMonth(m => m === 12 ? 1 : m + 1)} className="p-2 bg-gray-50 rounded-full border hover:bg-gray-100">
+                    <ChevronRight className="w-6 h-6 text-gray-600" />
+                  </button>
+                </div>
+
+                <button
+                  onClick={handleDownloadMenu}
+                  className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors border border-green-200"
+                  title="献立表をダウンロード"
+                >
+                  <FileDown className="w-4 h-4" />
+                  <span id="dl-btn-text" className="text-sm font-bold">献立表DL</span>
                 </button>
               </div>
 
