@@ -4,3 +4,7 @@ gspread
 oauth2client
 python-dotenv
 pydantic
+python-multipart
+openpyxl
+pandas
+google-api-python-client
