@@ -39,8 +39,20 @@ def get_drive_service():
         
     return build('drive', 'v3', credentials=creds)
 
+# Additional Env Var for Shared Folder
+DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID")
+
 def get_or_create_folder(folder_name: str) -> Optional[str]:
-    """Finds a folder by name or creates it locally (Logic for root). Returns Folder ID."""
+    """
+    Finds a folder by ID (if env set) or name (if not).
+    If DRIVE_FOLDER_ID is set, we return it directly.
+    """
+    # 1. Direct ID (Best for Service Accounts with Shared Folders)
+    if DRIVE_FOLDER_ID:
+        # Verify access? Optional but good.
+        return DRIVE_FOLDER_ID
+
+    # 2. Search by Name (Old Logic - Fails if no storage quota)
     service = get_drive_service()
     if not service: return None
     
@@ -52,12 +64,16 @@ def get_or_create_folder(folder_name: str) -> Optional[str]:
         return files[0]['id']
     else:
         # Create
-        file_metadata = {
-            'name': folder_name,
-            'mimeType': 'application/vnd.google-apps.folder'
-        }
-        file = service.files().create(body=file_metadata, fields='id').execute()
-        return file.get('id')
+        try:
+            file_metadata = {
+                'name': folder_name,
+                'mimeType': 'application/vnd.google-apps.folder'
+            }
+            file = service.files().create(body=file_metadata, fields='id').execute()
+            return file.get('id')
+        except Exception as e:
+            print(f"Failed to create folder (Quota?): {e}")
+            return None
 
 def upload_file_to_drive(file_path: str, filename: str, mime_type: str = '*/*') -> Optional[str]:
     """Uploads a local file to the Target Folder in Drive. Returns File ID."""
