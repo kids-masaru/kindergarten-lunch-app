@@ -59,6 +59,10 @@ export const updateKindergartenClasses = async (kindergartenId: string, classes:
     return res.data;
 };
 
+export const getKindergartens = async () => {
+    const res = await api.get('/admin/kindergartens');
+    return res.data;
+};
 
 export const uploadMenu = async (year: number, month: number, file: File) => {
     const formData = new FormData();

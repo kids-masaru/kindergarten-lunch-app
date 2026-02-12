@@ -414,3 +414,8 @@ def generate_menu_file(req: MenuGenerationRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/admin/kindergartens")
+def list_kindergartens():
+    """List all kindergartens for Admin Console."""
+    masters = get_kindergarten_master()
+    return {"kindergartens": [k.dict() for k in masters]}

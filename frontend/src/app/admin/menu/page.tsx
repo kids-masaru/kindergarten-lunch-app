@@ -1,15 +1,30 @@
 'use client';
 
-import { useState } from 'react';
-import { uploadMenu } from '@/lib/api';
+import { useState, useEffect } from 'react';
+import { uploadMenu, getKindergartens, generateMenu } from '@/lib/api';
+import { FileDown, Upload, Loader2, Building, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function AdminMenuPage() {
     const [file, setFile] = useState<File | null>(null);
     const [year, setYear] = useState<number>(new Date().getFullYear());
     const [month, setMonth] = useState<number>(new Date().getMonth() + 2); // Default to next month
     const [status, setStatus] = useState<string>('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [result, setResult] = useState<any>(null);
+
+    const [kindergartens, setKindergartens] = useState<any[]>([]);
+    const [loadingList, setLoadingList] = useState(true);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+    useEffect(() => {
+        getKindergartens().then(res => {
+            setKindergartens(res.kindergartens);
+            setLoadingList(false);
+        }).catch(err => {
+            console.error(err);
+            setLoadingList(false);
+        });
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -23,7 +38,7 @@ export default function AdminMenuPage() {
             return;
         }
 
-        setIsLoading(true);
+        setIsUploading(true);
         setStatus('Uploading...');
         setResult(null);
 
@@ -35,81 +50,129 @@ export default function AdminMenuPage() {
             console.error(error);
             setStatus('Upload Failed: ' + (error.response?.data?.detail || error.message));
         } finally {
-            setIsLoading(false);
+            setIsUploading(false);
+        }
+    };
+
+    const handleDownload = async (k: any) => {
+        setDownloadingId(k.kindergarten_id);
+        try {
+            const blob = await generateMenu(k.kindergarten_id, year, month);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${k.name}_献立表_${year}年${month}月.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (e: any) {
+            alert('Download failed');
+            console.error(e);
+        } finally {
+            setDownloadingId(null);
         }
     };
 
     return (
-        <div className="p-8 max-w-2xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6">Admin: Menu Master Upload</h1>
+        <div className="min-h-screen bg-orange-50 p-8">
+            <div className="max-w-4xl mx-auto space-y-8">
 
-            <div className="bg-white shadow rounded-lg p-6 space-y-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Target Month</label>
-                    <div className="flex gap-4">
-                        <input
-                            type="number"
-                            value={year}
-                            onChange={(e) => setYear(parseInt(e.target.value))}
-                            className="border p-2 rounded w-24"
-                        />
-                        <span className="self-center">Year</span>
-                        <input
-                            type="number"
-                            value={month}
-                            onChange={(e) => setMonth(parseInt(e.target.value))}
-                            className="border p-2 rounded w-20"
-                        />
-                        <span className="self-center">Month</span>
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="p-3 bg-white rounded-full shadow-sm">
+                        <Building className="w-8 h-8 text-orange-500" />
                     </div>
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Admin Console <span className="text-orange-600">Mamameal</span>
+                    </h1>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Menu Excel File</label>
-                    <input
-                        type="file"
-                        accept=".xlsx, .xls"
-                        onChange={handleFileChange}
-                        className="block w-full text-sm text-gray-500
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-blue-50 file:text-blue-700
-                            hover:file:bg-blue-100"
-                    />
-                </div>
+                {/* Upload Section */}
+                <div className="bg-white rounded-2xl shadow-sm border border-orange-100 p-6">
+                    <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                        <Upload className="w-5 h-5 text-orange-500" />
+                        Menu Master Upload
+                    </h2>
 
-                <div className="pt-4">
-                    <button
-                        onClick={handleUpload}
-                        disabled={isLoading}
-                        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
-                            ${isLoading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}
-                            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
-                    >
-                        {isLoading ? 'Processing...' : 'Upload & Parse'}
-                    </button>
-                </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-600 mb-2">Target Period</label>
+                            <div className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+                                <input type="number" value={year} onChange={e => setYear(parseInt(e.target.value))} className="bg-transparent w-20 font-bold text-center outline-none" />
+                                <span className="text-gray-400">/</span>
+                                <input type="number" value={month} onChange={e => setMonth(parseInt(e.target.value))} className="bg-transparent w-16 font-bold text-center outline-none" />
+                            </div>
+                        </div>
 
-                {status && (
-                    <div className={`p-4 rounded ${status.includes('Failed') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                        {status}
-                    </div>
-                )}
-
-                {result && (
-                    <div className="mt-6 border-t pt-4">
-                        <h3 className="font-semibold mb-2">Parse Result:</h3>
-                        <ul className="list-disc pl-5 text-sm space-y-1">
-                            <li>Base Menus: {result.base_menus} days</li>
-                            <li>Special Menus: {result.special_menus} items</li>
-                            <li>Kindergarten Sheets Found: {result.sheets_found.length}</li>
-                        </ul>
-                        <div className="mt-2 text-xs text-gray-500 break-words">
-                            Sheets: {result.sheets_found.join(', ')}
+                        <div>
+                            <label className="block text-sm font-bold text-gray-600 mb-2">Excel File</label>
+                            <input
+                                type="file"
+                                accept=".xlsx, .xls"
+                                onChange={handleFileChange}
+                                className="block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-full file:border-0
+                                    file:text-sm file:font-bold
+                                    file:bg-orange-100 file:text-orange-700
+                                    hover:file:bg-orange-200 cursor-pointer"
+                            />
                         </div>
                     </div>
-                )}
+
+                    <div className="mt-6">
+                        <button
+                            onClick={handleUpload}
+                            disabled={isUploading}
+                            className={`w-full py-3 rounded-xl font-bold text-white shadow-md transition-all
+                                ${isUploading ? 'bg-gray-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 hover:shadow-lg active:scale-[0.98]'}`}
+                        >
+                            {isUploading ? <span className="flex items-center justify-center gap-2"><Loader2 className="animate-spin" /> Processing...</span> : 'Upload & Parse Menu'}
+                        </button>
+                    </div>
+
+                    {status && (
+                        <div className={`mt-4 p-4 rounded-xl flex items-start gap-3 ${status.includes('Failed') ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
+                            {status.includes('Failed') ? <AlertCircle className="w-5 h-5 shrink-0" /> : <CheckCircle className="w-5 h-5 shrink-0" />}
+                            <div>{status}</div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Kindergarten List Section */}
+                <div className="bg-white rounded-2xl shadow-sm border border-orange-100 p-6">
+                    <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                        <FileDown className="w-5 h-5 text-orange-500" />
+                        Kindergarten Menu Download
+                    </h2>
+
+                    {loadingList ? (
+                        <div className="flex justify-center p-8 text-orange-400">
+                            <Loader2 className="animate-spin w-8 h-8" />
+                        </div>
+                    ) : (
+                        <div className="grid gap-3">
+                            {kindergartens.map(k => (
+                                <div key={k.kindergarten_id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-orange-200 hover:bg-orange-50 transition-colors group">
+                                    <div>
+                                        <div className="font-bold text-gray-800">{k.name}</div>
+                                        <div className="text-xs text-gray-400">ID: {k.kindergarten_id}</div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDownload(k)}
+                                        disabled={!!downloadingId}
+                                        className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-bold shadow-sm group-hover:border-orange-300 group-hover:text-orange-600 transition-all flex items-center gap-2"
+                                    >
+                                        {downloadingId === k.kindergarten_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                                        Download
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
             </div>
         </div>
     );
