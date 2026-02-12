@@ -23,8 +23,9 @@ def parse_menu_excel(file_path: str, year: int, month: int) -> MenuTable:
         base_sheet_name = xl.sheet_names[0]
     
     print(f"Using '{base_sheet_name}' as Base Sheet")
-    base_menus, special_menus = parse_sheet(xl, base_sheet_name, year, month)
+    base_menus, allergy_menus, special_menus = parse_sheet(xl, base_sheet_name, year, month)
     table.base_menus = base_menus
+    table.allergy_menus = allergy_menus
     table.special_menus = special_menus
     
     print(f"Base Menus parsed: {len(base_menus)}")
@@ -43,7 +44,7 @@ def parse_menu_excel(file_path: str, year: int, month: int) -> MenuTable:
                 k_name = str(df_head.iloc[0, 7]).strip()
                 if k_name and k_name.lower() != 'nan':
                     print(f"Found Kindergarten Sheet: {sheet_name} for {k_name}")
-                    k_menus, k_special = parse_sheet(xl, sheet_name, year, month)
+                    k_menus, k_allergy, k_special = parse_sheet(xl, sheet_name, year, month)
                     
                     if k_name not in table.kindergarten_sheets:
                         table.kindergarten_sheets[k_name] = {}
