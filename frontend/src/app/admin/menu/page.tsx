@@ -245,11 +245,21 @@ export default function AdminMenuPage() {
                                                     <div className="flex items-center gap-2 pt-2 border-t border-gray-50">
                                                         <button
                                                             onClick={() => handleDownload(k)}
-                                                            disabled={!!downloadingId}
-                                                            className="flex-1 py-3 px-4 bg-white border border-gray-200 hover:border-orange-500 hover:text-orange-600 rounded-2xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 group/btn active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={!!downloadingId || !result}
+                                                            className={`flex-1 py-3 px-4 border rounded-2xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 group/btn active:scale-95 disabled:opacity-30 disabled:grayscale
+                                                                ${result ? 'bg-white border-orange-200 text-orange-600 hover:bg-orange-50' : 'bg-gray-50 border-gray-100 text-gray-400'}`}
                                                         >
-                                                            {downloadingId === k.kindergarten_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <FileDown className="w-3 h-3 group-hover/btn:-translate-y-0.5 transition-transform" />}
-                                                            EXCEL MENU
+                                                            {downloadingId === k.kindergarten_id ? (
+                                                                <>
+                                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                                    生成中...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <FileDown className="w-3 h-3 group-hover/btn:-translate-y-0.5 transition-transform" />
+                                                                    献立表を作成
+                                                                </>
+                                                            )}
                                                         </button>
                                                         <button
                                                             disabled

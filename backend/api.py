@@ -121,9 +121,6 @@ def login(creds: LoginRequest):
                 "kindergarten_id": user.kindergarten_id,
                 "name": user.name,
                 "settings": {
-                    "course_type": user.course_type,
-                    "has_bread_day": user.has_bread_day,
-                    "has_curry_day": user.has_curry_day,
                     # Service Days
                     "service_mon": user.service_mon,
                     "service_tue": user.service_tue,
@@ -396,12 +393,8 @@ def generate_menu_file(req: MenuGenerationRequest):
         if 'kindergarten_name' not in req.options:
             req.options['kindergarten_name'] = kindergarten.name
         
-        # Inject settings (CourseType, CurryDay, etc.)
-        req.options['settings'] = {
-            'course_type': kindergarten.course_type,
-            'has_curry_day': kindergarten.has_curry_day,
-            'has_bread_day': kindergarten.has_bread_day
-        }
+        # Inject settings (Managed via triggers)
+        req.options['settings'] = {}
             
         # 2. Generate Excel (Sync for now)
         file_path = generate_kondate_excel(req.kindergarten_id, req.year, req.month, req.options)

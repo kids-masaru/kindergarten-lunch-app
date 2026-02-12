@@ -48,30 +48,6 @@ export default function CalendarPage() {
     }
   };
 
-  const handleDownloadMenu = async () => {
-    if (!user) return;
-    try {
-      // Simple loading indicator (could be better)
-      const originalText = document.getElementById('dl-btn-text');
-      if (originalText) originalText.innerText = '生成中...';
-
-      const blob = await generateMenu(user.kindergarten_id, year, month);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${user.name}_献立表_${year}年${month}月.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (e) {
-      alert("献立表の生成に失敗しました。");
-      console.error(e);
-    } finally {
-      const originalText = document.getElementById('dl-btn-text');
-      if (originalText) originalText.innerText = '献立表DL';
-    }
-  };
 
   const handleDateClick = (date: number) => {
     if (!user) return;
@@ -160,15 +136,6 @@ export default function CalendarPage() {
                     <ChevronRight className="w-6 h-6 text-gray-600" />
                   </button>
                 </div>
-
-                <button
-                  onClick={handleDownloadMenu}
-                  className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors border border-green-200"
-                  title="献立表をダウンロード"
-                >
-                  <FileDown className="w-4 h-4" />
-                  <span id="dl-btn-text" className="text-sm font-bold">献立表DL</span>
-                </button>
               </div>
 
               {/* Calendar Grid */}
