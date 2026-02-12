@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, Any
+import datetime
+from typing import Optional, Any, Dict, List
 
 # --- Helper for dynamic column mapping ---
 def normalize_key(key: str) -> str:
