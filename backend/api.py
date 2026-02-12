@@ -414,8 +414,30 @@ def generate_menu_file(req: MenuGenerationRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/admin/kindergartens")
-def list_kindergartens():
-    """List all kindergartens for Admin Console."""
-    masters = get_kindergarten_master()
-    return {"kindergartens": [k.dict() for k in masters]}
+
+@router.get("/admin/system-info")
+def get_system_info():
+    """Returns system config info including Service Account Email."""
+    email = "Unknown"
+    folder_status = "Not Configured"
+    
+    try:
+        from backend.drive import get_drive_service, DRIVE_FOLDER_ID
+        service = get_drive_service()
+        if service:
+            try:
+                about = service.about().get(fields="user").execute()
+                email = about['user']['emailAddress']
+            except:
+                email = "Error fetching email"
+        
+        if DRIVE_FOLDER_ID:
+            folder_status = f"Configured ({DRIVE_FOLDER_ID[:4]}...)"
+            
+    except Exception as e:
+        print(f"Error getting system info: {e}")
+        
+    return {
+        "service_account_email": email,
+        "drive_folder_config": folder_status
+    }

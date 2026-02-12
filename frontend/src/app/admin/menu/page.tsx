@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { uploadMenu, getKindergartens, generateMenu } from '@/lib/api';
-import { FileDown, Upload, Loader2, Building, AlertCircle, CheckCircle } from 'lucide-react';
+import { uploadMenu, getKindergartens, generateMenu, getSystemInfo } from '@/lib/api'; // Import new function
+import { FileDown, Upload, Loader2, Building, AlertCircle, CheckCircle, Info, Copy } from 'lucide-react'; // Import icons
 
 export default function AdminMenuPage() {
+    // ... existing state ...
     const [file, setFile] = useState<File | null>(null);
     const [year, setYear] = useState<number>(new Date().getFullYear());
-    const [month, setMonth] = useState<number>(new Date().getMonth() + 2); // Default to next month
+    const [month, setMonth] = useState<number>(new Date().getMonth() + 2);
     const [status, setStatus] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -16,7 +17,11 @@ export default function AdminMenuPage() {
     const [loadingList, setLoadingList] = useState(true);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
+    // New System Info State
+    const [systemInfo, setSystemInfo] = useState<any>(null);
+
     useEffect(() => {
+        // Fetch Kindergartens
         getKindergartens().then(res => {
             setKindergartens(res.kindergartens);
             setLoadingList(false);
@@ -24,7 +29,17 @@ export default function AdminMenuPage() {
             console.error(err);
             setLoadingList(false);
         });
+
+        // Fetch System Info
+        getSystemInfo().then(res => {
+            setSystemInfo(res);
+        }).catch(err => console.error("SysInfo Error:", err));
     }, []);
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        alert("Copied to clipboard!");
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -86,6 +101,41 @@ export default function AdminMenuPage() {
                     <h1 className="text-2xl font-bold text-gray-800">
                         Admin Console <span className="text-orange-600">Mamameal</span>
                     </h1>
+                </div>
+
+
+                {/* System Dashboard */}
+                <div className="bg-white rounded-2xl shadow-sm border border-blue-100 p-6">
+                    <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                        <Info className="w-5 h-5 text-blue-500" />
+                        System Status (Google Drive)
+                    </h2>
+
+                    {systemInfo ? (
+                        <div className="text-sm space-y-3">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <span className="font-bold text-gray-600">Service Account Email (Share folder with this):</span>
+                                <div className="flex items-center gap-2 mt-2 md:mt-0">
+                                    <code className="bg-white px-2 py-1 rounded border border-gray-200 select-all">
+                                        {systemInfo.service_account_email}
+                                    </code>
+                                    <button onClick={() => copyToClipboard(systemInfo.service_account_email)} className="text-blue-600 hover:text-blue-800" title="Copy">
+                                        <Copy className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="font-bold text-gray-600">Shared Folder (Env):</span>
+                                <span className={systemInfo.drive_folder_config.includes("Configured") ? "text-green-600 font-bold" : "text-red-500 font-bold"}>
+                                    {systemInfo.drive_folder_config}
+                                </span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 text-gray-400">
+                            <Loader2 className="w-4 h-4 animate-spin" /> Loading system info...
+                        </div>
+                    )}
                 </div>
 
                 {/* Upload Section */}
