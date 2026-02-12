@@ -408,6 +408,7 @@ def update_kindergarten_master(kindergarten_id, data):
             candidates = [key]
             # Add ad-hoc aliases if known likely
             if key == 'name': candidates.append('幼稚園名')
+            if key in ['services', 'services_json']: candidates.extend(['services', 'services_json', 'サービス'])
             
             col_idx = find_col_index(headers, candidates)
             
