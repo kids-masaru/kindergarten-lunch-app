@@ -58,102 +58,128 @@ def load_menu_master(year: int, month: int) -> Optional[MenuTable]:
         data = json.load(f)
         return MenuTable(**data)
 
+import openpyxl
+from openpyxl.utils import get_column_letter
+
+TEMPLATE_FILE = os.path.join(DATA_DIR, 'template.xlsx')
+
 def generate_kondate_excel(kindergarten_id: str, year: int, month: int, options: Dict) -> str:
     """
-    Generates the Kondate Excel for a specific kindergarten.
-    Returns the path to the generated file.
+    Generates the Kondate Excel for a specific kindergarten using template.xlsx.
     """
     # 1. Load Master
     master = load_menu_master(year, month)
     if not master:
         raise ValueError(f"Menu Master not found for {year}-{month}")
 
-    # 2. Logic to determine Menu per Day
-    # This involves:
-    # - Getting Kindergarten Settings (Service days, Bread days, etc.) -> From API/Sheets
-    # - Getting Kindergarten Orders (Event Names) -> From API/Sheets
-    # - Resolving: Base Menu vs Special Menu vs Kindergarten-Specific Sheet
-    
-    # Placeholder for logic
+    # 2. Resolve Daily Menus
     daily_schedule = resolve_daily_menus(master, kindergarten_id, options)
     
-    # 3. Create DataFrame
-    # Columns: Date, Day, Menu Name, Ingredients..., Nutrition
-    rows = []
+    # 3. Load Template
+    if not os.path.exists(TEMPLATE_FILE):
+        # Fallback to simple excel if template missing
+        print(f"[WARNING] Template not found at {TEMPLATE_FILE}. Generating simple file.")
+        return generate_simple_excel(daily_schedule, kindergarten_id, year, month)
+
+    wb = openpyxl.load_workbook(TEMPLATE_FILE)
+    ws = wb.active # Use the first sheet
+    
+    # 4. Fill Logic
+    # Start Left: Row 8. 
+    # Wrap after Row 73 -> Move to Col J (index 10), Row 5.
+    
+    current_row = 8
+    current_col_offset = 0 # 0 for A-H, 9 for J-Q (J is index 10, but offset from A is 9)
     
     sorted_dates = sorted(daily_schedule.keys())
+    
     for d in sorted_dates:
         menu = daily_schedule[d]
-        # Flatten dishes? Or concatenated string?
-        # Usually one row per dish or one row per meal with multiline text?
-        # Let's try one row per Dish for now (easier to read)
-        # Or one row per Day with joined strings.
         
-        main_dish_names = []
-        ingredients = []
-        energy = menu.total_energy or 0
+        # Check for wrap-around
+        if current_row + 5 > 73 and current_col_offset == 0:
+            current_row = 5
+            current_col_offset = 9 # Moves window from A-H to J-Q (J is 10th col)
         
-        for dish in menu.dishes:
-            main_dish_names.append(dish.dish_name)
-            if dish.ingredients:
-                ingredients.append(dish.ingredients)
-                
-        # Simple Join
-        row = {
-            "Date": d,
-            "Day": d.strftime("%a"),
-            "Menu": "\n".join(main_dish_names),
-            "Ingredients": "\n".join(ingredients),
-            "Energy (kcal)": energy
-        }
-        rows.append(row)
+        # Fill Date (Col A + offset)
+        # ws.cell(row=current_row, column=1 + current_col_offset, value=d.day) # Date
+        # ws.cell(row=current_row + 1, column=1 + current_col_offset, value=d.strftime("%a")) # Day
+        # Actually user said A7 is date, A8 is day in the SOURCE. 
+        # For TEMPLATE, let's assume Row 1 of block is date, Row 2 is day.
+        ws.cell(row=current_row, column=1 + current_col_offset, value=d.day)
         
-    df = pd.DataFrame(rows)
-    
-    # 4. Save to Excel
+        # Fill Dishes (Up to 6)
+        for i, dish in enumerate(menu.dishes[:6]):
+            r = current_row + i
+            # B: Menu (offset 1)
+            ws.cell(row=r, column=2 + current_col_offset, value=dish.dish_name)
+            # C-E: Ingredients (Handled as one or separate? Let's join for now if not sure)
+            ws.cell(row=r, column=3 + current_col_offset, value=dish.ingredients)
+            # F: Seasoning
+            ws.cell(row=r, column=6 + current_col_offset, value=dish.seasoning)
+            # H: Remarks
+            ws.cell(row=r, column=8 + current_col_offset, value=dish.remarks)
+            
+        # Fill Nutrition totals in Col G (offset 6)
+        # G1: Energy, G3: Protein, G5: Lipid (within block)
+        if menu.total_energy:
+            ws.cell(row=current_row + 1, column=7 + current_col_offset, value=menu.total_energy)
+        if menu.total_protein:
+            ws.cell(row=current_row + 3, column=7 + current_col_offset, value=menu.total_protein)
+        if hasattr(menu, 'total_lipid') and menu.total_lipid:
+            ws.cell(row=current_row + 5, column=7 + current_col_offset, value=menu.total_lipid)
+
+        current_row += 6 # Next block
+
+    # Update Title (Usually somewhere in the top)
+    ws['A1'] = f"{year}年 {month}月 献立表"
+    ws['E1'] = options.get('kindergarten_name', '幼稚園')
+
+    # 5. Save
     output_filename = f"kondate_{kindergarten_id}_{year}_{month}.xlsx"
     output_path = os.path.join(DATA_DIR, output_filename)
-    
-    df.to_excel(output_path, index=False)
+    wb.save(output_path)
     
     return output_path
 
+def generate_simple_excel(schedule: Dict, kid: str, y: int, m: int) -> str:
+    # Existing simple generation as fallback
+    rows = []
+    for d, menu in schedule.items():
+        rows.append({"Date": d, "Menu": ", ".join([dish.dish_name for dish in menu.dishes])})
+    df = pd.DataFrame(rows)
+    path = os.path.join(DATA_DIR, f"kondate_{kid}_{y}_{m}.xlsx")
+    df.to_excel(path, index=False)
+    return path
+
 def resolve_daily_menus(master: MenuTable, kindergarten_id: str, options: Dict) -> Dict[datetime.date, DailyMenu]:
     """
-    Core Logic: Merges Base + Special + Options to produce final daily menus.
+    Core Logic: Merges Base + Special + Allergy + Options to produce final daily menus.
     """
     schedule = {}
     
-    # Iterate all days in the month
-    # (Simplified: just use days present in Base Menu)
+    # 1. Kindergarten Settings
+    settings = options.get('settings', {})
+    is_catering = settings.get('course_type') == "配膳"
+    has_curry = settings.get('has_curry_day', False)
+    has_bread = settings.get('has_bread_day', False)
+    
+    # 2. Iterate days
     for date, base_menu in master.base_menus.items():
-        # Default to Base Menu
         final_menu = base_menu
         
-        # Check for Kindergarten Specific Overrides (e.g. "ふたば" sheet in Excel)
-        # Need to know the Kindergarten Name matching the Sheet Name!
-        # This requires a mapping: ID -> Name.
-        k_name = options.get('kindergarten_name', '')
-        if k_name in master.kindergarten_sheets:
-            if date in master.kindergarten_sheets[k_name]:
-                final_menu = master.kindergarten_sheets[k_name][date]
-                
-        # Check for Special Events (e.g. Birthday)
-        # If options has "events": {date: "Birthday Party"}
-        # And master.special_menus has "Birthday Party"
-        # Then override.
+        # Check override for "Catering" (Allergy menu might be used as basis for Catering?)
+        # Or maybe it has a separate sheet.
+        # For now, let's assume "Allergy" menu is the one used for Catering or Specific needs.
+        if is_catering and date in master.allergy_menus:
+             final_menu = master.allergy_menus[date]
+
+        # Check for Special Events
         events = options.get('events', {})
-        event_name = events.get(str(date)) # JSON keys are strings
-        if event_name:
-            # Normalize key?
-            # master.special_menus keys are raw strings from Excel
-            # Try exact match first
-            if event_name in master.special_menus:
-                 final_menu = master.special_menus[event_name]
-                 final_menu.date = date # Assign date to special menu instance
-            else:
-                 # Fallback: Fuzzy match or log warning?
-                 pass
+        event_name = events.get(str(date))
+        if event_name in master.special_menus:
+             final_menu = master.special_menus[event_name]
+             final_menu.date = date
 
         schedule[date] = final_menu
         

@@ -10,7 +10,7 @@ load_dotenv()
 
 # Spreadsheet ID should be in .env
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
-CREDENTIALS_FILE = "service_account.json"
+CREDENTIALS_FILE = "lunch-order-app-484107-7b748f233fe2.json"
 
 def get_db_connection():
     """Connect to Google Sheets and return the workbook object."""

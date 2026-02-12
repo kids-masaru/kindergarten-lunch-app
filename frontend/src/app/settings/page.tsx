@@ -14,6 +14,9 @@ export default function SettingsPage() {
         mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false
     });
     const [kindergartenName, setKindergartenName] = useState("");
+    const [courseType, setCourseType] = useState("通常");
+    const [hasCurry, setHasCurry] = useState(false);
+    const [hasBread, setHasBread] = useState(false);
 
     // Class Editing State
     const [isClassModalOpen, setIsClassModalOpen] = useState(false);
@@ -41,6 +44,9 @@ export default function SettingsPage() {
                 sat: u.settings.service_sat === true,
                 sun: u.settings.service_sun === true,
             });
+            setCourseType(u.settings.course_type || "通常");
+            setHasCurry(!!u.settings.has_curry_day);
+            setHasBread(!!u.settings.has_bread_day);
         }
     }, [router]);
 
@@ -61,7 +67,7 @@ export default function SettingsPage() {
     };
 
     const handleSaveClass = async () => {
-        if (!editingClass || !user || !user.classes) return;
+        if (!user || !user.classes || !editingClass) return;
 
         // Validation
         if (!editingClass.class_name.trim()) {
@@ -135,7 +141,10 @@ export default function SettingsPage() {
                 service_thu: serviceDays.thu,
                 service_fri: serviceDays.fri,
                 service_sat: serviceDays.sat,
-                service_sun: serviceDays.sun
+                service_sun: serviceDays.sun,
+                course_type: courseType,
+                has_curry_day: hasCurry,
+                has_bread_day: hasBread,
             };
 
             await updateKindergartenSettings(newSettings);
@@ -202,21 +211,51 @@ export default function SettingsPage() {
                     <p className="text-xs text-gray-400 mt-3">※ここで選択した曜日が、カレンダー上で有効になります</p>
                 </div>
 
-                {/* Kindergarten Info Section */}
+                {/* Course & Options Section */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <span>🏫</span> 園情報の編集
+                        <span>🍱</span> コース・オプション設定
                     </h2>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <div>
-                            <label className="block text-sm font-bold text-gray-600 mb-1">園名</label>
-                            <input
-                                type="text"
-                                value={kindergartenName}
-                                onChange={(e) => setKindergartenName(e.target.value)}
-                                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="例：テスト幼稚園"
-                            />
+                            <label className="block text-sm font-bold text-gray-600 mb-2">コース種別</label>
+                            <div className="flex gap-2">
+                                {["通常", "配膳"].map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => setCourseType(type)}
+                                        className={`flex-1 py-3 rounded-xl font-bold transition-all border ${courseType === type
+                                            ? 'bg-orange-500 text-white border-orange-600 shadow-md'
+                                            : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-2">※「配膳」は外部委託等の配膳のみのコースです</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-50 mt-4">
+                            <button
+                                onClick={() => setHasCurry(!hasCurry)}
+                                className={`flex items-center justify-between p-4 rounded-xl border transition-all ${hasCurry ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-white border-gray-100 text-gray-400'}`}
+                            >
+                                <span className="font-bold">カレーの日</span>
+                                <div className={`w-10 h-6 rounded-full relative transition-colors ${hasCurry ? 'bg-orange-500' : 'bg-gray-200'}`}>
+                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${hasCurry ? 'left-5' : 'left-1'}`} />
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setHasBread(!hasBread)}
+                                className={`flex items-center justify-between p-4 rounded-xl border transition-all ${hasBread ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-100 text-gray-400'}`}
+                            >
+                                <span className="font-bold">パンの日</span>
+                                <div className={`w-10 h-6 rounded-full relative transition-colors ${hasBread ? 'bg-blue-500' : 'bg-gray-200'}`}>
+                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${hasBread ? 'left-5' : 'left-1'}`} />
+                                </div>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -284,7 +323,7 @@ export default function SettingsPage() {
                     設定を保存する
                 </button>
 
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

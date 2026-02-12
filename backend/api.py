@@ -218,15 +218,18 @@ def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRe
         raise HTTPException(status_code=500, detail=f"Server Error: {str(e)}")
 
 @router.put("/masters/kindergarten")
-def update_kindergarten(req: KindergartenUpdateRequest):
-    # Filter out None values to only update sent fields
-    data = {k: v for k, v in req.dict().items() if k != 'kindergarten_id' and v is not None}
+def update_settings(data: Dict):
+    """Updates settings for a kindergarten."""
+    kid = data.get('kindergarten_id')
+    if not kid:
+        raise HTTPException(status_code=400, detail="Missing kindergarten_id")
     
-    success = update_kindergarten_master(req.kindergarten_id, data)
-    
+    # We pass the dict directly to update_kindergarten_master
+    # It will filter keys and map to correct columns
+    success = update_kindergarten_master(kid, data)
     if not success:
-        # It might fail if columns don't exist in sheet yet, but we'll return 500
-        raise HTTPException(status_code=500, detail="Failed to update kindergarten master")
+        raise HTTPException(status_code=500, detail="Failed to update Google Sheets")
+        
     return {"status": "success"}
 
 @router.get("/calendar")
@@ -379,16 +382,26 @@ def generate_menu_file(req: MenuGenerationRequest):
     """
     try:
         masters = get_kindergarten_master()
-        k_name = "Unknown"
+        kindergarten = None
         if masters:
             for k in masters:
                 if k.kindergarten_id == req.kindergarten_id:
-                     k_name = k.name
+                     kindergarten = k
                      break
         
-        # Inject name into options for generator
+        if not kindergarten:
+            raise HTTPException(status_code=404, detail="Kindergarten not found")
+
+        # Inject details into options for generator
         if 'kindergarten_name' not in req.options:
-            req.options['kindergarten_name'] = k_name
+            req.options['kindergarten_name'] = kindergarten.name
+        
+        # Inject settings (CourseType, CurryDay, etc.)
+        req.options['settings'] = {
+            'course_type': kindergarten.course_type,
+            'has_curry_day': kindergarten.has_curry_day,
+            'has_bread_day': kindergarten.has_bread_day
+        }
             
         # 2. Generate Excel (Sync for now)
         file_path = generate_kondate_excel(req.kindergarten_id, req.year, req.month, req.options)

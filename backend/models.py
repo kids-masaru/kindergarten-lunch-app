@@ -96,18 +96,25 @@ import datetime
 class MenuDish(BaseModel):
     dish_name: str
     ingredients: Optional[str] = None
+    # Source Columns G (Normal) or P (Allergy)
     nutrition_energy: Optional[float] = None
     nutrition_protein: Optional[float] = None
-    # Add other nutrition fields as needed based on "配膳給食" sheet
+    nutrition_lipid: Optional[float] = None
+    # Others
+    seasoning: Optional[str] = None
+    remarks: Optional[str] = None
 
 class DailyMenu(BaseModel):
-    date: Optional[datetime.date] = None # Can be None for Special Menus before assignment
-    meal_type: str = "Normal" # "Normal", "Vegetarian", "Special:Curry", etc.
+    date: Optional[datetime.date] = None # Can be None for Special Menus
+    meal_type: str = "Normal" # "Normal", "Allergy"
     dishes: List[MenuDish] = []
     
-    # Nutrition summary for the whole meal (if pre-calculated in Excel)
+    # Nutrition total (from G6, G8, G10 etc)
     total_energy: Optional[float] = None
     total_protein: Optional[float] = None
+    total_lipid: Optional[float] = None
+    
+    remarks: Optional[str] = None
 
 class SpecialMenu(BaseModel):
     event_name: str # e.g. "お誕生日会", "カレーの日"
@@ -118,6 +125,7 @@ class MenuTable(BaseModel):
     year: int
     month: int
     base_menus: Dict[datetime.date, DailyMenu] = {}
+    allergy_menus: Dict[datetime.date, DailyMenu] = {}
     special_menus: Dict[str, DailyMenu] = {}  # Key: Event Name (e.g. "Birthday")
-    kindergarten_sheets: Dict[str, Dict[datetime.date, DailyMenu]] = {} # Key: Kindergarten Name -> {Date: Menu}
+    kindergarten_sheets: Dict[str, Dict[datetime.date, DailyMenu]] = {} 
 
