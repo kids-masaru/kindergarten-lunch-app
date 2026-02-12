@@ -14,12 +14,11 @@ class KindergartenMaster(BaseModel):
     name: str = Field(alias='name')
     login_id: str = Field(alias='login_id')
     password: str = Field(alias='password')
-    course_type: Optional[str] = Field(default="通常", alias='course_type')
     
-    # Settings (Flags)
-    # Using strict=False to allow string parsing ("TRUE"/"FALSE")
-    has_bread_day: bool = Field(default=False, alias='has_bread_day')
-    has_curry_day: bool = Field(default=False, alias='has_curry_day')
+    # Custom services (stored as JSON in the sheet)
+    services: List[str] = Field(default_factory=list, alias='services_json')
+    settings: Dict = Field(default_factory=dict)
+    classes: List['ClassMaster'] = Field(default_factory=list)
     
     # Service Days
     service_mon: bool = Field(default=True, alias='service_mon')
@@ -36,6 +35,14 @@ class KindergartenMaster(BaseModel):
 
     @field_validator('*', mode='before')
     def handle_sheet_values(cls, v):
+        # Handle the specialized JSON list for services
+        if isinstance(v, str) and (v.startswith('[') or v.startswith('{')):
+            try:
+                import json
+                return json.loads(v)
+            except:
+                return v
+
         # Google Sheets might return empty strings for missing bools
         if v == "": return None
         if isinstance(v, str) and v.upper() == 'TRUE': return True
@@ -96,7 +103,9 @@ import datetime
 
 class MenuDish(BaseModel):
     dish_name: str
-    ingredients: Optional[str] = None
+    ingredients_red: Optional[str] = None
+    ingredients_yellow: Optional[str] = None
+    ingredients_green: Optional[str] = None
     # Source Columns G (Normal) or P (Allergy)
     nutrition_energy: Optional[float] = None
     nutrition_protein: Optional[float] = None
@@ -108,7 +117,9 @@ class MenuDish(BaseModel):
 class DailyMenu(BaseModel):
     date: Optional[datetime.date] = None # Can be None for Special Menus
     meal_type: str = "Normal" # "Normal", "Allergy"
-    dishes: List[MenuDish] = []
+    
+    # A block MUST have 6 rows to maintain structure
+    dishes: List[MenuDish] = Field(default_factory=lambda: [MenuDish(dish_name="") for _ in range(6)])
     
     # Nutrition total (from G6, G8, G10 etc)
     total_energy: Optional[float] = None

@@ -14,9 +14,7 @@ export default function SettingsPage() {
         mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false
     });
     const [kindergartenName, setKindergartenName] = useState("");
-    const [courseType, setCourseType] = useState("通常");
-    const [hasCurry, setHasCurry] = useState(false);
-    const [hasBread, setHasBread] = useState(false);
+    const [services, setServices] = useState<string[]>([]);
 
     // Class Editing State
     const [isClassModalOpen, setIsClassModalOpen] = useState(false);
@@ -44,9 +42,7 @@ export default function SettingsPage() {
                 sat: u.settings.service_sat === true,
                 sun: u.settings.service_sun === true,
             });
-            setCourseType(u.settings.course_type || "通常");
-            setHasCurry(!!u.settings.has_curry_day);
-            setHasBread(!!u.settings.has_bread_day);
+            setServices(u.services || []);
         }
     }, [router]);
 
@@ -128,6 +124,20 @@ export default function SettingsPage() {
         }
     };
 
+    const handleAddService = () => {
+        setServices([...services, '']);
+    };
+
+    const handleUpdateService = (index: number, value: string) => {
+        const newServices = [...services];
+        newServices[index] = value;
+        setServices(newServices);
+    };
+
+    const handleRemoveService = (index: number) => {
+        setServices(services.filter((_, i) => i !== index));
+    };
+
     const handleSave = async () => {
         if (!user) return;
         setLoading(true);
@@ -142,9 +152,7 @@ export default function SettingsPage() {
                 service_fri: serviceDays.fri,
                 service_sat: serviceDays.sat,
                 service_sun: serviceDays.sun,
-                course_type: courseType,
-                has_curry_day: hasCurry,
-                has_bread_day: hasBread,
+                services_json: services, // Match backend Alias
             };
 
             await updateKindergartenSettings(newSettings);
@@ -153,6 +161,7 @@ export default function SettingsPage() {
             const updatedUser = {
                 ...user,
                 name: kindergartenName,
+                services: services,
                 settings: {
                     ...user.settings,
                     ...newSettings
@@ -211,53 +220,45 @@ export default function SettingsPage() {
                     <p className="text-xs text-gray-400 mt-3">※ここで選択した曜日が、カレンダー上で有効になります</p>
                 </div>
 
-                {/* Course & Options Section */}
+                {/* Service Management Section */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <span>🍱</span> コース・オプション設定
-                    </h2>
-                    <div className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-bold text-gray-600 mb-2">コース種別</label>
-                            <div className="flex gap-2">
-                                {["通常", "配膳"].map(type => (
-                                    <button
-                                        key={type}
-                                        onClick={() => setCourseType(type)}
-                                        className={`flex-1 py-3 rounded-xl font-bold transition-all border ${courseType === type
-                                            ? 'bg-orange-500 text-white border-orange-600 shadow-md'
-                                            : 'bg-white text-gray-400 border-gray-100 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        {type}
-                                    </button>
-                                ))}
-                            </div>
-                            <p className="text-[10px] text-gray-400 mt-2">※「配膳」は外部委託等の配膳のみのコースです</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-50 mt-4">
-                            <button
-                                onClick={() => setHasCurry(!hasCurry)}
-                                className={`flex items-center justify-between p-4 rounded-xl border transition-all ${hasCurry ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-white border-gray-100 text-gray-400'}`}
-                            >
-                                <span className="font-bold">カレーの日</span>
-                                <div className={`w-10 h-6 rounded-full relative transition-colors ${hasCurry ? 'bg-orange-500' : 'bg-gray-200'}`}>
-                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${hasCurry ? 'left-5' : 'left-1'}`} />
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => setHasBread(!hasBread)}
-                                className={`flex items-center justify-between p-4 rounded-xl border transition-all ${hasBread ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-100 text-gray-400'}`}
-                            >
-                                <span className="font-bold">パンの日</span>
-                                <div className={`w-10 h-6 rounded-full relative transition-colors ${hasBread ? 'bg-blue-500' : 'bg-gray-200'}`}>
-                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${hasBread ? 'left-5' : 'left-1'}`} />
-                                </div>
-                            </button>
-                        </div>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="font-bold text-gray-800 flex items-center gap-2">
+                            <span>🍱</span> サービス・献立種別設定
+                        </h2>
+                        <button
+                            onClick={handleAddService}
+                            className="text-sm bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg font-bold hover:bg-orange-100 transition-colors"
+                        >
+                            + 追加
+                        </button>
                     </div>
+
+                    <div className="space-y-3">
+                        {services.map((service, index) => (
+                            <div key={index} className="flex gap-2 items-center">
+                                <input
+                                    type="text"
+                                    placeholder="例: カレー"
+                                    value={service}
+                                    onChange={(e) => handleUpdateService(index, e.target.value)}
+                                    className="flex-1 p-2 border border-gray-100 rounded-lg text-sm bg-gray-50/50"
+                                />
+                                <button
+                                    onClick={() => handleRemoveService(index)}
+                                    className="p-2 text-gray-400 hover:text-red-500 rounded-lg"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
+                        ))}
+                        {services.length === 0 && (
+                            <p className="text-center text-gray-400 text-sm py-4">サービスが登録されていません。<br />「通常」や「配膳」などを追加してください。</p>
+                        )}
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-4 leading-relaxed">
+                        ※ここで設定した名称が、カレンダーの注文入力時に選択肢として表示されます。
+                    </p>
                 </div>
                 {/* Class Settings Section */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">

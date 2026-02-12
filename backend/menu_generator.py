@@ -61,7 +61,11 @@ def load_menu_master(year: int, month: int) -> Optional[MenuTable]:
 import openpyxl
 from openpyxl.utils import get_column_letter
 
-TEMPLATE_FILE = os.path.join(DATA_DIR, 'template.xlsx')
+# Paths
+BACKEND_DIR = os.path.dirname(__file__)
+DATA_DIR = os.path.join(BACKEND_DIR, '..', 'data')
+os.makedirs(DATA_DIR, exist_ok=True)
+TEMPLATE_FILE = os.path.join(BACKEND_DIR, 'data', 'template.xlsx')
 
 def generate_kondate_excel(kindergarten_id: str, year: int, month: int, options: Dict) -> str:
     """
@@ -108,25 +112,29 @@ def generate_kondate_excel(kindergarten_id: str, year: int, month: int, options:
         # For TEMPLATE, let's assume Row 1 of block is date, Row 2 is day.
         ws.cell(row=current_row, column=1 + current_col_offset, value=d.day)
         
-        # Fill Dishes (Up to 6)
-        for i, dish in enumerate(menu.dishes[:6]):
+        # Fill Dishes (Strictly 6)
+        for i in range(6):
             r = current_row + i
+            dish = menu.dishes[i] if i < len(menu.dishes) else MenuDish(dish_name="")
+            
             # B: Menu (offset 1)
             ws.cell(row=r, column=2 + current_col_offset, value=dish.dish_name)
-            # C-E: Ingredients (Handled as one or separate? Let's join for now if not sure)
-            ws.cell(row=r, column=3 + current_col_offset, value=dish.ingredients)
-            # F: Seasoning
+            # C, D, E: Ingredients (Offset 2, 3, 4)
+            ws.cell(row=r, column=3 + current_col_offset, value=dish.ingredients_red)
+            ws.cell(row=r, column=4 + current_col_offset, value=dish.ingredients_yellow)
+            ws.cell(row=r, column=5 + current_col_offset, value=dish.ingredients_green)
+            # F: Seasoning (offset 5)
             ws.cell(row=r, column=6 + current_col_offset, value=dish.seasoning)
-            # H: Remarks
+            # H: Remarks (offset 7)
             ws.cell(row=r, column=8 + current_col_offset, value=dish.remarks)
             
         # Fill Nutrition totals in Col G (offset 6)
-        # G1: Energy, G3: Protein, G5: Lipid (within block)
+        # G2: Energy (row+1), G4: Protein (row+3), G6: Lipid (row+5)
         if menu.total_energy:
             ws.cell(row=current_row + 1, column=7 + current_col_offset, value=menu.total_energy)
         if menu.total_protein:
             ws.cell(row=current_row + 3, column=7 + current_col_offset, value=menu.total_protein)
-        if hasattr(menu, 'total_lipid') and menu.total_lipid:
+        if menu.total_lipid:
             ws.cell(row=current_row + 5, column=7 + current_col_offset, value=menu.total_lipid)
 
         current_row += 6 # Next block
@@ -143,43 +151,88 @@ def generate_kondate_excel(kindergarten_id: str, year: int, month: int, options:
     return output_path
 
 def generate_simple_excel(schedule: Dict, kid: str, y: int, m: int) -> str:
-    # Existing simple generation as fallback
-    rows = []
-    for d, menu in schedule.items():
-        rows.append({"Date": d, "Menu": ", ".join([dish.dish_name for dish in menu.dishes])})
-    df = pd.DataFrame(rows)
-    path = os.path.join(DATA_DIR, f"kondate_{kid}_{y}_{m}.xlsx")
+    """Fallback generator that preserves the 6-row block structure."""
+    all_rows = []
+    # Header
+    all_rows.append(["Date", "Day", "Dish Name", "Red", "Yellow", "Green", "Seasoning", "Nutrition", "Remarks"])
+    
+    for d in sorted(schedule.keys()):
+        menu = schedule[d]
+        for i in range(6):
+            dish = menu.dishes[i] if i < len(menu.dishes) else MenuDish(dish_name="")
+            row = [
+                d.strftime("%Y-%m-%d") if i == 0 else "", 
+                d.strftime("%a") if i == 0 else "",
+                dish.dish_name,
+                dish.ingredients_red,
+                dish.ingredients_yellow,
+                dish.ingredients_green,
+                dish.seasoning,
+                # Simple nutrition list
+                f"E:{menu.total_energy}" if i == 1 else (f"P:{menu.total_protein}" if i == 3 else (f"L:{menu.total_lipid}" if i == 5 else "")),
+                dish.remarks
+            ]
+            all_rows.append(row)
+            
+    df = pd.DataFrame(all_rows[1:], columns=all_rows[0])
+    path = os.path.join(DATA_DIR, f"kondate_{kid}_{y}_{m}_fallback.xlsx")
     df.to_excel(path, index=False)
     return path
+
+import difflib
 
 def resolve_daily_menus(master: MenuTable, kindergarten_id: str, options: Dict) -> Dict[datetime.date, DailyMenu]:
     """
     Core Logic: Merges Base + Special + Allergy + Options to produce final daily menus.
+    Uses trigger-based swapping for special menus.
     """
     schedule = {}
     
-    # 1. Kindergarten Settings
-    settings = options.get('settings', {})
-    is_catering = settings.get('course_type') == "配膳"
-    has_curry = settings.get('has_curry_day', False)
-    has_bread = settings.get('has_bread_day', False)
+    # Orders for this month might contain the menu types selected by the user
+    orders = options.get('orders', [])
     
+    # Map Orders by Date (YYYY-MM-DD -> meal_type)
+    date_to_meal_type = {}
+    for o in orders:
+        if isinstance(o, dict):
+            date_to_meal_type[o.get('date')] = o.get('meal_type')
+        else:
+            date_to_meal_type[o.date] = o.meal_type
+    
+    # Prepared list of special menu keys for fuzzy matching
+    special_keys = list(master.special_menus.keys())
+
     # 2. Iterate days
     for date, base_menu in master.base_menus.items():
         final_menu = base_menu
+        date_str = date.strftime("%Y-%m-%d")
         
-        # Check override for "Catering" (Allergy menu might be used as basis for Catering?)
-        # Or maybe it has a separate sheet.
-        # For now, let's assume "Allergy" menu is the one used for Catering or Specific needs.
-        if is_catering and date in master.allergy_menus:
-             final_menu = master.allergy_menus[date]
+        # Determine Meal Type from Order (Default to "通常")
+        meal_type = date_to_meal_type.get(date_str, "通常")
+        
+        # --- Trigger Swapping Logic ---
+        # 1. Exact Match
+        if meal_type in master.special_menus:
+            final_menu = master.special_menus[meal_type]
+            final_menu.date = date
+        # 2. Allergy/Catering specific (Legacy "配膳" fallback)
+        elif meal_type == "配膳" and date in master.allergy_menus:
+            final_menu = master.allergy_menus[date]
+        # 3. Fuzzy Match (if not "通常" or "飯なし")
+        elif meal_type not in ["通常", "飯なし"]:
+            matches = difflib.get_close_matches(meal_type, special_keys, n=1, cutoff=0.5)
+            if matches:
+                match_key = matches[0]
+                print(f"Fuzzy matched '{meal_type}' to '{match_key}'")
+                final_menu = master.special_menus[match_key]
+                final_menu.date = date
 
-        # Check for Special Events
-        events = options.get('events', {})
-        event_name = events.get(str(date))
-        if event_name in master.special_menus:
-             final_menu = master.special_menus[event_name]
-             final_menu.date = date
+        # Check kindergarten-specific sheet overrides (Sheet matching)
+        kind_name = options.get('kindergarten_name')
+        if kind_name and kind_name in master.kindergarten_sheets:
+            kind_overrides = master.kindergarten_sheets[kind_name]
+            if date in kind_overrides:
+                final_menu = kind_overrides[date]
 
         schedule[date] = final_menu
         

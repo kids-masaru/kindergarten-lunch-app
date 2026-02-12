@@ -54,13 +54,9 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
     const day = String(date.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
 
-    // Filter Meal Types based on Settings
+    // Filter Meal Types based on dynamic Kindergarten Services (Triggers)
     const mealOptions = [
-        { value: '通常', label: '通常' },
-        ...(user.settings.has_curry_day ? [{ value: 'カレー', label: 'カレー' }] : []),
-        ...(user.settings.has_bread_day ? [{ value: 'パン', label: 'パン' }] : []),
-        ...(user.settings.has_birthday_party ? [{ value: '誕生会', label: '誕生会' }] : []),
-        { value: 'ピクニック', label: 'ピクニック' },
+        ...(user.services || []).map(s => ({ value: s, label: s })),
         { value: '飯なし', label: 'なし' }
     ];
 

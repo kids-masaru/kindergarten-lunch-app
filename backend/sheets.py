@@ -412,6 +412,9 @@ def update_kindergarten_master(kindergarten_id, data):
             col_idx = find_col_index(headers, candidates)
             
             if col_idx:
+                # If value is a list or dict, serialize to JSON string for the sheet
+                if isinstance(value, (list, dict)):
+                    value = json.dumps(value, ensure_ascii=False)
                 sheet.update_cell(row_index, col_idx, value)
             else:
                 print(f"Warning: Column {key} not found in Kindergarten_Master")

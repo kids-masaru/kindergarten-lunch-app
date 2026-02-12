@@ -1,11 +1,8 @@
 export interface LoginUser {
     kindergarten_id: string;
     name: string;
+    services: string[];
     settings: {
-        course_type: string;
-        has_bread_day: boolean;
-        has_curry_day: boolean;
-        has_birthday_party: boolean;
         service_mon?: boolean;
         service_tue?: boolean;
         service_wed?: boolean;
