@@ -3,7 +3,7 @@ import json
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from oauth2client.service_account import ServiceAccountCredentials
-from typing import Optional
+from typing import Optional, List
 import io
 
 # Load Environment Variables
