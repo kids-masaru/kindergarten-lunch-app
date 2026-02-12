@@ -42,19 +42,39 @@ def get_drive_service():
 # Additional Env Var for Shared Folder
 DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID")
 
+def verify_folder_access(service, folder_id):
+    """Check if we can access the folder."""
+    try:
+        f = service.files().get(fileId=folder_id, fields="id, name").execute()
+        print(f"[DEBUG] Successfully accessed folder: {f.get('name')} ({f.get('id')})")
+        return True
+    except Exception as e:
+        print(f"[ERROR] Cannot access folder {folder_id}. Reason: {e}")
+        return False
+
 def get_or_create_folder(folder_name: str) -> Optional[str]:
     """
     Finds a folder by ID (if env set) or name (if not).
     If DRIVE_FOLDER_ID is set, we return it directly.
     """
-    # 1. Direct ID (Best for Service Accounts with Shared Folders)
-    if DRIVE_FOLDER_ID:
-        # Verify access? Optional but good.
-        return DRIVE_FOLDER_ID
-
-    # 2. Search by Name (Old Logic - Fails if no storage quota)
     service = get_drive_service()
     if not service: return None
+
+    # Debug: Print who we are
+    try:
+        about = service.about().get(fields="user").execute()
+        print(f"[DEBUG] Drive Service Account Email: {about['user']['emailAddress']}")
+    except:
+        pass
+
+    # 1. Direct ID (Best for Service Accounts with Shared Folders)
+    if DRIVE_FOLDER_ID:
+        if verify_folder_access(service, DRIVE_FOLDER_ID):
+            return DRIVE_FOLDER_ID
+        else:
+            print(f"[CRITICAL] Configured DRIVE_FOLDER_ID {DRIVE_FOLDER_ID} is not accessible. Falling back to search.")
+
+    # 2. Search by Name (Old Logic - Fails if no storage quota)
     
     query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
     results = service.files().list(q=query, fields="files(id, name)").execute()
