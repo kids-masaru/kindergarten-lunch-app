@@ -337,13 +337,14 @@ async def upload_menu_excel(year: int, month: int, file: UploadFile = File(...))
             shutil.copyfileobj(file.file, buffer)
             
         # Drive Backup
+        # Drive Backup
         try:
              from backend.drive import upload_file_to_drive
              upload_filename = f"Raw_Menu_{year}_{month}.xlsx"
              print(f"Uploading raw menu to Drive: {upload_filename}")
              upload_file_to_drive(temp_path, upload_filename, mime_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         except Exception as e:
-             print(f"Drive Upload Failed (Non-critical): {e}")
+             print(f"[WARNING] Drive Upload Failed (Quota?): {e}")
 
         # Parse
         print(f"Parsing uploaded file: {temp_path}")
@@ -393,12 +394,13 @@ def generate_menu_file(req: MenuGenerationRequest):
         file_path = generate_kondate_excel(req.kindergarten_id, req.year, req.month, req.options)
         
         # 3. Upload to Drive (Backup)
+        # 3. Upload to Drive (Backup)
         filename = os.path.basename(file_path)
         try:
              from backend.drive import upload_file_to_drive
              upload_file_to_drive(file_path, filename, mime_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         except Exception as e:
-             print(f"Drive Upload Failed (Non-critical): {e}")
+             print(f"[WARNING] Drive Upload Failed (Quota?): {e}")
 
         # 3. Return File
         filename = os.path.basename(file_path)

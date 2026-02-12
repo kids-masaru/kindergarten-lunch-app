@@ -32,8 +32,13 @@ def save_menu_master(table: MenuTable):
              json.dump(table.dict(), f, default=json_serial, ensure_ascii=False, indent=2)
              
     # Upload to Drive
+    # Upload to Drive
     print(f"Uploading Master to Drive: {filename}")
-    upload_file_to_drive(filepath, filename, mime_type='application/json')
+    try:
+        upload_file_to_drive(filepath, filename, mime_type='application/json')
+    except Exception as e:
+        print(f"[WARNING] Failed to upload Master to Drive (likely quota issue): {e}")
+        # Continue execution even if backup fails
              
     return filepath
 
