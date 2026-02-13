@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { X, Minus, Plus, Save } from 'lucide-react';
+import { X, Minus, Plus, Save, Loader2 } from 'lucide-react';
 import { ClassMaster, Order, LoginUser } from '@/types';
 import { saveOrder } from '@/lib/api';
 
@@ -215,9 +215,9 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                     <button
                         onClick={handleSave}
                         disabled={loading}
-                        className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+                        className="w-full bg-orange-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
                     >
-                        {loading ? '保存中...' : <><Save className="w-5 h-5" /> 保存する</>}
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> 内容を送信する</>}
                     </button>
                 </div>
             </div>
