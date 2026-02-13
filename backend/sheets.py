@@ -106,12 +106,12 @@ def get_orders_for_month(kindergarten_id: str, year: int, month: int) -> List[Or
         records = ws.get_all_records()
         
         # Filter by kindergarten_id and month
-        prefix = f"{year}-{String(month).padStart(2, '0')}" # Simplified check
+        month_prefix = f"{year}-{month:02d}"
         results = []
         for r in records:
             if str(r.get("kindergarten_id")) == str(kindergarten_id):
                 order_date = str(r.get("date", ""))
-                if order_date.startswith(f"{year}-{month:02d}"):
+                if order_date.startswith(month_prefix):
                     results.append(OrderData(**r))
         return results
     except Exception as e:
@@ -167,6 +167,44 @@ def batch_save_orders(orders: List[Dict]) -> bool:
         return True
     except Exception as e:
         print(f"Error in batch_save_orders: {e}")
+        return False
+
+def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict]) -> bool:
+    """Batch update or replace classes for a kindergarten."""
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        ws = wb.worksheet("classes")
+        all_rows = ws.get_all_values()
+        headers = all_rows[0]
+        
+        # 1. Identify which rows belong to this kindergarten
+        # We'll just collect all rows and keep/replace them
+        new_all_rows = [headers]
+        
+        # Keep other kindergartens' classes
+        for i, row in enumerate(all_rows):
+            if i == 0: continue
+            # Find kindergarten_id column
+            kid_idx = headers.index("kindergarten_id")
+            if str(row[kid_idx]) != str(kindergarten_id):
+                new_all_rows.append(row)
+        
+        # 2. Add the new/updated classes for THIS kindergarten
+        for c in classes:
+            row_vals = []
+            for h in headers:
+                val = c.get(h, "")
+                if h == "kindergarten_id": val = kindergarten_id
+                row_vals.append(val)
+            new_all_rows.append(row_vals)
+            
+        # 3. Overwrite the sheet
+        ws.clear()
+        ws.update("A1", new_all_rows)
+        return True
+    except Exception as e:
+        print(f"Error in update_kindergarten_classes: {e}")
         return False
 
 def update_class_counts(kindergarten_id: str, class_name: str, counts: Dict) -> bool:

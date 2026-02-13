@@ -5,11 +5,14 @@ import uuid
 from datetime import datetime
 from backend.sheets import (
     get_kindergartens,
+    get_kindergarten_master,
     get_classes_for_kindergarten,
+    get_class_master,
     get_orders_for_month,
     batch_save_orders,
     update_class_counts,
-    update_kindergarten_master
+    update_kindergarten_master,
+    update_kindergarten_classes as update_sheets_classes
 )
 from fastapi import File, UploadFile
 from fastapi.responses import FileResponse
@@ -165,10 +168,8 @@ def update_class(req: ClassUpdateRequest):
 def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRequest):
     print(f"[DEBUG] Received class update for {kindergarten_id}")
     try:
-        # For now we use the existing update_all_classes_for_kindergarten logic but via sheets.py refactor
-        from backend.sheets import update_all_classes_for_kindergarten
         data_to_save = [c.dict() for c in request.classes]
-        success = update_all_classes_for_kindergarten(kindergarten_id, data_to_save)
+        success = update_sheets_classes(kindergarten_id, data_to_save)
         
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update classes in sheet")
@@ -189,7 +190,8 @@ def update_settings(data: Dict):
     
     # We pass the dict directly to update_kindergarten_master
     # It will filter keys and map to correct columns
-    success = update_kindergarten_master(kid, data)
+    data['kindergarten_id'] = kid
+    success = update_kindergarten_master(data)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update Google Sheets")
         
@@ -340,7 +342,8 @@ def list_kindergartens():
 def update_kindergarten(kindergarten_id: str, data: dict):
     """Update general kindergarten master data."""
     from backend.sheets import update_kindergarten_master
-    success = update_kindergarten_master(kindergarten_id, data)
+    data['kindergarten_id'] = kindergarten_id
+    success = update_kindergarten_master(data)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update kindergarten")
     return {"status": "success"}
@@ -355,8 +358,7 @@ def list_kindergarten_classes(kindergarten_id: str):
 @router.post("/admin/kindergartens/{kindergarten_id}/classes")
 def update_kindergarten_classes(kindergarten_id: str, new_classes: List[dict]):
     """Batch update/replace classes for a specific kindergarten."""
-    from backend.sheets import update_all_classes
-    success = update_all_classes(kindergarten_id, new_classes)
+    success = update_sheets_classes(kindergarten_id, new_classes)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update classes")
     return {"status": "success"}
