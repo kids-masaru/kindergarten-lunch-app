@@ -108,3 +108,8 @@ export const generateMenu = async (kindergartenId: string, year: number, month: 
     });
     return res.data; // This will be a Blob
 };
+
+export const createOrdersBulk = async (orders: any[]) => {
+    const res = await api.post('/orders/bulk', orders);
+    return res.data;
+};

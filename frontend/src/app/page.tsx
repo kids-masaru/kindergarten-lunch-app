@@ -24,6 +24,11 @@ export default function CalendarPage() {
   const [isMonthlySetupOpen, setIsMonthlySetupOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
+  const handleMonthlySetupComplete = () => {
+    setIsSubmitted(true);
+    fetchOrders(user!.kindergarten_id, year, month);
+  };
+
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (!userData) {
@@ -307,7 +312,7 @@ export default function CalendarPage() {
         classes={classes}
         year={year}
         month={month}
-        onComplete={() => fetchOrders(user.kindergarten_id, year, month)}
+        onComplete={handleMonthlySetupComplete}
       />
     </div >
   );
