@@ -102,7 +102,7 @@ export default function CalendarPage() {
                     const isActive = (user.settings as any)?.[`service_${day}`];
                     if (!isActive) return null;
                     return (
-                      <span key={day} className="text-[9px] font-bold bg-gray-50 text-gray-400 px-1 rounded border border-gray-100 uppercase">
+                      <span key={day} className="text-[9px] font-black bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded border border-orange-100 uppercase leading-none">
                         {labels[day]}
                       </span>
                     );
@@ -115,6 +115,39 @@ export default function CalendarPage() {
             <button onClick={() => { localStorage.removeItem('user'); router.push('/login'); }} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
               <LogOut className="w-5 h-5" />
             </button>
+          </div>
+        </div>
+
+        {/* Global Month Navigation */}
+        <div className="bg-white/50 backdrop-blur-sm border-b border-gray-100">
+          <div className="max-w-6xl mx-auto px-4 py-2 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setMonth(m => {
+                  if (m === 1) { setYear(y => y - 1); return 12; }
+                  return m - 1;
+                })}
+                className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <h2 className="text-xl font-black text-gray-800 tracking-tight">{year}年 {month}月</h2>
+              <button
+                onClick={() => setMonth(m => {
+                  if (m === 12) { setYear(y => y + 1); return 1; }
+                  return m + 1;
+                })}
+                className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+            {isSubmitted && (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full border border-green-100">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-[10px] font-black text-green-600 uppercase">申請済み</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -180,18 +213,7 @@ export default function CalendarPage() {
             {/* Calendar Section (Visible if activeTab=calendar OR on Desktop) */}
             <div className={`flex-1 ${activeTab !== 'calendar' ? 'hidden lg:block' : ''}`}>
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                {/* Calendar Controls */}
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setMonth(m => m === 1 ? 12 : m - 1)} className="p-2 bg-gray-50 rounded-full border hover:bg-gray-100">
-                      <ChevronLeft className="w-6 h-6 text-gray-600" />
-                    </button>
-                    <h2 className="text-xl font-bold text-gray-900">{year}年 {month}月</h2>
-                    <button onClick={() => setMonth(m => m === 12 ? 1 : m + 1)} className="p-2 bg-gray-50 rounded-full border hover:bg-gray-100">
-                      <ChevronRight className="w-6 h-6 text-gray-600" />
-                    </button>
-                  </div>
-                </div>
+                {/* Content area starts directly with Grid */}
 
                 {/* Calendar Grid */}
                 <div className="grid grid-cols-7 gap-1 mb-2">

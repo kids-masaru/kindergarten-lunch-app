@@ -74,7 +74,9 @@ def get_kindergartens() -> List[KindergartenMaster]:
                 "service_fri": bool(r.get("fri", 1)),
                 "service_sat": bool(r.get("sat", 0)),
                 "service_sun": bool(r.get("sun", 0)),
-                "services": [s.strip() for s in str(r.get("services", "")).split(",") if s.strip()]
+                "services": [s.strip() for s in str(r.get("services", "")).split(",") if s.strip()],
+                "has_soup": bool(r.get("has_soup", False)),
+                "curry_trigger": str(r.get("curry_trigger", ""))
             }
             results.append(KindergartenMaster(**data))
         return results
