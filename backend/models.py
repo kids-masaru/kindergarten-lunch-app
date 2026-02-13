@@ -45,10 +45,11 @@ class KindergartenMaster(BaseModel):
             except:
                 return v
 
-        # Google Sheets might return empty strings for missing bools
-        if v == "": return None
-        if isinstance(v, str) and v.upper() == 'TRUE': return True
-        if isinstance(v, str) and v.upper() == 'FALSE': return False
+        # Google Sheets might return "TRUE"/"FALSE" as strings. 
+        # But we don't want to convert "" to None globally, as it breaks required string fields.
+        if isinstance(v, str):
+            if v.upper() == 'TRUE': return True
+            if v.upper() == 'FALSE': return False
         return v
 
 class ClassMaster(BaseModel):
