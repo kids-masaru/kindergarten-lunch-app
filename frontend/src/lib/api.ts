@@ -69,6 +69,21 @@ export const getKindergartens = async () => {
     return res.data;
 };
 
+export const updateAdminKindergarten = async (id: string, data: any) => {
+    const res = await api.post(`/admin/kindergartens/${id}/update`, data);
+    return res.data;
+};
+
+export const getAdminClasses = async (id: string) => {
+    const res = await api.get(`/admin/kindergartens/${id}/classes`);
+    return res.data;
+};
+
+export const updateAdminClasses = async (id: string, newClasses: any[]) => {
+    const res = await api.post(`/admin/kindergartens/${id}/classes`, newClasses);
+    return res.data;
+};
+
 export const uploadMenu = async (year: number, month: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);

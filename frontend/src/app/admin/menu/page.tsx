@@ -1,12 +1,258 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { uploadMenu, getKindergartens, generateMenu, getSystemInfo } from '@/lib/api'; // Import new function
-import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Copy } from 'lucide-react';
-// Import icons
+import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses } from '@/lib/api';
+import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, Save, Trash2 } from 'lucide-react';
+
+// --- Kindergarten Editor Component ---
+function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => void, onSave: () => void }) {
+    const [formData, setFormData] = useState({ ...k });
+    const [classes, setClasses] = useState<any[]>([]);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+    const [newService, setNewService] = useState('');
+
+    useEffect(() => {
+        setIsLoadingClasses(true);
+        getAdminClasses(k.kindergarten_id).then(res => {
+            setClasses(res.classes);
+            setIsLoadingClasses(false);
+        }).catch(err => {
+            console.error(err);
+            setIsLoadingClasses(false);
+        });
+    }, [k.kindergarten_id]);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            // 1. Update Basic & Service Days & Triggers
+            await updateAdminKindergarten(k.kindergarten_id, formData);
+            // 2. Update Classes
+            await updateAdminClasses(k.kindergarten_id, classes);
+            setIsSaving(false);
+            onSave();
+        } catch (err) {
+            console.error(err);
+            alert("保存に失敗しました");
+            setIsSaving(false);
+        }
+    };
+
+    const toggleDay = (day: string) => {
+        setFormData({ ...formData, [day]: !formData[day] });
+    };
+
+    const addService = () => {
+        if (!newService) return;
+        const current = formData.services || [];
+        if (!current.includes(newService)) {
+            setFormData({ ...formData, services: [...current, newService] });
+        }
+        setNewService('');
+    };
+
+    const removeService = (s: string) => {
+        setFormData({ ...formData, services: (formData.services || []).filter((item: string) => item !== s) });
+    };
+
+    const addClass = () => {
+        setClasses([...classes, { class_name: '新クラス', grade: '', default_student_count: 0, default_allergy_count: 0, default_teacher_count: 0 }]);
+    };
+
+    const removeClass = (index: number) => {
+        setClasses(classes.filter((_, i) => i !== index));
+    };
+
+    const updateClass = (index: number, field: string, value: any) => {
+        const newClasses = [...classes];
+        newClasses[index] = { ...newClasses[index], [field]: value };
+        setClasses(newClasses);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col scale-in">
+                {/* Header */}
+                <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-orange-50/30">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-white rounded-2xl shadow-sm border border-orange-100 flex items-center justify-center">
+                            <img src="/favicon-bento.ico" className="w-8 h-8 object-contain" alt="Bento" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-gray-800 tracking-tight">{k.name} <span className="text-gray-400 font-medium ml-2">#{k.kindergarten_id}</span></h2>
+                            <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest">Master Data Editor</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors">
+                        <X className="w-6 h-6 text-gray-400" />
+                    </button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+                    {/* Section: Basic Settings */}
+                    <div className="grid md:grid-cols-2 gap-8 text-left">
+                        <div className="space-y-6">
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">基本情報 <div className="h-px flex-1 bg-gray-100"></div></h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">表示名称</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name || ''}
+                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 font-bold text-gray-700 focus:ring-2 ring-orange-100 outline-none transition-all"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">ログインID</label>
+                                        <input
+                                            type="text"
+                                            value={formData.login_id || ''}
+                                            onChange={e => setFormData({ ...formData, login_id: e.target.value })}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">パスワード</label>
+                                        <input
+                                            type="text"
+                                            value={formData.password || ''}
+                                            onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">サービス稼働日 <div className="h-px flex-1 bg-gray-100"></div></h3>
+                            <div className="flex flex-wrap gap-2">
+                                {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => {
+                                    const field = `service_${day}`;
+                                    const active = formData[field];
+                                    const labels: any = { mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土', sun: '日' };
+                                    return (
+                                        <button
+                                            key={day}
+                                            onClick={() => toggleDay(field)}
+                                            className={`w-10 h-10 rounded-xl font-bold transition-all ${active ? 'bg-orange-500 text-white shadow-lg shadow-orange-100' : 'bg-gray-50 text-gray-400 border border-gray-100 hover:border-orange-200'}`}
+                                        >
+                                            {labels[day]}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-8">個別献立トリガー <div className="h-px flex-1 bg-gray-100"></div></h3>
+                            <div className="space-y-3">
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="例: カレー、うどん"
+                                        value={newService}
+                                        onChange={e => setNewService(e.target.value)}
+                                        onKeyPress={e => e.key === 'Enter' && addService()}
+                                        className="flex-1 bg-gray-50 border border-gray-100 rounded-xl px-4 py-2 text-sm font-bold outline-none"
+                                    />
+                                    <button onClick={addService} className="p-2 bg-orange-100 text-orange-600 rounded-xl hover:bg-orange-200 transition-colors">
+                                        <Plus className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {(formData.services || []).map((s: string) => (
+                                        <div key={s} className="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold border border-orange-100 flex items-center gap-2">
+                                            {s}
+                                            <button onClick={() => removeService(s)} className="p-0.5 hover:bg-orange-200 rounded-full">
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section: Classes */}
+                    <div className="space-y-6 text-left">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 flex-1">
+                                クラス・人数設定 <div className="h-px flex-1 bg-gray-100 ml-2"></div>
+                            </h3>
+                            <button onClick={addClass} className="ml-4 flex items-center gap-1 text-[10px] font-black text-orange-600 hover:text-orange-700 uppercase tracking-widest">
+                                <Plus className="w-4 h-4" /> クラス追加
+                            </button>
+                        </div>
+
+                        {isLoadingClasses ? (
+                            <div className="py-10 text-center">
+                                <Loader2 className="animate-spin w-6 h-6 mx-auto text-gray-200" />
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {classes.map((cls, idx) => (
+                                    <div key={idx} className="bg-gray-50 border border-gray-100 p-4 rounded-2xl space-y-3 relative group/card">
+                                        <button
+                                            onClick={() => removeClass(idx)}
+                                            className="absolute top-2 right-2 p-1.5 bg-white shadow-sm border border-red-50 text-red-400 rounded-lg opacity-0 group-hover/card:opacity-100 transition-opacity hover:bg-red-50"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <input
+                                                value={cls.class_name}
+                                                onChange={e => updateClass(idx, 'class_name', e.target.value)}
+                                                className="col-span-2 bg-white px-3 py-2 rounded-xl text-sm font-bold border border-transparent focus:border-orange-200 outline-none"
+                                                placeholder="クラス名"
+                                            />
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-400 ml-1 block">学年</label>
+                                                <input
+                                                    value={cls.grade}
+                                                    onChange={e => updateClass(idx, 'grade', e.target.value)}
+                                                    className="w-full bg-white px-3 py-1.5 rounded-xl text-xs font-bold border border-transparent focus:border-orange-200 outline-none"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-gray-400 ml-1 block">園児数</label>
+                                                <input
+                                                    type="number"
+                                                    value={cls.default_student_count}
+                                                    onChange={e => updateClass(idx, 'default_student_count', parseInt(e.target.value))}
+                                                    className="w-full bg-white px-3 py-1.5 rounded-xl text-xs font-bold border border-transparent focus:border-orange-200 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="px-8 py-6 border-t border-gray-50 bg-gray-50/20 flex items-center justify-between">
+                    <p className="text-xs text-gray-400 font-medium">※ 設定内容はGoogleスプレッドシートに同期されます</p>
+                    <div className="flex gap-4">
+                        <button onClick={onClose} className="px-6 py-3 rounded-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors">キャンセル</button>
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className={`flex items-center gap-2 px-10 py-3 rounded-2xl font-black text-white shadow-xl transition-all active:scale-[0.98]
+                                ${isSaving ? 'bg-gray-300 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-orange-200'}`}
+                        >
+                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            変更内容を保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export default function AdminMenuPage() {
-    // ... existing state ...
     const [file, setFile] = useState<File | null>(null);
     const [year, setYear] = useState<number>(new Date().getFullYear());
     const [month, setMonth] = useState<number>(new Date().getMonth() + 2);
@@ -18,11 +264,16 @@ export default function AdminMenuPage() {
     const [loadingList, setLoadingList] = useState(true);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
+    // Editor State
+    const [editingK, setEditingK] = useState<any | null>(null);
+    const [showEditor, setShowEditor] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
     // New System Info State
     const [systemInfo, setSystemInfo] = useState<any>(null);
 
-    useEffect(() => {
-        // Fetch Kindergartens
+    const fetchKindergartens = () => {
+        setLoadingList(true);
         getKindergartens().then(res => {
             setKindergartens(res.kindergartens);
             setLoadingList(false);
@@ -30,7 +281,10 @@ export default function AdminMenuPage() {
             console.error(err);
             setLoadingList(false);
         });
+    };
 
+    useEffect(() => {
+        fetchKindergartens();
         // Fetch System Info
         getSystemInfo().then(res => {
             setSystemInfo(res);
@@ -97,8 +351,8 @@ export default function AdminMenuPage() {
                 {/* Header Card */}
                 <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-orange-100 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl shadow-orange-200 shadow-lg text-2xl">
-                            🍱
+                        <div className="p-4 bg-white rounded-2xl shadow-orange-200 shadow-md flex items-center justify-center">
+                            <img src="/favicon-bento.ico" className="w-10 h-10 object-contain" alt="Bento" />
                         </div>
                         <div>
                             <h1 className="text-2xl font-black text-gray-800 tracking-tight">
@@ -118,8 +372,11 @@ export default function AdminMenuPage() {
                                 献立マスターのアップロード
                             </h2>
                             {systemInfo && (
-                                <div className="text-[10px] text-gray-400 font-bold">
-                                    Drive API: {systemInfo.drive_folder_config.includes("Configured") ? "CONNECTED" : "OFFLINE"}
+                                <div className="text-[10px] text-gray-400 font-bold flex items-center gap-2">
+                                    Drive API:
+                                    <span className={systemInfo.drive_folder_config.includes("Configured") ? "text-green-500" : "text-red-400"}>
+                                        {systemInfo.drive_folder_config.includes("Configured") ? "CONNECTED" : "OFFLINE"}
+                                    </span>
                                 </div>
                             )}
                         </div>
@@ -172,7 +429,7 @@ export default function AdminMenuPage() {
                     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
                         <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
                             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3">
-                                <span className="text-2xl">🍱</span>
+                                <img src="/favicon-bento.ico" className="w-8 h-8 object-contain" alt="Bento" />
                                 幼稚園・施設マスター
                             </h2>
                             <span className="text-xs font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">
@@ -207,7 +464,11 @@ export default function AdminMenuPage() {
                                             </td>
                                         </tr>
                                     ) : kindergartens.map(k => (
-                                        <tr key={k.kindergarten_id} className="border-b border-gray-50 hover:bg-orange-50/10 transition-colors group">
+                                        <tr
+                                            key={k.kindergarten_id}
+                                            onClick={() => { setEditingK(k); setShowEditor(true); }}
+                                            className="border-b border-gray-50 hover:bg-orange-50/10 transition-colors group cursor-pointer"
+                                        >
                                             <td className="px-8 py-5">
                                                 <span className="text-[10px] font-black text-orange-200 group-hover:text-orange-400 transition-colors tracking-widest">{k.kindergarten_id}</span>
                                             </td>
@@ -280,6 +541,18 @@ export default function AdminMenuPage() {
                     </div>
                 )}
             </div>
+
+            {showEditor && editingK && (
+                <KindergartenEditor
+                    k={editingK}
+                    onClose={() => { setShowEditor(false); setEditingK(null); }}
+                    onSave={() => {
+                        setShowEditor(false);
+                        setEditingK(null);
+                        fetchKindergartens(); // Refresh list
+                    }}
+                />
+            )}
         </div>
     );
 }

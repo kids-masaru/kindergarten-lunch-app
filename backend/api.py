@@ -429,6 +429,31 @@ def list_kindergartens():
     masters = get_kindergarten_master()
     return {"kindergartens": [k.dict() for k in masters]}
 
+@router.post("/admin/kindergartens/{kindergarten_id}/update")
+def update_kindergarten(kindergarten_id: str, data: dict):
+    """Update general kindergarten master data."""
+    from backend.sheets import update_kindergarten_master
+    success = update_kindergarten_master(kindergarten_id, data)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update kindergarten")
+    return {"status": "success"}
+
+@router.get("/admin/kindergartens/{kindergarten_id}/classes")
+def list_kindergarten_classes(kindergarten_id: str):
+    """List classes for a specific kindergarten."""
+    classes = get_class_master()
+    filtered = [c.dict() for c in classes if c.kindergarten_id == kindergarten_id]
+    return {"classes": filtered}
+
+@router.post("/admin/kindergartens/{kindergarten_id}/classes")
+def update_kindergarten_classes(kindergarten_id: str, new_classes: List[dict]):
+    """Batch update/replace classes for a specific kindergarten."""
+    from backend.sheets import update_all_classes
+    success = update_all_classes(kindergarten_id, new_classes)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update classes")
+    return {"status": "success"}
+
 @router.get("/admin/system-info")
 def get_system_info():
     """Returns system config info including Service Account Email."""
