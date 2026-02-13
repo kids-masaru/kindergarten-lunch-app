@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses } from '@/lib/api';
-import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, Save, Trash2 } from 'lucide-react';
+import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, Save, Trash2 } from 'lucide-react';
 
 // --- Kindergarten Editor Component ---
 function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => void, onSave: () => void }) {
@@ -174,33 +174,40 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                 </div>
                             </div>
 
-                            {/* Section: Specialized Menu Settings */}
-                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-8">メニュー詳細設定 <div className="h-px flex-1 bg-gray-100"></div></h3>
-                            <div className="bg-orange-50/50 p-6 rounded-[2rem] border border-orange-100 space-y-4">
-                                <label className="flex items-center gap-4 cursor-pointer group">
-                                    <div className={`w-12 h-6 rounded-full transition-all relative ${formData.has_soup ? 'bg-orange-500' : 'bg-gray-200'}`}>
-                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${formData.has_soup ? 'left-7' : 'left-1'}`} />
-                                    </div>
-                                    <input
-                                        type="checkbox"
-                                        className="hidden"
-                                        checked={formData.has_soup || false}
-                                        onChange={e => setFormData({ ...formData, has_soup: e.target.checked })}
-                                    />
-                                    <span className="font-bold text-gray-700">スープ付き設定</span>
-                                </label>
-
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">カレー用メニュー項目</label>
-                                    <input
-                                        type="text"
-                                        placeholder="例: チキンカレー"
-                                        value={formData.curry_trigger || ''}
-                                        onChange={e => setFormData({ ...formData, curry_trigger: e.target.value })}
-                                        className="w-full bg-white border border-orange-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 ring-orange-200"
-                                    />
-                                    <p className="text-[10px] text-gray-400 mt-1 ml-1 leading-relaxed">※ カレーの日に通常メニューとは別に一品追加する場合に入力します。</p>
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-8">給食詳細設定 <div className="h-px flex-1 bg-gray-100"></div></h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100 space-y-4">
+                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-wider">スープ設定</h4>
+                                    <label className="flex items-center gap-4 cursor-pointer group">
+                                        <div className={`w-12 h-6 rounded-full transition-all relative ${formData.has_soup ? 'bg-orange-500' : 'bg-gray-200'}`}>
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${formData.has_soup ? 'left-7' : 'left-1'}`} />
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            className="hidden"
+                                            checked={formData.has_soup || false}
+                                            onChange={e => setFormData({ ...formData, has_soup: e.target.checked })}
+                                        />
+                                        <span className="font-bold text-gray-700">スープを提供</span>
+                                    </label>
                                 </div>
+
+                                {formData.services?.includes('カレー') && (
+                                    <div className="bg-orange-50/30 p-6 rounded-3xl border border-orange-100 space-y-4 animate-in fade-in zoom-in duration-300">
+                                        <h4 className="text-[10px] font-black text-orange-400 uppercase tracking-wider">カレー設定</h4>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">個別メニュー項目</label>
+                                            <input
+                                                type="text"
+                                                placeholder="例: チキンカレー"
+                                                value={formData.curry_trigger || ''}
+                                                onChange={e => setFormData({ ...formData, curry_trigger: e.target.value })}
+                                                className="w-full bg-white border border-orange-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 ring-orange-200"
+                                            />
+                                            <p className="text-[10px] text-gray-400 mt-1 ml-1 leading-relaxed">※ カレーの日に通常メニューとは別に一品追加する場合に入力。</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -475,7 +482,9 @@ export default function AdminMenuPage() {
                                         <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">ID</th>
                                         <th className="px-4 py-4 text-xs font-bold text-gray-600">幼稚園名</th>
                                         <th className="px-4 py-4 text-xs font-bold text-gray-600 text-center">稼働日</th>
+                                        <th className="px-4 py-4 text-xs font-bold text-gray-600 text-center">スープ</th>
                                         <th className="px-4 py-4 text-xs font-bold text-gray-600">設定済みメニュー</th>
+                                        <th className="px-4 py-4 text-xs font-bold text-gray-600">カレー項目</th>
                                         <th className="px-8 py-4 text-xs font-bold text-gray-600 text-right">アクション</th>
                                     </tr>
                                 </thead>
@@ -519,6 +528,15 @@ export default function AdminMenuPage() {
                                                     })}
                                                 </div>
                                             </td>
+                                            <td className="px-4 py-5 text-center">
+                                                {k.has_soup ? (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black border border-green-100">
+                                                        <Check className="w-3 h-3" /> あり
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-gray-300 text-[10px] font-bold">－</span>
+                                                )}
+                                            </td>
                                             <td className="px-4 py-5">
                                                 <div className="flex flex-wrap gap-1">
                                                     {(k.services || []).map((s: string) => (
@@ -530,6 +548,15 @@ export default function AdminMenuPage() {
                                                         <span className="text-gray-300 text-[10px]">なし</span>
                                                     )}
                                                 </div>
+                                            </td>
+                                            <td className="px-4 py-5">
+                                                {k.curry_trigger ? (
+                                                    <span className="px-2 py-1 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-black border border-orange-100">
+                                                        {k.curry_trigger}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-gray-200 text-[10px] font-bold">未設定</span>
+                                                )}
                                             </td>
                                             <td className="px-8 py-5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
