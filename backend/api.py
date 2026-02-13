@@ -147,7 +147,7 @@ def login(creds: LoginRequest):
 def get_masters(kindergarten_id: str):
     my_classes = get_classes_for_kindergarten(kindergarten_id)
     print(f"[DEBUG] Found {len(my_classes)} classes for {kindergarten_id}")
-    return {"classes": [c.dict() for c in my_classes]}
+    return {"classes": [c.model_dump() for c in my_classes]}
 
 @router.post("/masters/class")
 def update_class(req: ClassUpdateRequest):
@@ -168,7 +168,7 @@ def update_class(req: ClassUpdateRequest):
 def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRequest):
     print(f"[DEBUG] Received class update for {kindergarten_id}")
     try:
-        data_to_save = [c.dict() for c in request.classes]
+        data_to_save = [c.model_dump() for c in request.classes]
         success = update_sheets_classes(kindergarten_id, data_to_save)
         
         if not success:
@@ -201,7 +201,7 @@ def update_settings(data: Dict):
 def get_calendar(kindergarten_id: str, year: int, month: int):
     # Optimized fetch for specific month and kindergarten
     orders = get_orders_for_month(kindergarten_id, year, month)
-    return {"orders": [o.dict() for o in orders]}
+    return {"orders": [o.model_dump() for o in orders]}
 
 @router.post("/orders")
 def create_order(order: OrderItem):
@@ -209,7 +209,7 @@ def create_order(order: OrderItem):
     if not order.order_id:
         order.order_id = f"{order.date}_{order.kindergarten_id}_{order.class_name}"
     
-    success = batch_save_orders([order.dict()])
+    success = batch_save_orders([order.model_dump()])
     if not success:
         raise HTTPException(status_code=500, detail="Failed to save order")
     return {"status": "success", "order_id": order.order_id}
@@ -221,7 +221,7 @@ def create_orders_bulk(orders: List[OrderItem]):
     for o in orders:
         if not o.order_id:
             o.order_id = f"{o.date}_{o.kindergarten_id}_{o.class_name}"
-        data.append(o.dict())
+        data.append(o.model_dump())
     
     success = batch_save_orders(data)
     if not success:
@@ -336,7 +336,8 @@ def generate_menu_file(req: MenuGenerationRequest):
 def list_kindergartens():
     """List all kindergartens for Admin Console."""
     masters = get_kindergarten_master()
-    return {"kindergartens": [k.dict() for k in masters]}
+    print(f"[DEBUG] Admin list_kindergartens found {len(masters)} masters")
+    return {"kindergartens": [k.model_dump() for k in masters]}
 
 @router.post("/admin/kindergartens/{kindergarten_id}/update")
 def update_kindergarten(kindergarten_id: str, data: dict):
@@ -352,7 +353,7 @@ def update_kindergarten(kindergarten_id: str, data: dict):
 def list_kindergarten_classes(kindergarten_id: str):
     """List classes for a specific kindergarten."""
     classes = get_class_master()
-    filtered = [c.dict() for c in classes if c.kindergarten_id == kindergarten_id]
+    filtered = [c.model_dump() for c in classes if c.kindergarten_id == kindergarten_id]
     return {"classes": filtered}
 
 @router.post("/admin/kindergartens/{kindergarten_id}/classes")

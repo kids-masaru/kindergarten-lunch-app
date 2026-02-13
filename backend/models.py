@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 import datetime
 from typing import Optional, Any, Dict, List
 
@@ -10,28 +10,26 @@ def normalize_key(key: str) -> str:
 # --- Base Models ---
 
 class KindergartenMaster(BaseModel):
-    kindergarten_id: str = Field(alias='kindergarten_id')
-    name: str = Field(alias='name')
-    login_id: str = Field(alias='login_id')
-    password: str = Field(alias='password')
+    model_config = ConfigDict(populate_by_name=True, extra='ignore')
+
+    kindergarten_id: str
+    name: str
+    login_id: str
+    password: str
     
-    # Custom services (stored as JSON in the sheet)
-    services: List[str] = Field(default_factory=list, alias='services_json')
+    # Custom services
+    services: List[str] = Field(default_factory=list)
     settings: Dict = Field(default_factory=dict)
     classes: List['ClassMaster'] = Field(default_factory=list)
     
     # Service Days
-    service_mon: bool = Field(default=True, alias='service_mon')
-    service_tue: bool = Field(default=True, alias='service_tue')
-    service_wed: bool = Field(default=True, alias='service_wed')
-    service_thu: bool = Field(default=True, alias='service_thu')
-    service_fri: bool = Field(default=True, alias='service_fri')
-    service_sat: bool = Field(default=False, alias='service_sat')
-    service_sun: bool = Field(default=False, alias='service_sun')
-
-    class Config:
-        populate_by_name = True
-        extra = 'ignore' # Allow extra columns in sheet
+    service_mon: bool = True
+    service_tue: bool = True
+    service_wed: bool = True
+    service_thu: bool = True
+    service_fri: bool = True
+    service_sat: bool = False
+    service_sun: bool = False
 
     @field_validator('*', mode='before')
     def handle_sheet_values(cls, v):
@@ -50,18 +48,16 @@ class KindergartenMaster(BaseModel):
         return v
 
 class ClassMaster(BaseModel):
-    kindergarten_id: str = Field(alias='kindergarten_id')
-    class_name: str = Field(alias='class_name')
-    grade: str = Field(default="", alias='grade')
-    floor: str = Field(default="", alias='floor')
-    
-    default_student_count: int = Field(default=0, alias='default_student_count')
-    default_allergy_count: int = Field(default=0, alias='default_allergy_count')
-    default_teacher_count: int = Field(default=0, alias='default_teacher_count')
+    model_config = ConfigDict(populate_by_name=True, extra='ignore')
 
-    class Config:
-        populate_by_name = True
-        extra = 'ignore'
+    kindergarten_id: str
+    class_name: str
+    grade: str = ""
+    floor: str = ""
+    
+    default_student_count: int = 0
+    default_allergy_count: int = 0
+    default_teacher_count: int = 0
 
     @field_validator('default_student_count', 'default_allergy_count', 'default_teacher_count', mode='before')
     def parse_int(cls, v):
@@ -72,21 +68,19 @@ class ClassMaster(BaseModel):
             return 0
 
 class OrderData(BaseModel):
-    order_id: str = Field(alias='order_id')
-    kindergarten_id: str = Field(alias='kindergarten_id')
-    date: str = Field(alias='date') # YYYY-MM-DD
-    class_name: str = Field(alias='class_name')
-    meal_type: str = Field(default="通常", alias='meal_type')
-    
-    student_count: int = Field(default=0, alias='student_count')
-    allergy_count: int = Field(default=0, alias='allergy_count')
-    teacher_count: int = Field(default=0, alias='teacher_count')
-    memo: str = Field(default="", alias='memo')
-    updated_at: str = Field(default="", alias='updated_at')
+    model_config = ConfigDict(populate_by_name=True, extra='ignore')
 
-    class Config:
-        populate_by_name = True
-        extra = 'ignore'
+    order_id: str
+    kindergarten_id: str
+    date: str # YYYY-MM-DD
+    class_name: str
+    meal_type: str = "通常"
+    
+    student_count: int = 0
+    allergy_count: int = 0
+    teacher_count: int = 0
+    memo: str = ""
+    updated_at: str = ""
 
     @field_validator('student_count', 'allergy_count', 'teacher_count', mode='before')
     def parse_int(cls, v):

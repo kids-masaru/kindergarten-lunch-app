@@ -150,11 +150,6 @@ export default function CalendarPage() {
             </div>
             <div>
               <h2 className="text-3xl font-black text-gray-800 tracking-tight">{year}年 {month}月 の<br />注文申請が未完了です</h2>
-              <p className="mt-4 text-gray-400 font-bold max-w-sm mx-auto leading-relaxed">
-                まずは、この月の基本となる人数設定と<br />
-                曜日ごとのメニュー（通常・カレー・誕生日会など）を<br />
-                一括で申請してください。
-              </p>
             </div>
 
             <button
