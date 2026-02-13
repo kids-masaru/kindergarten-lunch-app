@@ -219,18 +219,23 @@ export default function CalendarPage() {
                       isServiceDay = s[`service_${mapping[dayOfWeek]}`] !== false;
                     }
 
-                    // Icon Logic
-                    let displayIcon = null;
+                    // Label Logic
+                    let displayLabel = null;
                     if (!isServiceDay) {
-                      displayIcon = <span className="text-xs text-gray-300">－</span>;
+                      displayLabel = <span className="text-xs text-gray-300">－</span>;
                     } else if (dayOrders.length > 0) {
-                      // Has Order -> Checkmark (Unified)
                       const type = dayOrders[0].meal_type;
-                      if (type === '飯なし') displayIcon = '❌';
-                      else displayIcon = '✅';
-                    } else {
-                      // Service Day but No Order -> Blank (to avoid confusion)
-                      displayIcon = null;
+                      displayLabel = (
+                        <div className={`px-2 py-1.5 rounded-xl border-2 text-[10px] sm:text-[11px] font-black leading-none transition-all
+                          ${type === '通常'
+                            ? 'border-gray-100 text-gray-400'
+                            : type === '飯なし'
+                              ? 'border-gray-200 bg-gray-50 text-gray-400'
+                              : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
+                          }`}>
+                          {type}
+                        </div>
+                      );
                     }
 
                     return (
@@ -238,21 +243,18 @@ export default function CalendarPage() {
                         key={day}
                         onClick={() => isServiceDay && handleDateClick(day)}
                         disabled={!isServiceDay}
-                        className={`aspect-square rounded-xl flex flex-col items-center justify-start pt-1 relative border transition-all 
+                        className={`aspect-square rounded-[1.25rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all 
                           ${!isServiceDay
-                            ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed opacity-50'
+                            ? 'bg-gray-50/50 border-transparent text-gray-300 cursor-not-allowed opacity-50'
                             : isToday
                               ? 'bg-orange-50 border-orange-300 active:scale-95 shadow-sm hover:border-orange-200'
-                              : 'bg-white border-gray-200 active:scale-95 shadow-sm hover:border-orange-200'
+                              : 'bg-white border-gray-100 active:scale-95 shadow-sm hover:border-orange-200'
                           }`}
                       >
-                        <span className={`text-sm font-bold ${!isServiceDay ? 'text-gray-300' : isToday ? 'text-orange-600' : 'text-gray-700'}`}>{day}</span>
-                        <div className="mt-1 text-2xl lg:text-3xl">
-                          {displayIcon}
+                        <span className={`text-[10px] font-black leading-none mb-1 ${!isServiceDay ? 'text-gray-300' : isToday ? 'text-orange-600' : 'text-gray-400'}`}>{day}</span>
+                        <div className="flex-1 flex items-center justify-center w-full p-1">
+                          {displayLabel}
                         </div>
-                        {dayOrders.length > 0 && isServiceDay && (
-                          <div className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-green-500"></div>
-                        )}
                       </button>
                     );
                   })}

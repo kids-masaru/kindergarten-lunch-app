@@ -224,20 +224,29 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                             key={d}
                                             disabled={!isServiceDay}
                                             onClick={() => handleMealTypeToggle(dateStr)}
-                                            className={`aspect-square rounded-2xl flex flex-col items-center justify-center p-1 border transition-all active:scale-95
+                                            className={`aspect-square rounded-[1.5rem] flex flex-col transition-all active:scale-95 border
                                                 ${!isServiceDay
-                                                    ? 'bg-gray-50 border-gray-50 text-gray-200 cursor-not-allowed'
-                                                    : dayInfo.mealType === '通常'
-                                                        ? 'bg-white border-gray-100 hover:border-orange-200 shadow-sm'
-                                                        : dayInfo.mealType === '飯なし'
-                                                            ? 'bg-gray-100 border-gray-200 text-gray-400'
-                                                            : 'bg-orange-500 border-orange-600 text-white shadow-lg'
+                                                    ? 'bg-gray-50/50 border-transparent cursor-not-allowed opacity-30'
+                                                    : 'bg-white border-gray-100'
                                                 }`}
                                         >
-                                            <span className="text-[10px] font-black leading-none mb-1 opacity-50">{d}</span>
-                                            <span className={`text-[9px] font-black leading-tight text-center ${isServiceDay && dayInfo.mealType !== '通常' ? 'text-white' : ''}`}>
-                                                {dayInfo?.mealType || '－'}
-                                            </span>
+                                            <span className="p-2 text-[10px] font-black text-gray-400">{d}</span>
+
+                                            {isServiceDay && (
+                                                <div className="flex-1 flex items-center justify-center p-1">
+                                                    <div className={`
+                                                        px-2 py-1.5 rounded-xl border-2 text-[11px] font-black leading-none transition-all
+                                                        ${dayInfo.mealType === '通常'
+                                                            ? 'border-gray-100 text-gray-300'
+                                                            : dayInfo.mealType === '飯なし'
+                                                                ? 'border-gray-200 bg-gray-50 text-gray-400'
+                                                                : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
+                                                        }
+                                                    `}>
+                                                        {dayInfo.mealType}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </button>
                                     );
                                 })}

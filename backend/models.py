@@ -31,6 +31,10 @@ class KindergartenMaster(BaseModel):
     service_sat: bool = False
     service_sun: bool = False
 
+    # New separate fields
+    has_soup: bool = False
+    curry_trigger: str = ""
+
     @field_validator('*', mode='before')
     def handle_sheet_values(cls, v):
         # Handle the specialized JSON list for services

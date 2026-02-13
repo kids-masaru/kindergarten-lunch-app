@@ -265,17 +265,23 @@ def update_kindergarten_master(data: Dict) -> bool:
         
         if row_idx == -1: return False
         
-        # Mapping API keys to Sheets headers
         mapping = {
             "service_mon": "mon", "service_tue": "tue", "service_wed": "wed",
-            "service_thu": "thu", "service_fri": "fri", "service_sat": "sat", "service_sun": "sun"
+            "service_thu": "thu", "service_fri": "fri", "service_sat": "sat", "service_sun": "sun",
+            "has_soup": "has_soup", "curry_trigger": "curry_trigger"
         }
         
         updates = []
         for api_key, sheet_key in mapping.items():
             if api_key in data and sheet_key in headers:
                 col_idx = headers.index(sheet_key) + 1
-                val = 1 if data[api_key] else 0
+                val = data[api_key]
+                # Special handling for booleans saved as 1/0 if needed, 
+                # but if the user wants true/false as strings or booleans, let's keep it consistent.
+                # Usually we use 1/0 for service days.
+                if isinstance(val, bool):
+                    val = 1 if val else 0
+                
                 updates.append({
                     'range': gspread.utils.rowcol_to_a1(row_idx, col_idx),
                     'values': [[val]]

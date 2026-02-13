@@ -152,7 +152,7 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                 <div className="flex gap-2">
                                     <input
                                         type="text"
-                                        placeholder="例: カレー、うどん"
+                                        placeholder="例: お誕生日会、お楽しみ会"
                                         value={newService}
                                         onChange={e => setNewService(e.target.value)}
                                         onKeyPress={e => e.key === 'Enter' && addService()}
@@ -163,7 +163,7 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                     </button>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {(formData.services || []).map((s: string) => (
+                                    {(formData.services || []).filter((s: string) => s !== 'スープ付き').map((s: string) => (
                                         <div key={s} className="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-xs font-bold border border-orange-100 flex items-center gap-2">
                                             {s}
                                             <button onClick={() => removeService(s)} className="p-0.5 hover:bg-orange-200 rounded-full">
@@ -171,6 +171,35 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                             </button>
                                         </div>
                                     ))}
+                                </div>
+                            </div>
+
+                            {/* Section: Specialized Menu Settings */}
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 mt-8">メニュー詳細設定 <div className="h-px flex-1 bg-gray-100"></div></h3>
+                            <div className="bg-orange-50/50 p-6 rounded-[2rem] border border-orange-100 space-y-4">
+                                <label className="flex items-center gap-4 cursor-pointer group">
+                                    <div className={`w-12 h-6 rounded-full transition-all relative ${formData.has_soup ? 'bg-orange-500' : 'bg-gray-200'}`}>
+                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${formData.has_soup ? 'left-7' : 'left-1'}`} />
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        className="hidden"
+                                        checked={formData.has_soup || false}
+                                        onChange={e => setFormData({ ...formData, has_soup: e.target.checked })}
+                                    />
+                                    <span className="font-bold text-gray-700">スープ付き設定</span>
+                                </label>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">カレー用メニュー項目</label>
+                                    <input
+                                        type="text"
+                                        placeholder="例: チキンカレー"
+                                        value={formData.curry_trigger || ''}
+                                        onChange={e => setFormData({ ...formData, curry_trigger: e.target.value })}
+                                        className="w-full bg-white border border-orange-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 ring-orange-200"
+                                    />
+                                    <p className="text-[10px] text-gray-400 mt-1 ml-1 leading-relaxed">※ カレーの日に通常メニューとは別に一品追加する場合に入力します。</p>
                                 </div>
                             </div>
                         </div>
