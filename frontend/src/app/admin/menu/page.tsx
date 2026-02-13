@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses } from '@/lib/api';
 import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, Save, Trash2 } from 'lucide-react';
