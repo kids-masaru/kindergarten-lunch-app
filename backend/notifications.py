@@ -26,7 +26,7 @@ def send_admin_notification(action_type: str, kindergarten_name: str, details: s
         print("[WARNING] No admin emails configured for notifications.")
         return
 
-    subject = f"【ままみれ通知】{kindergarten_name}: {action_type}"
+    subject = f"【ママミレ通知】{kindergarten_name}: {action_type}"
     body = f"""通知内容: {action_type}
 幼稚園名: {kindergarten_name}
 発生日時: {datetime.datetime.now().strftime("%Y/%m/%d %H:%M")}
@@ -35,7 +35,7 @@ def send_admin_notification(action_type: str, kindergarten_name: str, details: s
 {details}
 
 ---
-ままみれ (MamaMiRe) システム
+ママミレ (MamaMiRe) システム
 """
     
     for email in admin_emails:
@@ -78,10 +78,10 @@ def check_and_send_reminders():
         orders = get_orders_for_month(k.kindergarten_id, next_year, next_month)
         if not orders:
             # Send Reminder
-            subject = f"【ままみれリマインド】{next_month}月分のご注文が未完了です"
+            subject = f"【ママミレリマインド】{next_month}月分のご注文が未完了です"
             body = f"""{k.name} {k.contact_name} 様
 
-いつも「ままみれ (MamaMiRe)」をご利用いただきありがとうございます。
+いつも「ママミレ (MamaMiRe)」をご利用いただきありがとうございます。
 {next_month}月分のご注文内容の登録がまだ完了しておりません。
 
 締め切り日: {target_month}月25日（残り{days_until_deadline}日）
@@ -89,7 +89,7 @@ def check_and_send_reminders():
 お早めにシステムよりマンスリー申請のお手続きをお願いいたします。
 
 ---
-ままみれ (MamaMiRe) システム
+ママミレ (MamaMiRe) システム
 """
             if k.contact_email:
                 _log_email(k.contact_email, subject, body)

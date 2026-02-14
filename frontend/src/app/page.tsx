@@ -105,8 +105,8 @@ export default function CalendarPage() {
       <div className="bg-white shadow-sm sticky top-0 z-10 z-[30]">
         {/* Top Bar */}
         <div className="flex justify-between items-center p-3 border-b border-gray-100 max-w-6xl mx-auto w-full">
-          <div className="flex items-center gap-3">
-            <img src="/icon-mamamire.png" className="w-8 h-8 pointer-events-none" alt="" />
+          <div className="flex items-center gap-4">
+            <img src="/icon-mamamire.png" className="w-12 h-12 pointer-events-none" alt="" />
             <div className="flex flex-col">
               <h1 className="font-bold text-gray-800 text-lg leading-tight">
                 {user.name} <span className="text-gray-400 font-medium ml-1">{user.contact_name ? `${user.contact_name} 様` : ''}</span>

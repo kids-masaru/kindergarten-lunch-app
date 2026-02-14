@@ -1,6 +1,6 @@
 {
-    "name": "ままみれ (MamaMiRe)",
-    "short_name": "ままみれ",
+    "name": "ママミレ (MamaMiRe)",
+    "short_name": "ママミレ",
     "description": "幼稚園給食・お弁当 注文管理システム",
     "start_url": "/",
     "display": "standalone",
@@ -11,13 +11,13 @@
             "src": "/icon-mamamire.png",
             "sizes": "192x192",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
         },
         {
             "src": "/icon-mamamire.png",
             "sizes": "512x512",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
         }
     ]
 }

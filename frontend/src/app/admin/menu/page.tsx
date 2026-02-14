@@ -481,13 +481,13 @@ export default function AdminConsole() {
 
                 {/* Header Card */}
                 <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-orange-100 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
                         <div className="p-4 bg-white rounded-2xl shadow-orange-200 shadow-md flex items-center justify-center">
-                            <img src="/icon-mamamire.png" className="w-10 h-10 object-contain" alt="MamaMiRe" />
+                            <img src="/icon-mamamire.png" className="w-16 h-16 object-contain" alt="MamaMiRe" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-gray-800 tracking-tight">
-                                <span className="text-orange-600">ままみれ</span> 管理ポータル
+                            <h1 className="text-3xl font-black text-gray-800 tracking-tight">
+                                <span className="text-orange-600">ママミレ</span> 管理ポータル
                             </h1>
                             <p className="text-gray-500 text-sm font-medium italic">MamaMiRe: Admin Portal</p>
                         </div>
