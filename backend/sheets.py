@@ -76,7 +76,9 @@ def get_kindergartens() -> List[KindergartenMaster]:
                 "service_sun": bool(r.get("sun", 0)),
                 "services": [s.strip() for s in str(r.get("services", "")).split(",") if s.strip()],
                 "has_soup": bool(r.get("has_soup", False)),
-                "curry_trigger": str(r.get("curry_trigger", ""))
+                "curry_trigger": str(r.get("curry_trigger", "")),
+                "contact_name": str(r.get("contact_name", "")),
+                "contact_email": str(r.get("contact_email", ""))
             }
             results.append(KindergartenMaster(**data))
         return results
@@ -189,6 +191,26 @@ def batch_save_orders(orders: List[Dict]) -> bool:
         if new_rows:
             ws.append_rows(new_rows)
             
+        # Notification trigger
+        try:
+            from backend.notifications import send_admin_notification
+            kid_id = orders[0]['kindergarten_id']
+            # Determine if this is a monthly setup or daily change
+            is_bulk = len(orders) > 10
+            action = "マンスリー申請" if is_bulk else "日次注文変更"
+            
+            # Get Name
+            all_k = get_kindergartens()
+            k_name = next((k.name for k in all_k if k.kindergarten_id == kid_id), kid_id)
+            
+            details = f"件数: {len(orders)}件\n"
+            if not is_bulk:
+                 details += f"日付: {orders[0].get('date', '---')}\nクラス: {orders[0].get('class_name', '---')}"
+            
+            send_admin_notification(action, k_name, details)
+        except Exception as ne:
+            print(f"[ERROR] Notification failed: {ne}")
+
         return True
     except Exception as e:
         print(f"Error in batch_save_orders: {e}")
@@ -280,6 +302,17 @@ def update_class_counts(kindergarten_id: str, class_name: str, counts: Dict) -> 
         
         if updates:
             ws.batch_update(updates)
+        
+        # Notification trigger
+        try:
+            from backend.notifications import send_admin_notification
+            all_k = get_kindergartens()
+            k_name = next((k.name for k in all_k if k.kindergarten_id == kindergarten_id), kindergarten_id)
+            details = f"クラス名: {class_name}\n更新項目: {list(counts.keys())}"
+            send_admin_notification("クラス人数更新", k_name, details)
+        except Exception as ne:
+            print(f"[ERROR] Notification failed: {ne}")
+
         return True
     except Exception as e:
         print(f"Error in update_class_counts: {e}")
@@ -310,7 +343,8 @@ def update_kindergarten_master(data: Dict) -> bool:
         mapping = {
             "service_mon": "mon", "service_tue": "tue", "service_wed": "wed",
             "service_thu": "thu", "service_fri": "fri", "service_sat": "sat", "service_sun": "sun",
-            "has_soup": "has_soup", "curry_trigger": "curry_trigger"
+            "has_soup": "has_soup", "curry_trigger": "curry_trigger",
+            "contact_name": "contact_name", "contact_email": "contact_email"
         }
         
         updates = []
@@ -340,9 +374,54 @@ def update_kindergarten_master(data: Dict) -> bool:
 
         if updates:
             ws.batch_update(updates)
+
+        try:
+            from backend.notifications import send_admin_notification
+            kid_id = data.get('kindergarten_id')
+            all_k = get_kindergartens()
+            k_name = next((k.name for k in all_k if k.kindergarten_id == kid_id), kid_id)
+            send_admin_notification("園情報・設定更新", k_name, f"更新内容: {list(data.keys())}")
+        except Exception as ne:
+            print(f"[ERROR] Notification failed: {ne}")
         return True
     except Exception as e:
         print(f"Error in update_kindergarten_master: {e}")
+        return False
+
+def get_system_settings() -> Dict:
+    """Fetch system-wide settings (admin emails, reminder days)."""
+    try:
+        wb = get_db_connection()
+        if not wb: return {}
+        try:
+            ws = wb.worksheet("admin_settings")
+        except:
+            # Create if missing
+            ws = wb.add_worksheet(title="admin_settings", rows=10, cols=2)
+            ws.update("A1", [["key", "value"], ["admin_emails", "admin@example.com"], ["reminder_days", "5,3"]])
+            
+        records = ws.get_all_records()
+        return {r["key"]: r["value"] for r in records}
+    except Exception as e:
+        print(f"Error in get_system_settings: {e}")
+        return {}
+
+def update_system_settings(data: Dict) -> bool:
+    """Update system-wide settings."""
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        ws = wb.worksheet("admin_settings")
+        
+        all_rows = [["key", "value"]]
+        for k, v in data.items():
+            all_rows.append([k, str(v)])
+            
+        ws.clear()
+        ws.update("A1", all_rows)
+        return True
+    except Exception as e:
+        print(f"Error in update_system_settings: {e}")
         return False
 
 # --- Legacy Compatibility / Wrappers ---

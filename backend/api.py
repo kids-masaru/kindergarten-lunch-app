@@ -12,7 +12,9 @@ from backend.sheets import (
     batch_save_orders,
     update_class_counts,
     update_kindergarten_master,
-    update_kindergarten_classes as update_sheets_classes
+    update_kindergarten_classes as update_sheets_classes,
+    get_system_settings,
+    update_system_settings
 )
 from fastapi import File, UploadFile
 from fastapi.responses import FileResponse
@@ -380,13 +382,34 @@ def get_system_info():
             except:
                 email = "Error fetching email"
         
-        if DRIVE_FOLDER_ID:
             folder_status = f"Configured ({DRIVE_FOLDER_ID[:4]}...)"
             
     except Exception as e:
         print(f"Error getting system info: {e}")
         
+    # Merge with Admin settings
+    settings = get_system_settings() or {}
+    
     return {
         "service_account_email": email,
-        "drive_folder_config": folder_status
+        "drive_folder_config": folder_status,
+        "admin_emails": settings.get("admin_emails", ""),
+        "reminder_days": settings.get("reminder_days", "5,3")
     }
+
+@router.post("/admin/system-settings")
+def update_admin_settings(data: Dict):
+    """Updates global system settings."""
+    success = update_system_settings(data)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update system settings")
+    return {"status": "success"}
+@router.get("/admin/run-reminders")
+def run_reminders_check():
+    """Manually triggers the reminder check."""
+    try:
+        from backend.notifications import check_and_send_reminders
+        check_and_send_reminders()
+        return {"status": "success", "message": "Check completed. See notifications.log for results."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -101,9 +101,31 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                     <input
                                         type="text"
                                         value={formData.name || ''}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 font-bold text-gray-700 focus:ring-2 ring-orange-100 outline-none transition-all"
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all"
                                     />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">担当者名</label>
+                                        <input
+                                            type="text"
+                                            value={formData.contact_name || ''}
+                                            onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
+                                            className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+                                            placeholder="例：山田 太郎"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">連絡先メール</label>
+                                        <input
+                                            type="email"
+                                            value={formData.contact_email || ''}
+                                            onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                                            className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+                                            placeholder="example@mail.com"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
@@ -290,43 +312,102 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
     );
 }
 
-export default function AdminMenuPage() {
+// --- System Settings Modal ---
+function SystemSettingsModal({ info, onClose, onSave }: { info: any, onClose: () => void, onSave: (data: any) => void }) {
+    const [emails, setEmails] = useState(info.admin_emails || '');
+    const [days, setDays] = useState(info.reminder_days || '5,3');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            await onSave({ admin_emails: emails, reminder_days: days });
+            onClose();
+        } catch (e) {
+            alert("保存に失敗しました");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden flex flex-col scale-in">
+                <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-orange-50/30">
+                    <h2 className="text-xl font-black text-gray-800">システム設定</h2>
+                    <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors"><X className="w-6 h-6 text-gray-400" /></button>
+                </div>
+                <div className="p-8 space-y-6">
+                    <div>
+                        <label className="text-xs font-black text-gray-400 uppercase block mb-2">管理者通知先メールアドレス (カンマ区切り)</label>
+                        <textarea
+                            value={emails}
+                            onChange={e => setEmails(e.target.value)}
+                            className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all h-24"
+                            placeholder="mail1@example.com, mail2@example.com"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-xs font-black text-gray-400 uppercase block mb-2">リマインダー送付設定 (締切25日の何日前か)</label>
+                        <input
+                            type="text"
+                            value={days}
+                            onChange={e => setDays(e.target.value)}
+                            className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+                            placeholder="5, 3"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1 font-medium italic">※カンマ区切りで複数のタイミングを指定できます</p>
+                    </div>
+                </div>
+                <div className="px-8 py-6 border-t border-gray-100 bg-gray-50 flex gap-4">
+                    <button onClick={onClose} className="flex-1 py-4 px-6 rounded-2xl font-black text-gray-400 hover:bg-gray-200 transition-all">キャンセル</button>
+                    <button onClick={handleSave} disabled={isSaving} className="flex-1 py-4 px-6 rounded-2xl bg-orange-500 text-white font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all flex items-center justify-center gap-2">
+                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> 保存する</>}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function AdminConsole() {
     const [file, setFile] = useState<File | null>(null);
     const [year, setYear] = useState<number>(new Date().getFullYear());
-    const [month, setMonth] = useState<number>(new Date().getMonth() + 2);
+    const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
     const [status, setStatus] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false);
     const [result, setResult] = useState<any>(null);
 
     const [kindergartens, setKindergartens] = useState<any[]>([]);
-    const [loadingList, setLoadingList] = useState(true);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
     // Editor State
-    const [editingK, setEditingK] = useState<any | null>(null);
+    const [editingK, setEditingK] = useState<any>(null);
     const [showEditor, setShowEditor] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
 
     // New System Info State
     const [systemInfo, setSystemInfo] = useState<any>(null);
+    const [showSettings, setShowSettings] = useState(false);
+
 
     const fetchKindergartens = () => {
-        setLoadingList(true);
         getKindergartens().then(res => {
             setKindergartens(res.kindergartens);
-            setLoadingList(false);
         }).catch(err => {
             console.error(err);
-            setLoadingList(false);
         });
+    };
+
+    const fetchSystemInfo = () => {
+        getSystemInfo().then(res => {
+            setSystemInfo(res);
+        }).catch(err => console.error("SysInfo Error:", err));
     };
 
     useEffect(() => {
         fetchKindergartens();
         // Fetch System Info
-        getSystemInfo().then(res => {
-            setSystemInfo(res);
-        }).catch(err => console.error("SysInfo Error:", err));
+        fetchSystemInfo();
     }, []);
 
     const copyToClipboard = (text: string) => {
@@ -382,6 +463,18 @@ export default function AdminMenuPage() {
         }
     };
 
+    const handleUpdateSettings = async (data: any) => {
+        try {
+            const { updateAdminSettings } = await import('@/lib/api'); // Assuming this import path
+            await updateAdminSettings(data);
+            alert("設定を保存しました");
+            fetchSystemInfo();
+        } catch (e) {
+            console.error(e);
+            alert("保存に失敗しました");
+        }
+    };
+
     return (
         <div className="min-h-screen bg-orange-50/50 p-4 md:p-8">
             <div className="max-w-5xl mx-auto space-y-6">
@@ -399,6 +492,12 @@ export default function AdminMenuPage() {
                             <p className="text-gray-500 text-sm font-medium italic">Mamameal Admin Portal</p>
                         </div>
                     </div>
+                    <button
+                        onClick={() => setShowSettings(true)}
+                        className="flex items-center gap-2 bg-white text-gray-600 px-6 py-3 rounded-2xl font-black text-sm hover:bg-orange-50 transition-all border border-orange-100 shadow-sm"
+                    >
+                        <SettingsIcon className="w-4 h-4" /> システム設定
+                    </button>
                 </div>
 
                 <div className="space-y-6">
@@ -480,7 +579,7 @@ export default function AdminMenuPage() {
                                 <thead>
                                     <tr className="bg-gray-50/50 border-b border-gray-100">
                                         <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">ID</th>
-                                        <th className="px-4 py-4 text-xs font-bold text-gray-600">幼稚園名</th>
+                                        <th className="px-4 py-4 text-xs font-bold text-gray-600">園名 / 担当者</th>
                                         <th className="px-4 py-4 text-xs font-bold text-gray-600 text-center">稼働日</th>
                                         <th className="px-4 py-4 text-xs font-bold text-gray-600 text-center">スープ</th>
                                         <th className="px-4 py-4 text-xs font-bold text-gray-600">設定済みメニュー</th>
@@ -489,16 +588,9 @@ export default function AdminMenuPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {loadingList ? (
+                                    {kindergartens.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="py-20 text-center">
-                                                <Loader2 className="animate-spin w-8 h-8 mx-auto text-orange-400" />
-                                                <p className="mt-2 text-xs font-bold text-gray-400">データを読み込み中...</p>
-                                            </td>
-                                        </tr>
-                                    ) : kindergartens.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={5} className="py-20 text-center">
+                                            <td colSpan={7} className="py-20 text-center">
                                                 <AlertCircle className="w-12 h-12 mx-auto text-gray-100 mb-2" />
                                                 <p className="text-gray-400 font-bold">幼稚園が見つかりません</p>
                                             </td>
@@ -513,7 +605,10 @@ export default function AdminMenuPage() {
                                                 <span className="text-[10px] font-black text-orange-200 group-hover:text-orange-400 transition-colors tracking-widest">{k.kindergarten_id}</span>
                                             </td>
                                             <td className="px-4 py-5 font-bold text-gray-800">
-                                                {k.name || '---'}
+                                                <div className="flex flex-col">
+                                                    <span>{k.name || '---'}</span>
+                                                    <span className="text-[10px] text-gray-400 font-medium">{k.contact_name ? `${k.contact_name} 様` : '担当者未登録'}</span>
+                                                </div>
                                             </td>
                                             <td className="px-4 py-5">
                                                 <div className="flex justify-center gap-0.5">
@@ -561,7 +656,7 @@ export default function AdminMenuPage() {
                                             <td className="px-8 py-5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
-                                                        onClick={() => handleDownload(k)}
+                                                        onClick={(e) => { e.stopPropagation(); handleDownload(k); }}
                                                         disabled={!!downloadingId || !result}
                                                         className={`px-4 py-2 border rounded-xl text-[10px] font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30 disabled:grayscale
                                                             ${result ? 'bg-white border-orange-200 text-orange-600 hover:bg-orange-50' : 'bg-gray-50 border-gray-100 text-gray-400'}`}
@@ -590,27 +685,26 @@ export default function AdminMenuPage() {
                     </div>
                 </div>
 
-                {kindergartens.length === 0 && (
-                    <div className="col-span-full py-20 text-center space-y-4">
-                        <div className="mx-auto w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
-                            <AlertCircle className="w-8 h-8 text-gray-200" />
-                        </div>
-                        <p className="text-gray-400 font-bold">No kindergartens found</p>
-                    </div>
+                {showEditor && editingK && (
+                    <KindergartenEditor
+                        k={editingK}
+                        onClose={() => { setShowEditor(false); setEditingK(null); }}
+                        onSave={() => {
+                            setShowEditor(false);
+                            setEditingK(null);
+                            fetchKindergartens(); // Refresh list
+                        }}
+                    />
+                )}
+
+                {showSettings && systemInfo && (
+                    <SystemSettingsModal
+                        info={systemInfo}
+                        onClose={() => setShowSettings(false)}
+                        onSave={handleUpdateSettings}
+                    />
                 )}
             </div>
-
-            {showEditor && editingK && (
-                <KindergartenEditor
-                    k={editingK}
-                    onClose={() => { setShowEditor(false); setEditingK(null); }}
-                    onSave={() => {
-                        setShowEditor(false);
-                        setEditingK(null);
-                        fetchKindergartens(); // Refresh list
-                    }}
-                />
-            )}
         </div>
     );
 }

@@ -79,6 +79,11 @@ export const getAdminClasses = async (id: string) => {
     return res.data;
 };
 
+export const updateAdminSettings = async (data: any) => {
+    const res = await api.post('/admin/system-settings', data);
+    return res.data;
+};
+
 export const updateAdminClasses = async (id: string, newClasses: any[]) => {
     const res = await api.post(`/admin/kindergartens/${id}/classes`, newClasses);
     return res.data;

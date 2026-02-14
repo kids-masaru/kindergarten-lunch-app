@@ -12,6 +12,8 @@ export interface LoginUser {
         service_sun?: boolean;
     };
     classes?: ClassMaster[];
+    contact_name?: string;
+    contact_email?: string;
 }
 
 export interface Order {

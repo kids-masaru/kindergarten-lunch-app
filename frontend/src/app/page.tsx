@@ -108,7 +108,9 @@ export default function CalendarPage() {
           <div className="flex items-center gap-3">
             <img src="/favicon-bento.ico" className="w-8 h-8 pointer-events-none" alt="" />
             <div className="flex flex-col">
-              <h1 className="font-bold text-gray-800 text-lg leading-tight">{user.name} 様</h1>
+              <h1 className="font-bold text-gray-800 text-lg leading-tight">
+                {user.name} <span className="text-gray-400 font-medium ml-1">{user.contact_name ? `${user.contact_name} 様` : ''}</span>
+              </h1>
               {user.settings && (
                 <div className="flex gap-1 mt-0.5">
                   {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((day, idx) => {
@@ -164,28 +166,6 @@ export default function CalendarPage() {
             )}
           </div>
         </div>
-
-        {/* Action Tabs - Mobile Only (Hidden on Desktop) */}
-        <div className="grid grid-cols-2 lg:hidden">
-          <button
-            onClick={() => setActiveTab('calendar')}
-            className={`flex flex-col items-center justify-center p-3 border-b-2 font-bold transition-colors ${activeTab === 'calendar'
-              ? 'border-blue-500 bg-blue-50 text-blue-700'
-              : 'border-transparent text-gray-500 hover:bg-gray-50'
-              }`}
-          >
-            <span className="text-sm">📅 日々の注文</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('report')}
-            className={`flex flex-col items-center justify-center p-3 border-b-2 font-bold transition-colors ${activeTab === 'report'
-              ? 'border-orange-500 bg-orange-50 text-orange-700'
-              : 'border-transparent text-gray-500 hover:bg-gray-50'
-              }`}
-          >
-            <span className="text-sm flex items-center gap-1"><ClipboardList className="w-4 h-4" /> 登録クラス情報</span>
-          </button>
-        </div>
       </div>
 
       <div className="max-w-6xl mx-auto p-2 sm:p-6">
@@ -208,27 +188,14 @@ export default function CalendarPage() {
               </div>
               今月の申請を開始する
             </button>
-
-            <div className="pt-8 grid grid-cols-2 gap-4 max-w-md mx-auto opacity-50 grayscale pointer-events-none">
-              <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl flex flex-col items-center">
-                <div className="w-8 h-8 rounded-full bg-gray-200 mb-2"></div>
-                <div className="w-12 h-2 bg-gray-200 rounded"></div>
-              </div>
-              <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl flex flex-col items-center">
-                <div className="w-8 h-8 rounded-lg bg-gray-200 mb-2"></div>
-                <div className="w-12 h-2 bg-gray-200 rounded"></div>
-              </div>
-            </div>
           </div>
         ) : (
-          /* Desktop Split View: PC shows both side-by-side */
+          /* Desktop Split View: Always show both side-by-side (responsively stacked on mobile) */
           <div className="flex flex-col lg:flex-row gap-8 animate-in fade-in duration-500">
 
-            {/* Calendar Section (Visible if activeTab=calendar OR on Desktop) */}
-            <div className={`flex-1 ${activeTab !== 'calendar' ? 'hidden lg:block' : ''}`}>
+            {/* Calendar Section */}
+            <div className="flex-1">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-                {/* Content area starts directly with Grid */}
-
                 {/* Calendar Grid */}
                 <div className="grid grid-cols-7 gap-1 mb-2">
                   {['日', '月', '火', '水', '木', '金', '土'].map((d, i) => (
@@ -242,14 +209,13 @@ export default function CalendarPage() {
                   {Array(daysInMonth).fill(null).map((_, i) => {
                     const day = i + 1;
                     const dayOrders = getOrdersForDay(day);
-                    const icon = getDayIcon(dayOrders);
                     const dObj = new Date(year, month - 1, day);
                     const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
 
                     // Service Day Check
                     let isServiceDay = true;
                     if (user && user.settings) {
-                      const dayOfWeek = dObj.getDay(); // 0:Sun, 1:Mon...
+                      const dayOfWeek = dObj.getDay();
                       const s = user.settings as any;
                       const mapping: any = { 0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat' };
                       isServiceDay = s[`service_${mapping[dayOfWeek]}`] !== false;
@@ -257,7 +223,6 @@ export default function CalendarPage() {
 
                     // Deadline Logic
                     const now = new Date();
-                    const targetDateStr = `${year}-${month}-${String(day).padStart(2, '0')}`;
 
                     // 1. Strict Lock (Day before 15:00)
                     const lockDeadline = new Date(year, month - 1, day - 1, 15, 0, 0);
@@ -267,7 +232,6 @@ export default function CalendarPage() {
                     const graceDeadline = new Date(year, month - 1, day - 3, 18, 0, 0);
                     const isGraceLocked = now > graceDeadline;
 
-                    // Label Logic
                     let displayLabel = null;
                     if (!isServiceDay) {
                       displayLabel = <span className="text-xs text-gray-300">－</span>;
@@ -332,8 +296,8 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {/* Class Report Section (Visible if activeTab=report OR on Desktop) */}
-            <div className={`w-full lg:w-96 ${activeTab !== 'report' ? 'hidden lg:block' : ''}`}>
+            {/* Class Report Section */}
+            <div className="w-full lg:w-96">
               <ClassReportPanel
                 user={user}
                 classes={classes}

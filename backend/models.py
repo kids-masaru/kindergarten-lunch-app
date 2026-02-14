@@ -17,6 +17,9 @@ class KindergartenMaster(BaseModel):
     login_id: str
     password: str
     
+    contact_name: str = ""
+    contact_email: str = ""
+    
     # Custom services
     services: List[str] = Field(default_factory=list)
     settings: Dict = Field(default_factory=dict)

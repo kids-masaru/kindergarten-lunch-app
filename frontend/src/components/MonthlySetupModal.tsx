@@ -77,10 +77,14 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
     };
 
     const handleMealTypeToggle = (dateStr: string) => {
-        const mealOptions = ['', '通常', ...(user.services || []).filter(s => s !== '通常'), '飯なし'];
+        const mealOptions = ['通常', 'カレー', 'パン', '誕生日会'];
         setDays(prev => prev.map(d => {
             if (d.dateStr === dateStr) {
-                const currentIndex = mealOptions.indexOf(d.mealType);
+                const currentMealType = d.mealType;
+                let currentIndex = mealOptions.indexOf(currentMealType);
+                if (currentIndex === -1) { // If current mealType is not in the new cycle (e.g., '飯なし' or '')
+                    currentIndex = mealOptions.indexOf('通常'); // Default to '通常'
+                }
                 const nextIndex = (currentIndex + 1) % mealOptions.length;
                 return { ...d, mealType: mealOptions[nextIndex] };
             }

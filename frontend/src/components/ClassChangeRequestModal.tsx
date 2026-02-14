@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { X, Calendar as CalendarIcon, Save, Loader2, Minus, Plus } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Save, Loader2, Minus, Plus, Trash2 } from 'lucide-react';
 import { ClassMaster, LoginUser } from '@/types';
 import { updateKindergartenClasses } from '@/lib/api';
 
@@ -93,17 +93,55 @@ export default function ClassChangeRequestModal({ isOpen, onClose, user, current
                     </div>
 
                     <div className="space-y-4">
-                        <label className="text-xs font-black text-gray-400 ml-1 uppercase">クラス別人数設定</label>
+                        <div className="flex justify-between items-center ml-1">
+                            <label className="text-xs font-black text-gray-400 uppercase">クラス別人数設定</label>
+                            <button
+                                onClick={() => setEdits([...edits, { class_name: '新クラス', grade: '年少', default_student_count: 0, default_allergy_count: 0, default_teacher_count: 0 }])}
+                                className="flex items-center gap-1 text-[10px] font-black bg-orange-50 text-orange-600 px-2 py-1 rounded-lg border border-orange-100 hover:bg-orange-100 transition-colors uppercase"
+                            >
+                                <Plus className="w-3 h-3" /> クラス追加
+                            </button>
+                        </div>
                         {edits.map((cls, idx) => (
-                            <div key={cls.class_name} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                            <div key={idx} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group">
                                 <div className="w-1/3">
-                                    <p className="font-black text-gray-800">{cls.class_name}</p>
-                                    <p className="text-[10px] text-gray-400 font-bold">{cls.grade}</p>
+                                    <input
+                                        type="text"
+                                        value={cls.class_name}
+                                        onChange={(e) => {
+                                            const newEdits = [...edits];
+                                            newEdits[idx].class_name = e.target.value;
+                                            setEdits(newEdits);
+                                        }}
+                                        className="font-black text-gray-800 bg-transparent border-none p-0 focus:ring-0 w-full"
+                                    />
+                                    <select
+                                        value={cls.grade}
+                                        onChange={(e) => {
+                                            const newEdits = [...edits];
+                                            newEdits[idx].grade = e.target.value;
+                                            setEdits(newEdits);
+                                        }}
+                                        className="text-[10px] text-gray-400 font-bold bg-transparent border-none p-0 focus:ring-0 appearance-none cursor-pointer"
+                                    >
+                                        <option value="年少">年少</option>
+                                        <option value="年中">年中</option>
+                                        <option value="年長">年長</option>
+                                        <option value="乳児">乳児</option>
+                                        <option value="その他">その他</option>
+                                    </select>
                                 </div>
-                                <div className="flex gap-4">
+                                <div className="flex gap-4 items-center">
                                     <Counter label="園児" value={cls.default_student_count} onChange={(d) => handleCountChange(idx, 'default_student_count', d)} />
                                     <Counter label="アレルギー" value={cls.default_allergy_count || 0} onChange={(d) => handleCountChange(idx, 'default_allergy_count', d)} color="text-red-500" />
                                     <Counter label="先生" value={cls.default_teacher_count} onChange={(d) => handleCountChange(idx, 'default_teacher_count', d)} />
+
+                                    <button
+                                        onClick={() => setEdits(edits.filter((_, i) => i !== idx))}
+                                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         ))}
