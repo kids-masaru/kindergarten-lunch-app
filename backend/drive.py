@@ -13,7 +13,7 @@ load_dotenv()
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 # We reuse the same credentials file as Sheets
 CREDENTIALS_FILE = "service_account.json"
-TARGET_FOLDER_NAME = "Mamameal_Data"
+TARGET_FOLDER_NAME = "MamaMiRe_Data"
 
 def get_drive_service():
     """Authenticates and returns the Drive API service."""

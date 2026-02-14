@@ -483,13 +483,13 @@ export default function AdminConsole() {
                 <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-orange-100 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <div className="p-4 bg-white rounded-2xl shadow-orange-200 shadow-md flex items-center justify-center">
-                            <img src="/favicon-bento.ico" className="w-10 h-10 object-contain" alt="Bento" />
+                            <img src="/icon-mamamire.png" className="w-10 h-10 object-contain" alt="MamaMiRe" />
                         </div>
                         <div>
                             <h1 className="text-2xl font-black text-gray-800 tracking-tight">
-                                メニュー管理・<span className="text-orange-600">設定</span>
+                                <span className="text-orange-600">ままみれ</span> 管理ポータル
                             </h1>
-                            <p className="text-gray-500 text-sm font-medium italic">Mamameal Admin Portal</p>
+                            <p className="text-gray-500 text-sm font-medium italic">MamaMiRe: Admin Portal</p>
                         </div>
                     </div>
                     <button

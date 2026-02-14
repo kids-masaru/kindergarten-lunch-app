@@ -15,12 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "幼稚園給食注文",
-  description: "幼稚園給食注文管理システム",
+  title: "ままみれ (MamaMiRe)",
+  description: "幼稚園給食・お弁当 注文管理システム",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon-bento.ico",
-    apple: "/favicon-bento.ico",
+    icon: "/icon-mamamire.png",
+    apple: "/icon-mamamire.png",
   },
 };
 
