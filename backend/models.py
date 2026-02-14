@@ -63,6 +63,7 @@ class ClassMaster(BaseModel):
     default_student_count: int = 0
     default_allergy_count: int = 0
     default_teacher_count: int = 0
+    effective_from: str = "2025-04-01" # YYYY-MM-DD
 
     @field_validator('default_student_count', 'default_allergy_count', 'default_teacher_count', mode='before')
     def parse_int(cls, v):

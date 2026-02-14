@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCalendar, getMasters, generateMenu } from '@/lib/api';
 import { LoginUser, Order, ClassMaster } from '@/types';
 import OrderModal from '@/components/OrderModal';
 import ClassReportPanel from '@/components/ClassReportPanel';
 import MonthlySetupModal from '@/components/MonthlySetupModal';
-import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, Send, AlertCircle, Check } from 'lucide-react';
+import ClassChangeRequestModal from '@/components/ClassChangeRequestModal';
+import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, Send, AlertCircle, Check, Download, AlertTriangle, Clock, Phone, Edit3 } from 'lucide-react';
 
 // Version: UI Layout V3 (Split & Tabs)
 export default function CalendarPage() {
@@ -22,12 +23,24 @@ export default function CalendarPage() {
   const [activeTab, setActiveTab] = useState<'calendar' | 'report'>('calendar');
   const [loading, setLoading] = useState(true);
   const [isMonthlySetupOpen, setIsMonthlySetupOpen] = useState(false);
+  const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleMonthlySetupComplete = () => {
     setIsSubmitted(true);
     fetchOrders(user!.kindergarten_id, year, month);
   };
+
+  const fetchMasters = useCallback(async (kid: string, y: number, m: number) => {
+    try {
+      // Fetch masters for the specific month (effective as of 1st day)
+      const dateStr = `${y}-${String(m).padStart(2, '0')}-01`;
+      const data = await getMasters(kid, dateStr);
+      setClasses(data.classes);
+    } catch (e) {
+      console.error('Failed to fetch masters:', e);
+    }
+  }, []);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -38,14 +51,15 @@ export default function CalendarPage() {
     const u = JSON.parse(userData);
     setUser(u);
 
-    // Fetch masters
-    getMasters(u.kindergarten_id).then(res => {
-      setClasses(res.classes);
-    });
-
     setLoading(false);
     fetchOrders(u.kindergarten_id, year, month);
   }, [router, year, month]);
+
+  useEffect(() => {
+    if (user) {
+      fetchMasters(user.kindergarten_id, year, month);
+    }
+  }, [user, year, month, fetchMasters]);
 
   const fetchOrders = async (kid: string, y: number, m: number) => {
     try {
@@ -241,6 +255,18 @@ export default function CalendarPage() {
                       isServiceDay = s[`service_${mapping[dayOfWeek]}`] !== false;
                     }
 
+                    // Deadline Logic
+                    const now = new Date();
+                    const targetDateStr = `${year}-${month}-${String(day).padStart(2, '0')}`;
+
+                    // 1. Strict Lock (Day before 15:00)
+                    const lockDeadline = new Date(year, month - 1, day - 1, 15, 0, 0);
+                    const isStrictLocked = now > lockDeadline;
+
+                    // 2. Grace Period Lock (3 days before 18:00)
+                    const graceDeadline = new Date(year, month - 1, day - 3, 18, 0, 0);
+                    const isGraceLocked = now > graceDeadline;
+
                     // Label Logic
                     let displayLabel = null;
                     if (!isServiceDay) {
@@ -263,20 +289,42 @@ export default function CalendarPage() {
                     return (
                       <button
                         key={day}
-                        onClick={() => isServiceDay && handleDateClick(day)}
+                        onClick={() => {
+                          if (!isServiceDay) return;
+                          if (isStrictLocked) {
+                            alert("前日15:00を過ぎたため、システムからは変更できません。お電話にてご連絡ください。");
+                            return;
+                          }
+                          if (isGraceLocked) {
+                            if (confirm("3日前を過ぎた変更や緊急の場合は、お電話（0120-XXX-XXX）にて直接ご連絡いただく必要があります。このまま入力を続けますか？")) {
+                              handleDateClick(day);
+                            }
+                            return;
+                          }
+                          handleDateClick(day);
+                        }}
                         disabled={!isServiceDay}
                         className={`aspect-square rounded-[1.25rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all 
                           ${!isServiceDay
                             ? 'bg-gray-50/50 border-transparent text-gray-300 cursor-not-allowed opacity-50'
-                            : isToday
-                              ? 'bg-orange-50 border-orange-300 active:scale-95 shadow-sm hover:border-orange-200'
-                              : 'bg-white border-gray-100 active:scale-95 shadow-sm hover:border-orange-200'
+                            : isStrictLocked
+                              ? 'bg-gray-100 border-gray-200 opacity-40 grayscale cursor-not-allowed'
+                              : isGraceLocked
+                                ? 'bg-gray-50 border-gray-200 opacity-80'
+                                : isToday
+                                  ? 'bg-orange-50 border-orange-300 active:scale-95 shadow-sm hover:border-orange-200'
+                                  : 'bg-white border-gray-100 active:scale-95 shadow-sm hover:border-orange-200'
                           }`}
                       >
                         <span className={`text-[10px] font-black leading-none mb-1 ${!isServiceDay ? 'text-gray-300' : isToday ? 'text-orange-600' : 'text-gray-400'}`}>{day}</span>
                         <div className="flex-1 flex items-center justify-center w-full p-1">
                           {displayLabel}
                         </div>
+                        {isStrictLocked && isServiceDay && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-1/2 h-[2px] bg-gray-300 rotate-45"></div>
+                          </div>
+                        )}
                       </button>
                     );
                   })}
@@ -289,7 +337,8 @@ export default function CalendarPage() {
               <ClassReportPanel
                 user={user}
                 classes={classes}
-                onSaved={() => getMasters(user.kindergarten_id).then(res => setClasses(res.classes))}
+                onSaved={() => fetchMasters(user.kindergarten_id, year, month)}
+                onOpenChangeRequest={() => setIsChangeRequestOpen(true)}
               />
             </div>
 
@@ -297,15 +346,18 @@ export default function CalendarPage() {
         )}
 
         {/* Footer Notes */}
+        {/* Instructions */}
         <div className="mt-8 p-6 text-xs text-gray-500 bg-white rounded-xl border border-gray-100 shadow-sm leading-relaxed">
           <h3 className="font-bold text-gray-700 mb-2 border-b pb-1">⚠️ ご注文に関する注意点</h3>
-          <ul className="list-disc pl-4 space-y-1">
-            <li>注文の締め切りは、**前日の14:00まで**となっております。必ず期限内にお願いいたします。</li>
-            <li>「今月の申請（基本設定）」は、毎月25日までに翌月分の送信を完了させてください。</li>
-            <li>人数やメニューの急な変更は、こちらのカレンダーから修正後「内容を送信する」を押してください。</li>
-            <li>3日前を過ぎた変更や緊急の場合は、お電話（0120-XXX-XXX）にて直接ご連絡ください。</li>
-            <li>システムに関するお問い合わせは、担当：山田（平日 9:00-17:00）まで。</li>
-          </ul>
+          <div className="space-y-2">
+            <p className="font-bold text-gray-800">注文の締め切りは、**前日の14:00まで**となっております。必ず期限内にお願いいたします。</p>
+            <ul className="list-disc pl-4 space-y-1">
+              <li>「今月の申請（基本設定）」は、毎月25日までに翌月分の送信を完了させてください。</li>
+              <li>人数やメニューの急な変更は、こちらのカレンダーから修正後「内容を送信する」を押してください。</li>
+              <li>3日前を過ぎた変更や緊急の場合は、お電話（0120-XXX-XXX）にて直接ご連絡ください。</li>
+              <li>システムに関するお問い合わせは、担当：山田（平日 9:00-17:00）まで。</li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -332,6 +384,14 @@ export default function CalendarPage() {
         year={year}
         month={month}
         onComplete={handleMonthlySetupComplete}
+      />
+
+      <ClassChangeRequestModal
+        isOpen={isChangeRequestOpen}
+        onClose={() => setIsChangeRequestOpen(false)}
+        user={user}
+        currentClasses={classes}
+        onSaved={() => fetchMasters(user.kindergarten_id, year, month)}
       />
     </div >
   );

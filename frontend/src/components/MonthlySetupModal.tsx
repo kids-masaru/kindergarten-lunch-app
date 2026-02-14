@@ -212,7 +212,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     />
                                                 </div>
                                                 <div className="flex-1">
-                                                    <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block ml-1 text-center text-red-300">アレ</label>
+                                                    <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block ml-1 text-center text-red-300">アレルギー</label>
                                                     <input
                                                         type="number"
                                                         value={cls.default_allergy_count}

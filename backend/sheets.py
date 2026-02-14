@@ -84,7 +84,7 @@ def get_kindergartens() -> List[KindergartenMaster]:
         print(f"Error in get_kindergartens: {e}")
         return []
 
-def get_classes_for_kindergarten(kindergarten_id: str) -> List[ClassMaster]:
+def get_classes_for_kindergarten(kindergarten_id: str, base_date: Optional[str] = None) -> List[ClassMaster]:
     """Fetch classes for a specific kindergarten from the flat 'classes' sheet."""
     try:
         wb = get_db_connection()
@@ -93,8 +93,31 @@ def get_classes_for_kindergarten(kindergarten_id: str) -> List[ClassMaster]:
         records = ws.get_all_records()
         
         # Filter by kindergarten_id
-        filtered = [r for r in records if str(r.get("kindergarten_id")) == str(kindergarten_id)]
-        return [ClassMaster(**r) for r in filtered]
+        results = []
+        for r in records:
+            if str(r.get("kindergarten_id")) == str(kindergarten_id):
+                results.append(ClassMaster(**r))
+        
+        if not results: return []
+
+        if not base_date:
+            # If no base_date, return the LATEST configuration for all unique classes
+            # (Typically used for Admin view or "Current" Master)
+            # Find the absolute latest effective_from for this kindergarten
+            latest_date = max(c.effective_from for c in results)
+            # Return all classes that match this latest_date
+            return [c for c in results if c.effective_from == latest_date]
+
+        # Versioning logic:
+        # For each class_name, find the record where effective_from <= base_date
+        # if multiple exist, pick the one with the LATEST effective_from
+        grouped = {}
+        for c in results:
+            if c.effective_from <= base_date:
+                if c.class_name not in grouped or c.effective_from > grouped[c.class_name].effective_from:
+                    grouped[c.class_name] = c
+        
+        return list(grouped.values())
     except Exception as e:
         print(f"Error in get_classes_for_kindergarten: {e}")
         return []
@@ -172,7 +195,7 @@ def batch_save_orders(orders: List[Dict]) -> bool:
         return False
 
 def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict]) -> bool:
-    """Batch update or replace classes for a kindergarten."""
+    """Batch update or replace classes for a kindergarten (for a specific effective_from date)."""
     try:
         wb = get_db_connection()
         if not wb: return False
@@ -180,24 +203,41 @@ def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict]) -> bo
         all_rows = ws.get_all_values()
         headers = all_rows[0]
         
-        # 1. Identify which rows belong to this kindergarten
-        # We'll just collect all rows and keep/replace them
+        # Ensure effective_from header exists if missing (migration)
+        if "effective_from" not in headers:
+            headers.append("effective_from")
+            ws.update("A1", [headers])
+            # Re-fetch all rows to get updated headers/structure
+            all_rows = ws.get_all_values()
+            headers = all_rows[0]
+
+        # Get the effective_from date from the first class in the list (assuming it's the target date)
+        # Default to today if not provided
+        target_effective_date = classes[0].get("effective_from", datetime.now().strftime("%Y-%m-%d")) if classes else datetime.now().strftime("%Y-%m-%d")
+
+        # 1. Identify which rows to KEEP
+        # Keep other kindergartens OR this kindergarten but DIFFERENT effective_from
         new_all_rows = [headers]
         
-        # Keep other kindergartens' classes
+        kid_idx = headers.index("kindergarten_id")
+        eff_idx = headers.index("effective_from")
+        
         for i, row in enumerate(all_rows):
             if i == 0: continue
-            # Find kindergarten_id column
-            kid_idx = headers.index("kindergarten_id")
-            if str(row[kid_idx]) != str(kindergarten_id):
+            # If it's a different kindergarten OR a different version date, keep it
+            if str(row[kid_idx]) != str(kindergarten_id) or str(row[eff_idx]) != str(target_effective_date):
+                # Padding row if headers were extended
+                while len(row) < len(headers):
+                    row.append("")
                 new_all_rows.append(row)
         
-        # 2. Add the new/updated classes for THIS kindergarten
+        # 2. Add the new/updated classes for THIS kindergarten and THIS date
         for c in classes:
             row_vals = []
             for h in headers:
                 val = c.get(h, "")
                 if h == "kindergarten_id": val = kindergarten_id
+                if h == "effective_from": val = target_effective_date
                 row_vals.append(val)
             new_all_rows.append(row_vals)
             

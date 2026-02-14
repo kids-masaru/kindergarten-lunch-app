@@ -1,0 +1,80 @@
+Connecting to spreadsheet...
+Found 2 records.
+
+Processing record 1:
+{
+  "kindergarten_id": "K001",
+  "name": "ひまわり幼稚園",
+  "mon": 1,
+  "tue": 1,
+  "wed": 1,
+  "thu": 1,
+  "fri": 1,
+  "sat": 0,
+  "sun": 0,
+  "services": "通常,カレー,誕生日会",
+  "login_id": "hmw123",
+  "password": "pass123",
+  "has_soup": 0,
+  "curry_trigger": "壺"
+}
+Constructed data dict:
+{
+  "kindergarten_id": "K001",
+  "name": "ひまわり幼稚園",
+  "login_id": "hmw123",
+  "password": "pass123",
+  "service_mon": true,
+  "service_tue": true,
+  "service_wed": true,
+  "service_thu": true,
+  "service_fri": true,
+  "service_sat": false,
+  "service_sun": false,
+  "services": [
+    "通常",
+    "カレー",
+    "誕生日会"
+  ],
+  "has_soup": false,
+  "curry_trigger": "壺"
+}
+SUCCESS: Created ひまわり幼稚園
+
+Processing record 2:
+{
+  "kindergarten_id": "K002",
+  "name": "さくら保育園",
+  "mon": 1,
+  "tue": 1,
+  "wed": 1,
+  "thu": 1,
+  "fri": 1,
+  "sat": 1,
+  "sun": 0,
+  "services": "通常",
+  "login_id": "skr456",
+  "password": "pass456",
+  "has_soup": 1,
+  "curry_trigger": ""
+}
+Constructed data dict:
+{
+  "kindergarten_id": "K002",
+  "name": "さくら保育園",
+  "login_id": "skr456",
+  "password": "pass456",
+  "service_mon": true,
+  "service_tue": true,
+  "service_wed": true,
+  "service_thu": true,
+  "service_fri": true,
+  "service_sat": true,
+  "service_sun": false,
+  "services": [
+    "通常"
+  ],
+  "has_soup": true,
+  "curry_trigger": ""
+}
+SUCCESS: Created さくら保育園

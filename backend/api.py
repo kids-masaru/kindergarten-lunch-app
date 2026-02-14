@@ -144,9 +144,9 @@ def login(creds: LoginRequest):
         return {"error": str(e), "traceback": traceback.format_exc()}
 
 @router.get("/masters/{kindergarten_id}")
-def get_masters(kindergarten_id: str):
-    my_classes = get_classes_for_kindergarten(kindergarten_id)
-    print(f"[DEBUG] Found {len(my_classes)} classes for {kindergarten_id}")
+def get_masters(kindergarten_id: str, date: Optional[str] = None):
+    my_classes = get_classes_for_kindergarten(kindergarten_id, date)
+    print(f"[DEBUG] Found {len(my_classes)} classes for {kindergarten_id} on {date}")
     return {"classes": [c.model_dump() for c in my_classes]}
 
 @router.post("/masters/class")

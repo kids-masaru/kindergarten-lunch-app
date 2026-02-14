@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Save, Minus, Plus } from 'lucide-react';
+import { Save, Minus, Plus, Edit3 } from 'lucide-react';
 import { updateClassMaster } from '@/lib/api';
 import { ClassMaster, LoginUser } from '@/types';
 
@@ -9,9 +9,10 @@ interface ClassReportPanelProps {
     user: LoginUser;
     classes: ClassMaster[];
     onSaved: () => void; // Callback to refresh data
+    onOpenChangeRequest: () => void;
 }
 
-export default function ClassReportPanel({ user, classes, onSaved }: ClassReportPanelProps) {
+export default function ClassReportPanel({ user, classes, onSaved, onOpenChangeRequest }: ClassReportPanelProps) {
     const [edits, setEdits] = useState<Record<string, ClassMaster>>({});
     const [saving, setSaving] = useState(false);
 
@@ -70,6 +71,12 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
                     <img src="/favicon-bento.ico" className="w-6 h-6" alt="" />
                     <span>登録クラス情報</span>
                 </h2>
+                <button
+                    onClick={onOpenChangeRequest}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-black border border-blue-100 hover:bg-blue-100 transition-colors"
+                >
+                    <Edit3 className="w-3.5 h-3.5" /> 変更の申請
+                </button>
             </div>
 
             <div className="p-4 overflow-y-auto flex-1 bg-white">
@@ -82,7 +89,7 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
                     <div className="flex text-[10px] font-black text-gray-300 px-2 uppercase tracking-tighter">
                         <div className="w-24">クラス名</div>
                         <div className="flex-1 text-center">園児</div>
-                        <div className="flex-1 text-center">アレ</div>
+                        <div className="flex-1 text-center">アレルギー</div>
                         <div className="flex-1 text-center">先生</div>
                     </div>
 

@@ -33,4 +33,5 @@ export interface ClassMaster {
     default_student_count: number;
     default_allergy_count?: number;
     default_teacher_count: number;
+    effective_from?: string;
 }

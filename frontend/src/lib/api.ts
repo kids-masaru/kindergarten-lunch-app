@@ -14,8 +14,8 @@ export const login = async (login_id: string, password: string) => {
     return res.data;
 };
 
-export const getMasters = async (kindergarten_id: string) => {
-    const res = await api.get(`/masters/${kindergarten_id}`);
+export const getMasters = async (kindergarten_id: string, date?: string) => {
+    const res = await api.get(`/masters/${kindergarten_id}`, { params: { date } });
     return res.data;
 };
 
