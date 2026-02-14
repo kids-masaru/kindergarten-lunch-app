@@ -18,14 +18,6 @@ export const metadata: Metadata = {
   title: "ママミレ (MamaMiRe)",
   description: "幼稚園給食・お弁当 注文管理システム",
   manifest: "/manifest.json",
-  icons: {
-    icon: [
-      { url: "/icon-mamamire.png", type: "image/png" },
-    ],
-    apple: [
-      { url: "/icon-mamamire.png" },
-    ],
-  },
 };
 
 export const viewport: Viewport = {
