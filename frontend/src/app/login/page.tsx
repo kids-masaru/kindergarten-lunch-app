@@ -42,7 +42,7 @@ export default function LoginPage() {
         <div className="min-h-screen bg-orange-50 flex items-center justify-center p-4">
             <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
                 <div className="text-center mb-8">
-                    <img src="/icon-mamamire.png" className="w-32 h-32 mx-auto mb-6 pointer-events-none scale-110" alt="MamaMiRe" />
+                    <img src="/icon-mamamire.png" className="w-24 h-24 mx-auto mb-6 pointer-events-none" alt="MamaMiRe" />
                     <h1 className="text-4xl font-black text-gray-800 tracking-tight">ママミレ</h1>
                     <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest mt-1">MamaMiRe: Kindergarten Portal</p>
                 </div>
