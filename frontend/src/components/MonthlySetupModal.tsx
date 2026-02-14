@@ -23,15 +23,16 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
     const [memo, setMemo] = useState('');
 
     useEffect(() => {
-        if (!isOpen) {
+        if (isOpen) {
+            setEditableClasses(initialClasses.map(c => ({ ...c })));
+        } else {
             setStep(1);
             setMemo('');
-            return;
         }
+    }, [isOpen, initialClasses]);
 
-        setEditableClasses([...initialClasses]);
-        // ... rest of useEffect remains similar but I need to replace it all to avoid partial content issues if I use replace_file_content poorly.
-        // Actually I'll use replace_file_content for large blocks.
+    useEffect(() => {
+        if (!isOpen) return;
 
         const daysInMonth = new Date(year, month, 0).getDate();
         const serviceDays = [];
@@ -57,7 +58,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
             }
         }
         setDays(serviceDays);
-    }, [isOpen, year, month, user, initialClasses]);
+    }, [isOpen, year, month, user]);
 
     if (!isOpen) return null;
 
@@ -76,7 +77,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
     };
 
     const handleMealTypeToggle = (dateStr: string) => {
-        const mealOptions = (user.services || ['通常']).concat('飯なし');
+        const mealOptions = ['', '通常', ...(user.services || []).filter(s => s !== '通常'), '飯なし'];
         setDays(prev => prev.map(d => {
             if (d.dateStr === dateStr) {
                 const currentIndex = mealOptions.indexOf(d.mealType);
@@ -94,6 +95,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
 
             const allOrders: Order[] = [];
             days.forEach(dayInfo => {
+                if (dayInfo.mealType === '') return;
                 editableClasses.forEach(cls => {
                     allOrders.push({
                         kindergarten_id: user.kindergarten_id,
@@ -108,7 +110,10 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                 });
             });
 
-            await createOrdersBulk(allOrders);
+            if (allOrders.length > 0) {
+                await createOrdersBulk(allOrders);
+            }
+
             alert(`${year}年${month}月の申請が完了しました。`);
             onComplete();
             onClose();
@@ -170,9 +175,13 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
 
                             <div className="grid grid-cols-1 gap-4">
                                 {editableClasses.map((cls, idx) => (
-                                    <div key={idx} className="relative group p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col sm:flex-row gap-4 items-center">
-                                        <button onClick={() => removeClass(idx)} className="absolute -top-2 -right-2 p-1.5 bg-white border border-red-50 text-red-400 rounded-lg shadow-sm sm:opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50">
-                                            <Trash2 className="w-3.5 h-3.5" />
+                                    <div key={idx} className="relative p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col sm:flex-row gap-4 items-center animate-in fade-in slide-in-from-top-2">
+                                        <button
+                                            onClick={() => removeClass(idx)}
+                                            className="absolute -top-2 -right-2 p-2 bg-white border border-red-100 text-red-500 rounded-xl shadow-md hover:bg-red-50 transition-all active:scale-90 z-10"
+                                            title="クラスを削除"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
                                         <div className="flex-1 w-full grid grid-cols-2 sm:grid-cols-4 gap-3">
                                             <div className="col-span-2 sm:col-span-1">
@@ -212,12 +221,12 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     />
                                                 </div>
                                                 <div className="flex-1">
-                                                    <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block ml-1 text-center text-red-300">アレルギー</label>
+                                                    <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block ml-1 text-center text-red-400">アレルギー</label>
                                                     <input
                                                         type="number"
                                                         value={cls.default_allergy_count}
                                                         onChange={(e) => handleClassFieldChange(idx, 'default_allergy_count', parseInt(e.target.value) || 0)}
-                                                        className="w-full p-2 bg-white rounded-xl border border-gray-200 font-bold text-center focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                                                        className="w-full p-2 bg-white rounded-xl border border-gray-200 font-bold text-center focus:ring-2 focus:ring-orange-500 outline-none text-sm border-red-50"
                                                     />
                                                 </div>
                                             </div>
@@ -265,13 +274,15 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     <div className={`
                                                         px-1 py-1 rounded-lg border text-[9px] font-black leading-none transition-all w-full text-center
                                                         ${dayInfo.mealType === '通常'
-                                                            ? 'border-transparent text-gray-200'
+                                                            ? 'border-transparent text-gray-300'
                                                             : dayInfo.mealType === '飯なし'
                                                                 ? 'border-gray-200 bg-gray-50 text-gray-400'
-                                                                : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
+                                                                : dayInfo.mealType === ''
+                                                                    ? 'border-dashed border-gray-200 text-gray-200'
+                                                                    : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
                                                         }
                                                     `}>
-                                                        {dayInfo.mealType === '通常' ? '' : dayInfo.mealType}
+                                                        {dayInfo.mealType === '' ? '未選択' : dayInfo.mealType === '通常' ? '通常' : dayInfo.mealType}
                                                     </div>
                                                 </div>
                                             )}
