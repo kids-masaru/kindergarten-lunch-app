@@ -104,12 +104,18 @@ def get_classes_for_kindergarten(kindergarten_id: str, base_date: Optional[str] 
         if not results: return []
 
         if not base_date:
-            # If no base_date, return the LATEST configuration for all unique classes
+            # If no base_date, return the LATEST record for each unique class_name
             # (Typically used for Admin view or "Current" Master)
-            # Find the absolute latest effective_from for this kindergarten
-            latest_date = max(c.effective_from for c in results)
-            # Return all classes that match this latest_date
-            return [c for c in results if c.effective_from == latest_date]
+            grouped = {}
+            for c in results:
+                if c.class_name not in grouped:
+                    grouped[c.class_name] = c
+                else:
+                    # If effective_from is newer (or same, assume later record is newer), replace
+                    if c.effective_from >= grouped[c.class_name].effective_from:
+                        grouped[c.class_name] = c
+            
+            return list(grouped.values())
 
         # Versioning logic:
         # For each class_name, find the record where effective_from <= base_date
