@@ -19,6 +19,7 @@ class KindergartenMaster(BaseModel):
     
     contact_name: str = ""
     contact_email: str = ""
+    icon_url: str = ""
     
     # Custom services
     services: List[str] = Field(default_factory=list)

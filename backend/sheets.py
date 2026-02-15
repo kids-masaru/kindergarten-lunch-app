@@ -78,7 +78,8 @@ def get_kindergartens() -> List[KindergartenMaster]:
                 "has_soup": bool(r.get("has_soup", False)),
                 "curry_trigger": str(r.get("curry_trigger", "")),
                 "contact_name": str(r.get("contact_name", "")),
-                "contact_email": str(r.get("contact_email", ""))
+                "contact_email": str(r.get("contact_email", "")),
+                "icon_url": str(r.get("icon_url", ""))
             }
             results.append(KindergartenMaster(**data))
         return results
@@ -344,7 +345,8 @@ def update_kindergarten_master(data: Dict) -> bool:
             "service_mon": "mon", "service_tue": "tue", "service_wed": "wed",
             "service_thu": "thu", "service_fri": "fri", "service_sat": "sat", "service_sun": "sun",
             "has_soup": "has_soup", "curry_trigger": "curry_trigger",
-            "contact_name": "contact_name", "contact_email": "contact_email"
+            "contact_name": "contact_name", "contact_email": "contact_email",
+            "icon_url": "icon_url"
         }
         
         updates = []
@@ -371,6 +373,32 @@ def update_kindergarten_master(data: Dict) -> bool:
                 'range': gspread.utils.rowcol_to_a1(row_idx, col_idx),
                 'values': [[services_val]]
             })
+
+        # --- Auto-create missing columns ---
+        missing_cols = []
+        for key in ["contact_name", "contact_email", "icon_url"]:
+            if key not in headers and key in mapping.values():
+                missing_cols.append(key)
+        
+        if missing_cols:
+            # 1. Update headers row
+            print(f"[INFO] Auto-creating missing columns: {missing_cols}")
+            new_headers = headers + missing_cols
+            ws.update("A1", [new_headers])
+            # 2. Re-fetch headers to get new indices
+            headers = new_headers
+            
+            # 3. Add the data for these new columns
+            for col_name in missing_cols:
+                # Find the api_key for this col_name
+                api_key = next((k for k, v in mapping.items() if v == col_name), None)
+                if api_key and api_key in data:
+                     col_idx = headers.index(col_name) + 1
+                     val = data[api_key]
+                     updates.append({
+                        'range': gspread.utils.rowcol_to_a1(row_idx, col_idx),
+                        'values': [[val]]
+                    })
 
         if updates:
             ws.batch_update(updates)

@@ -76,8 +76,8 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-orange-50/30">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-white rounded-2xl shadow-sm border border-orange-100 flex items-center justify-center">
-                            <img src="/favicon-bento.ico" className="w-8 h-8 object-contain" alt="Bento" />
+                        <div className="p-3 bg-white rounded-2xl shadow-sm border border-orange-100 flex items-center justify-center overflow-hidden">
+                            <img src={k.icon_url || "/icon-mamamire.png"} className="w-8 h-8 object-contain" alt="Icon" />
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-gray-800 tracking-tight">{k.name} <span className="text-gray-400 font-medium ml-2">#{k.kindergarten_id}</span></h2>
@@ -146,6 +146,16 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                             className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none"
                                         />
                                     </div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">アイコンURL</label>
+                                    <input
+                                        type="text"
+                                        value={formData.icon_url || ''}
+                                        onChange={e => setFormData({ ...formData, icon_url: e.target.value })}
+                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none"
+                                        placeholder="https://..."
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -337,26 +347,76 @@ function SystemSettingsModal({ info, onClose, onSave }: { info: any, onClose: ()
                     <h2 className="text-xl font-black text-gray-800">システム設定</h2>
                     <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors"><X className="w-6 h-6 text-gray-400" /></button>
                 </div>
-                <div className="p-8 space-y-6">
+                <div className="p-8 space-y-6 overflow-y-auto max-h-[60vh] custom-scrollbar">
+                    {/* Admin Emails */}
                     <div>
-                        <label className="text-xs font-black text-gray-400 uppercase block mb-2">管理者通知先メールアドレス (カンマ区切り)</label>
-                        <textarea
-                            value={emails}
-                            onChange={e => setEmails(e.target.value)}
-                            className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all h-24"
-                            placeholder="mail1@example.com, mail2@example.com"
-                        />
+                        <label className="text-xs font-black text-gray-400 uppercase block mb-2">管理者通知先メールアドレス</label>
+                        <div className="space-y-2">
+                            {emails.split(',').map((email: string, idx: number) => (
+                                <div key={idx} className="flex gap-2">
+                                    <input
+                                        type="email"
+                                        value={email.trim()}
+                                        onChange={(e) => {
+                                            const newEmails = emails.split(',');
+                                            newEmails[idx] = e.target.value;
+                                            setEmails(newEmails.join(','));
+                                        }}
+                                        className="flex-1 p-3 bg-gray-50 rounded-xl border border-gray-100 font-bold focus:ring-2 ring-orange-100 outline-none"
+                                        placeholder="admin@example.com"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const newEmails = emails.split(',').filter((_: string, i: number) => i !== idx);
+                                            setEmails(newEmails.join(','));
+                                        }}
+                                        className="p-3 text-red-400 hover:bg-red-50 rounded-xl transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                onClick={() => setEmails(emails ? emails + ', ' : ' ')}
+                                className="flex items-center gap-2 text-xs font-bold text-orange-600 hover:text-orange-700 px-2 py-1"
+                            >
+                                <Plus className="w-4 h-4" /> メールアドレスを追加
+                            </button>
+                        </div>
                     </div>
-                    <div>
-                        <label className="text-xs font-black text-gray-400 uppercase block mb-2">リマインダー送付設定 (締切25日の何日前か)</label>
-                        <input
-                            type="text"
-                            value={days}
-                            onChange={e => setDays(e.target.value)}
-                            className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all"
-                            placeholder="5, 3"
-                        />
-                        <p className="text-[10px] text-gray-400 mt-1 font-medium italic">※カンマ区切りで複数のタイミングを指定できます</p>
+
+                    {/* Deadline Settings */}
+                    <div className="space-y-4 pt-4 border-t border-gray-100">
+                        <h4 className="text-xs font-black text-gray-400 uppercase">期限・リマインダー設定</h4>
+
+                        {/* TODO: Add deadline_days_before_service logic in backend first if needed, sticking to reminder_days for now but clarifying UI */}
+                        <div>
+                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">注文締切日</label>
+                            <div className="flex items-center gap-3">
+                                <span className="text-sm font-bold text-gray-600">提供日の</span>
+                                <input
+                                    type="number"
+                                    className="w-16 p-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-center outline-none"
+                                    defaultValue="3"
+                                    disabled
+                                    title="現在は3日で固定されています（将来的に変更可能になります）"
+                                />
+                                <span className="text-sm font-bold text-gray-600">日前 15:00 まで</span>
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-1">※ 現在はシステム固定値です</p>
+                        </div>
+
+                        <div>
+                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">リマインダー通知 (締切の何日前)</label>
+                            <input
+                                type="text"
+                                value={days}
+                                onChange={e => setDays(e.target.value)}
+                                className="w-full p-3 bg-gray-50 rounded-xl border border-gray-100 font-bold focus:ring-2 ring-orange-100 outline-none"
+                                placeholder="1, 0"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1">※ 「1, 0」の場合、締切の1日前と当日に通知が飛びます</p>
+                        </div>
                     </div>
                 </div>
                 <div className="px-8 py-6 border-t border-gray-100 bg-gray-50 flex gap-4">
@@ -566,7 +626,7 @@ export default function AdminConsole() {
                     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
                         <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
                             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3">
-                                <img src="/favicon-bento.ico" className="w-8 h-8 object-contain" alt="Bento" />
+                                <img src="/icon-mamamire.png" className="w-8 h-8 object-contain" alt="Logo" />
                                 幼稚園・施設マスター
                             </h2>
                             <span className="text-xs font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">
