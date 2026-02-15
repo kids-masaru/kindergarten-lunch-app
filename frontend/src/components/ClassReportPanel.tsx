@@ -68,8 +68,7 @@ export default function ClassReportPanel({ user, classes, onSaved, onOpenChangeR
             {/* Header */}
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                 <h2 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-                    <img src="/favicon-bento.ico" className="w-6 h-6" alt="" />
-                    <span>登録クラス情報</span>
+                    登録クラス情報
                 </h2>
                 <button
                     onClick={onOpenChangeRequest}
