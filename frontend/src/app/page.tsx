@@ -9,7 +9,6 @@ import ClassReportPanel from '@/components/ClassReportPanel';
 import MonthlySetupModal from '@/components/MonthlySetupModal';
 import ClassChangeRequestModal from '@/components/ClassChangeRequestModal';
 import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, Send, AlertCircle, Check, Download, AlertTriangle, Clock, Phone, Edit3, Settings as SettingsIcon, X, Save, Edit } from 'lucide-react';
-import ImageUploader from '@/components/ImageUploader';
 
 // Version: UI Layout V3 (Split & Tabs)
 
@@ -43,13 +42,6 @@ function SettingsModal({ kindergarten, onClose, onSave }: { kindergarten: any, o
           <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors"><X className="w-6 h-6 text-gray-400" /></button>
         </div>
         <div className="p-8 space-y-6">
-          <div>
-            <label className="text-xs font-black text-gray-400 uppercase block mb-2">アイコン画像</label>
-            <ImageUploader
-              currentUrl={formData.icon_url}
-              onUpload={(url) => setFormData({ ...formData, icon_url: url })}
-            />
-          </div>
           <div>
             <label className="text-xs font-black text-gray-400 uppercase block mb-2">担当者名</label>
             <input
