@@ -8,9 +8,80 @@ import OrderModal from '@/components/OrderModal';
 import ClassReportPanel from '@/components/ClassReportPanel';
 import MonthlySetupModal from '@/components/MonthlySetupModal';
 import ClassChangeRequestModal from '@/components/ClassChangeRequestModal';
-import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, Send, AlertCircle, Check, Download, AlertTriangle, Clock, Phone, Edit3 } from 'lucide-react';
+import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, Send, AlertCircle, Check, Download, AlertTriangle, Clock, Phone, Edit3, Settings as SettingsIcon, X, Save, Edit } from 'lucide-react';
+import ImageUploader from '@/components/ImageUploader';
 
 // Version: UI Layout V3 (Split & Tabs)
+
+// --- Settings Modal ---
+function SettingsModal({ kindergarten, onClose, onSave }: { kindergarten: any, onClose: () => void, onSave: (data: any) => void }) {
+  const [formData, setFormData] = useState({
+    contact_name: kindergarten.contact_name || '',
+    contact_email: kindergarten.contact_email || '',
+    icon_url: kindergarten.icon_url || ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await onSave(formData);
+      onClose();
+    } catch (e) {
+      console.error(e);
+      alert('保存に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden scale-in">
+        <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-orange-50/30">
+          <h2 className="text-xl font-black text-gray-800">園情報設定</h2>
+          <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors"><X className="w-6 h-6 text-gray-400" /></button>
+        </div>
+        <div className="p-8 space-y-6">
+          <div>
+            <label className="text-xs font-black text-gray-400 uppercase block mb-2">アイコン画像</label>
+            <ImageUploader
+              currentUrl={formData.icon_url}
+              onUpload={(url) => setFormData({ ...formData, icon_url: url })}
+            />
+          </div>
+          <div>
+            <label className="text-xs font-black text-gray-400 uppercase block mb-2">担当者名</label>
+            <input
+              type="text"
+              value={formData.contact_name}
+              onChange={e => setFormData({ ...formData, contact_name: e.target.value })}
+              className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+              placeholder="例: 山田 太郎"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-black text-gray-400 uppercase block mb-2">連絡先メールアドレス</label>
+            <input
+              type="email"
+              value={formData.contact_email}
+              onChange={e => setFormData({ ...formData, contact_email: e.target.value })}
+              className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all"
+              placeholder="example@mail.com"
+            />
+          </div>
+        </div>
+        <div className="px-8 py-6 border-t border-gray-100 bg-gray-50 flex gap-4">
+          <button onClick={onClose} className="flex-1 py-4 px-6 rounded-2xl font-bold text-gray-400 hover:bg-gray-200 transition-all">キャンセル</button>
+          <button onClick={handleSave} disabled={isSaving} className="flex-1 py-4 px-6 rounded-2xl bg-orange-500 text-white font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all flex items-center justify-center gap-2">
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-5 h-5" /> 保存する</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CalendarPage() {
   const router = useRouter();
   const [user, setUser] = useState<LoginUser | null>(null);
@@ -31,17 +102,9 @@ export default function CalendarPage() {
     fetchOrders(user!.kindergarten_id, year, month);
   };
 
-  const fetchMasters = useCallback(async (kid: string, y: number, m: number) => {
-    try {
-      // Fetch masters for the specific month (effective as of 1st day)
-      const dateStr = `${y}-${String(m).padStart(2, '0')}-01`;
-      const data = await getMasters(kid, dateStr);
-      setClasses(data.classes);
-    } catch (e) {
-      console.error('Failed to fetch masters:', e);
-    }
-  }, []);
+  const [showSettings, setShowSettings] = useState(false);
 
+  // Initial Login Check
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (!userData) {
@@ -54,6 +117,43 @@ export default function CalendarPage() {
     setLoading(false);
     fetchOrders(u.kindergarten_id, year, month);
   }, [router, year, month]);
+
+  const handleUpdateSettings = async (data: any) => {
+    try {
+      if (!user) return;
+      // Import dynamically to avoid build issues if new
+      const { updateAdminKindergarten } = await import('@/lib/api');
+
+      // Re-using admin API might be risky if it requires different auth/permissions context, 
+      // but currently our auth is simple. 
+      // However, updateAdminKindergarten calls `/api/admin/kindergartens/{id}/update`. 
+      // Let's use a new wrapper or the same one.
+
+      await updateAdminKindergarten(user.kindergarten_id, data);
+
+      // Update Local State
+      const updated = { ...user, ...data };
+      setUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+      alert("設定を保存しました");
+    } catch (e) {
+      console.error(e);
+      alert("保存に失敗しました");
+    }
+  };
+
+  const fetchMasters = useCallback(async (kid: string, y: number, m: number) => {
+    try {
+      // Fetch masters for the specific month (effective as of 1st day)
+      const dateStr = `${y}-${String(m).padStart(2, '0')}-01`;
+      const data = await getMasters(kid, dateStr);
+      setClasses(data.classes);
+    } catch (e) {
+      console.error('Failed to fetch masters:', e);
+    }
+  }, []);
+
+  // Removed duplicate useEffect
 
   useEffect(() => {
     if (user) {
@@ -128,6 +228,9 @@ export default function CalendarPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <button onClick={() => setShowSettings(true)} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-full transition-colors" title="設定">
+              <SettingsIcon className="w-5 h-5" />
+            </button>
             <button onClick={() => { localStorage.removeItem('user'); router.push('/login'); }} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
               <LogOut className="w-5 h-5" />
             </button>
@@ -357,6 +460,14 @@ export default function CalendarPage() {
         currentClasses={classes}
         onSaved={() => fetchMasters(user.kindergarten_id, year, month)}
       />
+
+      {showSettings && user && (
+        <SettingsModal
+          kindergarten={user}
+          onClose={() => setShowSettings(false)}
+          onSave={handleUpdateSettings}
+        />
+      )}
     </div >
   );
 }

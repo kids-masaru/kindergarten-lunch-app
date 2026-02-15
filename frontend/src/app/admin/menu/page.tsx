@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses } from '@/lib/api';
 import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, Save, Trash2 } from 'lucide-react';
+import ImageUploader from '@/components/ImageUploader';
 
 // --- Kindergarten Editor Component ---
 function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => void, onSave: () => void }) {
@@ -149,12 +150,9 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">アイコンURL</label>
-                                    <input
-                                        type="text"
-                                        value={formData.icon_url || ''}
-                                        onChange={e => setFormData({ ...formData, icon_url: e.target.value })}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 font-bold text-gray-700 outline-none"
-                                        placeholder="https://..."
+                                    <ImageUploader
+                                        currentUrl={formData.icon_url}
+                                        onUpload={(url) => setFormData({ ...formData, icon_url: url })}
                                     />
                                 </div>
                             </div>

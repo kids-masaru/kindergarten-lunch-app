@@ -231,6 +231,36 @@ def create_orders_bulk(orders: List[OrderItem]):
     return {"status": "success", "count": len(orders)}
 
 
+@router.post("/upload-icon")
+async def upload_icon(file: UploadFile = File(...)):
+    """
+    Uploads an icon image to Google Drive and returns a public URL.
+    """
+    try:
+        from backend.drive import upload_icon_file
+        
+        # Validate content type
+        if file.content_type not in ["image/png", "image/jpeg", "image/svg+xml", "image/gif"]:
+            raise HTTPException(status_code=400, detail="Invalid image format. Use PNG, JPG, or SVG.")
+            
+        # Read file into memory (it's SpooledTemporaryFile)
+        # We need a file-like object that has .read(), .seek()
+        # UploadFile.file IS a SpooledTemporaryFile, which works.
+        
+        filename = f"icon_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+        public_url = upload_icon_file(file.file, filename)
+        
+        if not public_url:
+            raise HTTPException(status_code=500, detail="Failed to upload icon to Drive")
+            
+        return {"status": "success", "url": public_url}
+    except Exception as e:
+        print(f"Error uploading icon: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # --- Menu Generation Endpoints ---
 
 @router.post("/menus/upload")

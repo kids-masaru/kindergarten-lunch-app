@@ -115,6 +115,66 @@ def upload_file_to_drive(file_path: str, filename: str, mime_type: str = '*/*') 
     print(f"File ID: {file.get('id')}")
     return file.get('id')
 
+def upload_icon_file(file_obj, filename: str) -> Optional[str]:
+    """
+    Uploads an in-memory file object (from FastAPI UploadFile) to the 'Icons' folder in Drive.
+    Sets permission to 'anyone with link' and returns the webContentLink.
+    """
+    service = get_drive_service()
+    if not service: return None
+
+    # 1. Get or Create 'Icons' folder inside TARGET_FOLDER
+    # First, get root data folder
+    root_id = get_or_create_folder(TARGET_FOLDER_NAME)
+    if not root_id: return None
+    
+    # Check for 'Icons' folder inside root
+    query = f"mimeType='application/vnd.google-apps.folder' and name='Icons' and '{root_id}' in parents and trashed=false"
+    results = service.files().list(q=query, fields="files(id)").execute()
+    icons_folder_id = None
+    if results.get('files'):
+        icons_folder_id = results['files'][0]['id']
+    else:
+        # Create
+        metadata = {
+            'name': 'Icons',
+            'mimeType': 'application/vnd.google-apps.folder',
+            'parents': [root_id]
+        }
+        f = service.files().create(body=metadata, fields='id').execute()
+        icons_folder_id = f.get('id')
+    
+    # 2. Upload File
+    media = MediaIoBaseDownload(file_obj, None) # Wait, this is for download. For upload from memory:
+    # We need MediaIoBaseUpload. Let's import it.
+    from googleapiclient.http import MediaIoBaseUpload
+    
+    # Reset file pointer just in case
+    file_obj.seek(0)
+    media = MediaIoBaseUpload(file_obj, mimetype='image/png', resumable=True)
+    
+    file_metadata = {
+        'name': filename,
+        'parents': [icons_folder_id]
+    }
+    
+    file = service.files().create(body=file_metadata, media_body=media, fields='id, webContentLink, webViewLink, thumbnailLink').execute()
+    file_id = file.get('id')
+    
+    # 3. Make Public
+    permission = {
+        'type': 'anyone',
+        'role': 'reader',
+    }
+    service.permissions().create(fileId=file_id, body=permission).execute()
+    
+    # Return a direct-ish link. webContentLink is usually good for download/display if public.
+    # thumbnailLink sometimes works better for small embeds, but webContentLink is the standard "raw" link.
+    # users often prefer the "uc?id=" hack for true direct embedding.
+    # https://drive.google.com/uc?export=view&id={file_id}
+    
+    return f"https://drive.google.com/uc?export=view&id={file_id}"
+
 def download_file_from_drive(filename: str, local_path: str) -> bool:
     """Downloads a file by name from the Target Folder."""
     service = get_drive_service()
