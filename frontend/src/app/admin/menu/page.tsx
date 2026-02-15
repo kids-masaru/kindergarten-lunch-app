@@ -148,13 +148,6 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                         />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-500 uppercase ml-1 block mb-1">アイコンURL</label>
-                                    <ImageUploader
-                                        currentUrl={formData.icon_url}
-                                        onUpload={(url) => setFormData({ ...formData, icon_url: url })}
-                                    />
-                                </div>
                             </div>
                         </div>
 
