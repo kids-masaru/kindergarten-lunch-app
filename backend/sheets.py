@@ -241,9 +241,10 @@ def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict]) -> bo
             all_rows = ws.get_all_values()
             headers = all_rows[0]
 
-        # Get the effective_from date from the first class in the list (assuming it's the target date)
-        # Default to today if not provided
-        target_effective_date = classes[0].get("effective_from", datetime.now().strftime("%Y-%m-%d")) if classes else datetime.now().strftime("%Y-%m-%d")
+        # ALWAYS use today's date as the effective_from for admin updates.
+        # This ensures the saved data is always the "newest snapshot",
+        # preventing ghost data from overriding deletions or edits.
+        target_effective_date = datetime.now().strftime("%Y-%m-%d")
 
         # 1. Identify which rows to KEEP
         # Keep other kindergartens OR this kindergarten but DIFFERENT effective_from
