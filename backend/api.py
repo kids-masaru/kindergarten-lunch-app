@@ -235,6 +235,7 @@ def create_orders_bulk(orders: List[OrderItem]):
 async def upload_icon(file: UploadFile = File(...)):
     """
     Uploads an icon image to Google Drive and returns a public URL.
+    Fallback: If Drive upload fails (e.g. Quota), returns a resized Base64 Data URI.
     """
     try:
         from backend.drive import upload_icon_file
@@ -243,17 +244,58 @@ async def upload_icon(file: UploadFile = File(...)):
         if file.content_type not in ["image/png", "image/jpeg", "image/svg+xml", "image/gif"]:
             raise HTTPException(status_code=400, detail="Invalid image format. Use PNG, JPG, or SVG.")
             
-        # Read file into memory (it's SpooledTemporaryFile)
-        # We need a file-like object that has .read(), .seek()
-        # UploadFile.file IS a SpooledTemporaryFile, which works.
+        # Read file into memory
+        contents = await file.read()
+        file_obj = io.BytesIO(contents)
         
         filename = f"icon_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
-        public_url = upload_icon_file(file.file, filename)
         
-        if not public_url:
-            raise HTTPException(status_code=500, detail="Failed to upload icon to Drive")
+        # Try Drive Upload first
+        public_url = None
+        try:
+            public_url = upload_icon_file(file_obj, filename)
+        except Exception as drive_error:
+            print(f"[WARNING] Drive Upload Failed: {drive_error}")
+            public_url = None
+
+        if public_url:
+             return {"status": "success", "url": public_url}
+        
+        # Fallback: Resize & Base64
+        print("[INFO] Falling back to Base64 Data URI")
+        try:
+            from PIL import Image
+            import base64
             
-        return {"status": "success", "url": public_url}
+            # Reset pointer for PIL
+            file_obj.seek(0)
+            img = Image.open(file_obj)
+            
+            # Convert to RGB if needed (for PNG -> JPG)
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+                
+            # Resize Max 200x200
+            img.thumbnail((200, 200))
+            
+            # Save to Bytes
+            buffer = io.BytesIO()
+            img.save(buffer, format="JPEG", quality=80)
+            img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            
+            # Data URI
+            data_uri = f"data:image/jpeg;base64,{img_str}"
+            
+            # Check length (Sheet cell limit approx 50k chars)
+            if len(data_uri) > 49000:
+                print(f"[WARNING] Base64 string length {len(data_uri)} approaches Sheet limit.")
+            
+            return {"status": "success", "url": data_uri}
+            
+        except Exception as e:
+            print(f"[ERROR] Fallback failed: {e}")
+            raise HTTPException(status_code=500, detail="Failed to process image (Fallback)")
+
     except Exception as e:
         print(f"Error uploading icon: {e}")
         import traceback
