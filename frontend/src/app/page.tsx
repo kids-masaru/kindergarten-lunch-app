@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCalendar, getMasters, generateMenu } from '@/lib/api';
+import { getCalendar, getMasters, generateMenu, saveOrder } from '@/lib/api';
 import { LoginUser, Order, ClassMaster } from '@/types';
 import OrderModal from '@/components/OrderModal';
 import ClassReportPanel from '@/components/ClassReportPanel';
 import MonthlySetupModal from '@/components/MonthlySetupModal';
 import ClassChangeRequestModal from '@/components/ClassChangeRequestModal';
 import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, Send, AlertCircle, Check, Download, AlertTriangle, Clock, Phone, Edit3, Settings as SettingsIcon, X, Save, Edit } from 'lucide-react';
+import CalendarCellClassless from '@/components/CalendarCellClassless';
 
 // Version: UI Layout V3 (Split & Tabs)
 
@@ -327,6 +328,34 @@ export default function CalendarPage() {
                     const graceDeadline = new Date(year, month - 1, day - 3, 18, 0, 0);
                     const isGraceLocked = now > graceDeadline;
 
+                    // --- Class-less Mode Logic ---
+                    const isClasslessMode = classes.length === 0;
+
+                    if (isClasslessMode) {
+                      const existingOrder = dayOrders.find(o => o.class_name === '共通');
+
+                      return (
+                        <div key={day} className="relative">
+                          <CalendarCellClassless
+                            day={day}
+                            year={year}
+                            month={month}
+                            kindergartenId={user?.kindergarten_id || ''}
+                            existingOrder={existingOrder}
+                            isServiceDay={isServiceDay}
+                            isLocked={isStrictLocked}
+                            isGraceLocked={isGraceLocked}
+                            onSave={async (order) => {
+                              // Save single order
+                              await saveOrder(order);
+                              fetchOrders(user!.kindergarten_id, year, month);
+                            }}
+                          />
+                        </div>
+                      );
+                    }
+
+                    // --- Standard Mode (Classes Exist) ---
                     let displayLabel = null;
                     if (!isServiceDay) {
                       displayLabel = <span className="text-xs text-gray-300">－</span>;
@@ -392,14 +421,16 @@ export default function CalendarPage() {
             </div>
 
             {/* Class Report Section */}
-            <div className="w-full lg:w-96">
-              <ClassReportPanel
-                user={user}
-                classes={classes}
-                onSaved={() => fetchMasters(user.kindergarten_id, year, month)}
-                onOpenChangeRequest={() => setIsChangeRequestOpen(true)}
-              />
-            </div>
+            {classes.length > 0 && (
+              <div className="w-full lg:w-96">
+                <ClassReportPanel
+                  user={user}
+                  classes={classes}
+                  onSaved={() => fetchMasters(user.kindergarten_id, year, month)}
+                  onOpenChangeRequest={() => setIsChangeRequestOpen(true)}
+                />
+              </div>
+            )}
 
           </div>
         )}

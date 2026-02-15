@@ -98,9 +98,15 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
             await updateKindergartenClasses(user.kindergarten_id, editableClasses);
 
             const allOrders: Order[] = [];
+
+            // Check for Class-less Mode
+            const targetClasses = editableClasses.length > 0
+                ? editableClasses
+                : [{ class_name: '共通', default_student_count: 0, default_allergy_count: 0, default_teacher_count: 0 } as ClassMaster];
+
             days.forEach(dayInfo => {
                 if (dayInfo.mealType === '') return;
-                editableClasses.forEach(cls => {
+                targetClasses.forEach(cls => {
                     allOrders.push({
                         kindergarten_id: user.kindergarten_id,
                         date: dayInfo.dateStr,
@@ -176,6 +182,16 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                     <Plus className="w-4 h-4" /> クラス追加
                                 </button>
                             </div>
+
+                            {editableClasses.length === 0 && (
+                                <div className="p-8 text-center bg-gray-50 rounded-2xl border border-gray-100">
+                                    <p className="font-bold text-gray-500 mb-2">クラス設定なし（直接入力モード）</p>
+                                    <p className="text-sm text-gray-400">
+                                        クラスが登録されていないため、基本人数の設定は不要です。<br />
+                                        カレンダー上で直接人数を入力できます。「次へ」進んで献立を設定してください。
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-1 gap-4">
                                 {editableClasses.map((cls, idx) => (
