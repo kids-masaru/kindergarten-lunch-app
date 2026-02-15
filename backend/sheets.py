@@ -104,16 +104,17 @@ def get_classes_for_kindergarten(kindergarten_id: str, base_date: Optional[str] 
         if not results: return []
 
         if not base_date:
-            # If no base_date, return the LATEST record for each unique class_name
-            # (Typically used for Admin view or "Current" Master)
+            # Return LATEST SNAPSHOT (all classes matching the latest effective_from date)
+            # This handles deletions: if a class is removed, it won't be in the new snapshot.
+            if not results: return []
+            
+            latest_date = max(c.effective_from for c in results)
+            snapshot_classes = [c for c in results if c.effective_from == latest_date]
+            
+            # Deduplicate within the snapshot (just in case of duplicate rows)
             grouped = {}
-            for c in results:
-                if c.class_name not in grouped:
-                    grouped[c.class_name] = c
-                else:
-                    # If effective_from is newer (or same, assume later record is newer), replace
-                    if c.effective_from >= grouped[c.class_name].effective_from:
-                        grouped[c.class_name] = c
+            for c in snapshot_classes:
+                grouped[c.class_name] = c
             
             return list(grouped.values())
 
