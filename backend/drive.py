@@ -145,7 +145,6 @@ def upload_icon_file(file_obj, filename: str) -> Optional[str]:
         icons_folder_id = f.get('id')
     
     # 2. Upload File
-    media = MediaIoBaseDownload(file_obj, None) # Wait, this is for download. For upload from memory:
     # We need MediaIoBaseUpload. Let's import it.
     from googleapiclient.http import MediaIoBaseUpload
     
