@@ -426,9 +426,9 @@ def update_kindergarten(kindergarten_id: str, data: dict):
 @router.get("/admin/kindergartens/{kindergarten_id}/classes")
 def list_kindergarten_classes(kindergarten_id: str):
     """List classes for a specific kindergarten."""
-    classes = get_class_master()
-    filtered = [c.model_dump() for c in classes if c.kindergarten_id == kindergarten_id]
-    return {"classes": filtered}
+    # Use the optimized function that returns only the latest unique classes
+    classes = get_classes_for_kindergarten(kindergarten_id)
+    return {"classes": [c.model_dump() for c in classes]}
 
 @router.post("/admin/kindergartens/{kindergarten_id}/classes")
 def update_kindergarten_classes(kindergarten_id: str, new_classes: List[dict]):
