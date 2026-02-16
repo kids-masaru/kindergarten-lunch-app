@@ -118,14 +118,20 @@ def get_classes_for_kindergarten(kindergarten_id: str, base_date: Optional[str] 
             
             return list(grouped.values())
 
-        # Versioning logic:
-        # For each class_name, find the record where effective_from <= base_date
-        # if multiple exist, pick the one with the LATEST effective_from
+        # Versioning logic (snapshot-based):
+        # Find the latest snapshot date that is <= base_date, then return ALL classes from that snapshot.
+        # This respects deletions: if a class was removed in a newer snapshot, it won't appear.
+        candidate_dates = set(c.effective_from for c in results if c.effective_from <= base_date)
+        if not candidate_dates:
+            return []
+        
+        latest_snapshot_date = max(candidate_dates)
+        snapshot_classes = [c for c in results if c.effective_from == latest_snapshot_date]
+        
+        # Deduplicate within the snapshot (just in case)
         grouped = {}
-        for c in results:
-            if c.effective_from <= base_date:
-                if c.class_name not in grouped or c.effective_from > grouped[c.class_name].effective_from:
-                    grouped[c.class_name] = c
+        for c in snapshot_classes:
+            grouped[c.class_name] = c
         
         return list(grouped.values())
     except Exception as e:
