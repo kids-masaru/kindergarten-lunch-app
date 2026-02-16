@@ -253,16 +253,16 @@ def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict]) -> bo
         target_effective_date = datetime.now().strftime("%Y-%m-%d")
 
         # 1. Identify which rows to KEEP
-        # Keep other kindergartens OR this kindergarten but DIFFERENT effective_from
+        # Keep ONLY rows from OTHER kindergartens.
+        # All existing rows for THIS kindergarten are removed (any effective_from date).
         new_all_rows = [headers]
         
         kid_idx = headers.index("kindergarten_id")
-        eff_idx = headers.index("effective_from")
         
         for i, row in enumerate(all_rows):
             if i == 0: continue
-            # If it's a different kindergarten OR a different version date, keep it
-            if str(row[kid_idx]) != str(kindergarten_id) or str(row[eff_idx]) != str(target_effective_date):
+            # Only keep rows from OTHER kindergartens
+            if str(row[kid_idx]) != str(kindergarten_id):
                 # Padding row if headers were extended
                 while len(row) < len(headers):
                     row.append("")
