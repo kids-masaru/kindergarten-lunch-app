@@ -18,7 +18,7 @@ interface MonthlySetupModalProps {
 export default function MonthlySetupModal({ isOpen, onClose, user, classes: initialClasses, year, month, onComplete }: MonthlySetupModalProps) {
     const [step, setStep] = useState(1);
     const [submitting, setSubmitting] = useState(false);
-    const [days, setDays] = useState<{ day: number, dateStr: string, mealType: string }[]>([]);
+    const [days, setDays] = useState<{ day: number, dateStr: string, mealType: string, studentCount: number, allergyCount: number, teacherCount: number }[]>([]);
     const [editableClasses, setEditableClasses] = useState<ClassMaster[]>([]);
     const [memo, setMemo] = useState('');
     const [classlessDefaults, setClasslessDefaults] = useState({ student: 0, allergy: 0, teacher: 0 });
@@ -54,7 +54,10 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                 serviceDays.push({
                     day: d,
                     dateStr,
-                    mealType: '通常'
+                    mealType: '通常',
+                    studentCount: 0,
+                    allergyCount: 0,
+                    teacherCount: 0
                 });
             }
         }
@@ -93,6 +96,23 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
         }));
     };
 
+    const handleDayCountChange = (dateStr: string, field: 'studentCount' | 'allergyCount' | 'teacherCount', value: number) => {
+        setDays(prev => prev.map(d => d.dateStr === dateStr ? { ...d, [field]: value } : d));
+    };
+
+    const goToStep = (nextStep: number) => {
+        // When moving from Step 1 to Step 2 in classless mode, apply defaults to all days
+        if (step === 1 && nextStep === 2 && editableClasses.length === 0) {
+            setDays(prev => prev.map(d => ({
+                ...d,
+                studentCount: classlessDefaults.student,
+                allergyCount: classlessDefaults.allergy,
+                teacherCount: classlessDefaults.teacher
+            })));
+        }
+        setStep(nextStep);
+    };
+
     const handleSubmit = async () => {
         setSubmitting(true);
         try {
@@ -107,15 +127,17 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
 
             days.forEach(dayInfo => {
                 if (dayInfo.mealType === '') return;
+                const isClassless = editableClasses.length === 0;
                 targetClasses.forEach(cls => {
                     allOrders.push({
                         kindergarten_id: user.kindergarten_id,
                         date: dayInfo.dateStr,
                         class_name: cls.class_name,
                         meal_type: dayInfo.mealType,
-                        student_count: cls.default_student_count,
-                        allergy_count: cls.default_allergy_count || 0,
-                        teacher_count: cls.default_teacher_count,
+                        // For classless mode, use per-day counts from Step 2 calendar
+                        student_count: isClassless ? dayInfo.studentCount : cls.default_student_count,
+                        allergy_count: isClassless ? dayInfo.allergyCount : (cls.default_allergy_count || 0),
+                        teacher_count: isClassless ? dayInfo.teacherCount : cls.default_teacher_count,
                         memo: memo
                     });
                 });
@@ -296,10 +318,10 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                 <div className="p-2 bg-orange-50 rounded-xl">
                                     <CalendarIcon className="w-5 h-5 text-orange-500" />
                                 </div>
-                                <h3 className="font-black text-gray-800">特別メニューの選択</h3>
+                                <h3 className="font-black text-gray-800">{editableClasses.length === 0 ? 'カレンダー設定（メニュー・人数）' : '特別メニューの選択'}</h3>
                             </div>
 
-                            <div className="grid grid-cols-7 gap-1 max-w-2xl mx-auto">
+                            <div className={`grid grid-cols-7 gap-1 max-w-2xl mx-auto`}>
                                 {['日', '月', '火', '水', '木', '金', '土'].map((d, i) => (
                                     <div key={d} className={`text-center text-[10px] font-black mb-1 p-1 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-300'}`}>{d}</div>
                                 ))}
@@ -311,36 +333,87 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                                     const dayInfo = days.find(day => day.dateStr === dateStr);
                                     const isServiceDay = !!dayInfo;
+                                    const isClassless = editableClasses.length === 0;
 
+                                    if (!isServiceDay) {
+                                        return (
+                                            <div key={d} className={`${isClassless ? '' : 'aspect-square'} rounded-xl bg-gray-50/50 border border-transparent opacity-30 p-1`}>
+                                                <span className="text-[10px] font-black text-gray-300">{d}</span>
+                                            </div>
+                                        );
+                                    }
+
+                                    // Classless mode: show meal type + count inputs
+                                    if (isClassless) {
+                                        return (
+                                            <div key={d} className="rounded-xl border border-gray-100 bg-white p-1.5 flex flex-col gap-0.5">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-[10px] font-black text-gray-400">{d}</span>
+                                                    <button
+                                                        onClick={() => handleMealTypeToggle(dateStr)}
+                                                        className={`px-1 py-0.5 rounded border text-[8px] font-black transition-all
+                                                            ${dayInfo.mealType === '通常'
+                                                                ? 'border-gray-200 text-gray-400'
+                                                                : 'border-orange-400 bg-orange-50 text-orange-600'
+                                                            }`}
+                                                    >
+                                                        {dayInfo.mealType}
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center gap-0.5">
+                                                    <span className="text-[8px] text-gray-300 font-bold w-3">園</span>
+                                                    <input
+                                                        type="number"
+                                                        value={dayInfo.studentCount}
+                                                        onChange={(e) => handleDayCountChange(dateStr, 'studentCount', parseInt(e.target.value) || 0)}
+                                                        className="w-full text-right text-[11px] font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700"
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-0.5">
+                                                    <span className="text-[8px] text-gray-300 font-bold w-3">ア</span>
+                                                    <input
+                                                        type="number"
+                                                        value={dayInfo.allergyCount}
+                                                        onChange={(e) => handleDayCountChange(dateStr, 'allergyCount', parseInt(e.target.value) || 0)}
+                                                        className={`w-full text-right text-[11px] font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 ${dayInfo.allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-0.5">
+                                                    <span className="text-[8px] text-gray-300 font-bold w-3">先</span>
+                                                    <input
+                                                        type="number"
+                                                        value={dayInfo.teacherCount}
+                                                        onChange={(e) => handleDayCountChange(dateStr, 'teacherCount', parseInt(e.target.value) || 0)}
+                                                        className="w-full text-right text-[11px] font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700"
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
+                                    // Standard mode: meal type toggle only
                                     return (
                                         <button
                                             key={d}
-                                            disabled={!isServiceDay}
                                             onClick={() => handleMealTypeToggle(dateStr)}
-                                            className={`aspect-square rounded-xl flex flex-col items-center transition-all active:scale-95 border
-                                                ${!isServiceDay
-                                                    ? 'bg-gray-50/50 border-transparent cursor-not-allowed opacity-30'
-                                                    : 'bg-white border-gray-100 hover:border-orange-200'
-                                                }`}
+                                            className="aspect-square rounded-xl flex flex-col items-center transition-all active:scale-95 border bg-white border-gray-100 hover:border-orange-200"
                                         >
                                             <span className="p-1.5 text-[10px] font-black text-gray-400 self-start">{d}</span>
-                                            {isServiceDay && (
-                                                <div className="flex-1 flex items-center justify-center w-full px-1 pb-1">
-                                                    <div className={`
-                                                        px-1 py-1 rounded-lg border text-[9px] font-black leading-none transition-all w-full text-center
-                                                        ${dayInfo.mealType === '通常'
-                                                            ? 'border-transparent text-gray-300'
-                                                            : dayInfo.mealType === '飯なし'
-                                                                ? 'border-gray-200 bg-gray-50 text-gray-400'
-                                                                : dayInfo.mealType === ''
-                                                                    ? 'border-dashed border-gray-200 text-gray-200'
-                                                                    : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
-                                                        }
-                                                    `}>
-                                                        {dayInfo.mealType === '' ? '未選択' : dayInfo.mealType === '通常' ? '通常' : dayInfo.mealType}
-                                                    </div>
+                                            <div className="flex-1 flex items-center justify-center w-full px-1 pb-1">
+                                                <div className={`
+                                                    px-1 py-1 rounded-lg border text-[9px] font-black leading-none transition-all w-full text-center
+                                                    ${dayInfo.mealType === '通常'
+                                                        ? 'border-transparent text-gray-300'
+                                                        : dayInfo.mealType === '飯なし'
+                                                            ? 'border-gray-200 bg-gray-50 text-gray-400'
+                                                            : dayInfo.mealType === ''
+                                                                ? 'border-dashed border-gray-200 text-gray-200'
+                                                                : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
+                                                    }
+                                                `}>
+                                                    {dayInfo.mealType === '' ? '未選択' : dayInfo.mealType === '通常' ? '通常' : dayInfo.mealType}
                                                 </div>
-                                            )}
+                                            </div>
                                         </button>
                                     );
                                 })}
@@ -386,7 +459,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                 <div className="p-6 sm:px-8 sm:py-6 border-t border-gray-100 bg-gray-50 flex gap-4 shrink-0">
                     {step > 1 && (
                         <button
-                            onClick={() => setStep(prev => prev - 1)}
+                            onClick={() => goToStep(step - 1)}
                             className="px-6 py-4 bg-white border border-gray-200 text-gray-400 rounded-2xl font-black hover:text-gray-600 shadow-sm flex items-center justify-center gap-2 active:scale-95 transition-all"
                         >
                             <ArrowLeft className="w-5 h-5" /> 戻る
@@ -394,7 +467,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                     )}
 
                     <button
-                        onClick={step < 3 ? () => setStep(prev => prev + 1) : handleSubmit}
+                        onClick={step < 3 ? () => goToStep(step + 1) : handleSubmit}
                         disabled={submitting}
                         className="flex-1 bg-orange-500 text-white py-4 rounded-2xl font-black text-lg sm:text-xl hover:bg-orange-600 flex items-center justify-center gap-3 shadow-xl shadow-orange-100 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
