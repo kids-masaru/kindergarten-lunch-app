@@ -8,7 +8,7 @@ import OrderModal from '@/components/OrderModal';
 import ClassReportPanel from '@/components/ClassReportPanel';
 import MonthlySetupModal from '@/components/MonthlySetupModal';
 import ClassChangeRequestModal from '@/components/ClassChangeRequestModal';
-import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, Send, AlertCircle, Check, Download, AlertTriangle, Clock, Phone, Edit3, Settings as SettingsIcon, X, Save, Edit } from 'lucide-react';
+import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, Send, AlertCircle, Check, Download, AlertTriangle, Clock, Phone, Edit3, Settings as SettingsIcon, X, Save, Edit, Users } from 'lucide-react';
 import CalendarCellClassless from '@/components/CalendarCellClassless';
 
 // Version: UI Layout V3 (Split & Tabs)
@@ -421,7 +421,7 @@ export default function CalendarPage() {
             </div>
 
             {/* Class Report Section */}
-            {classes.length > 0 && (
+            {classes.length > 0 ? (
               <div className="w-full lg:w-96">
                 <ClassReportPanel
                   user={user}
@@ -430,6 +430,39 @@ export default function CalendarPage() {
                   onOpenChangeRequest={() => setIsChangeRequestOpen(true)}
                 />
               </div>
+            ) : (
+              /* Classless Mode: Show summary panel with defaults from 共通 orders */
+              (() => {
+                // Get first available order to show current defaults
+                const firstOrder = orders.find(o => o.class_name === '共通');
+                return (
+                  <div className="w-full lg:w-96">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-blue-50 rounded-xl">
+                          <Users className="w-5 h-5 text-blue-500" />
+                        </div>
+                        <h3 className="font-black text-gray-800 text-sm">基本人数</h3>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
+                          <p className="text-[10px] font-black text-gray-400 uppercase mb-1">園児</p>
+                          <p className="text-2xl font-black text-gray-800">{firstOrder?.student_count ?? '-'}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
+                          <p className="text-[10px] font-black text-red-400 uppercase mb-1">アレルギー</p>
+                          <p className={`text-2xl font-black ${(firstOrder?.allergy_count ?? 0) > 0 ? 'text-red-500' : 'text-gray-800'}`}>{firstOrder?.allergy_count ?? '-'}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
+                          <p className="text-[10px] font-black text-gray-400 uppercase mb-1">先生</p>
+                          <p className="text-2xl font-black text-gray-800">{firstOrder?.teacher_count ?? '-'}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-400 text-center">💡 日ごとの変更はカレンダーから直接入力できます</p>
+                    </div>
+                  </div>
+                );
+              })()
             )}
 
           </div>

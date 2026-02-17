@@ -21,6 +21,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
     const [days, setDays] = useState<{ day: number, dateStr: string, mealType: string }[]>([]);
     const [editableClasses, setEditableClasses] = useState<ClassMaster[]>([]);
     const [memo, setMemo] = useState('');
+    const [classlessDefaults, setClasslessDefaults] = useState({ student: 0, allergy: 0, teacher: 0 });
 
     useEffect(() => {
         if (isOpen) {
@@ -102,7 +103,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
             // Check for Class-less Mode
             const targetClasses = editableClasses.length > 0
                 ? editableClasses
-                : [{ class_name: '共通', default_student_count: 0, default_allergy_count: 0, default_teacher_count: 0 } as ClassMaster];
+                : [{ class_name: '共通', default_student_count: classlessDefaults.student, default_allergy_count: classlessDefaults.allergy, default_teacher_count: classlessDefaults.teacher } as ClassMaster];
 
             days.forEach(dayInfo => {
                 if (dayInfo.mealType === '') return;
@@ -184,12 +185,46 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                             </div>
 
                             {editableClasses.length === 0 && (
-                                <div className="p-8 text-center bg-gray-50 rounded-2xl border border-gray-100">
-                                    <p className="font-bold text-gray-500 mb-2">クラス設定なし（直接入力モード）</p>
-                                    <p className="text-sm text-gray-400">
-                                        クラスが登録されていないため、基本人数の設定は不要です。<br />
-                                        カレンダー上で直接人数を入力できます。「次へ」進んで献立を設定してください。
-                                    </p>
+                                <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-blue-100 rounded-xl">
+                                            <Users className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-gray-800">基本人数の設定</p>
+                                            <p className="text-xs text-gray-400">クラス分けなし。園全体の基本人数を入力してください。</p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase block mb-2 text-center">園児数</label>
+                                            <input
+                                                type="number"
+                                                value={classlessDefaults.student}
+                                                onChange={(e) => setClasslessDefaults({ ...classlessDefaults, student: parseInt(e.target.value) || 0 })}
+                                                className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 font-black text-center text-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                                            />
+                                        </div>
+                                        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                                            <label className="text-[10px] font-black text-red-400 uppercase block mb-2 text-center">アレルギー</label>
+                                            <input
+                                                type="number"
+                                                value={classlessDefaults.allergy}
+                                                onChange={(e) => setClasslessDefaults({ ...classlessDefaults, allergy: parseInt(e.target.value) || 0 })}
+                                                className="w-full p-3 bg-gray-50 rounded-xl border border-red-100 font-black text-center text-lg focus:ring-2 focus:ring-red-300 outline-none text-red-600"
+                                            />
+                                        </div>
+                                        <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase block mb-2 text-center">先生数</label>
+                                            <input
+                                                type="number"
+                                                value={classlessDefaults.teacher}
+                                                onChange={(e) => setClasslessDefaults({ ...classlessDefaults, teacher: parseInt(e.target.value) || 0 })}
+                                                className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 font-black text-center text-lg focus:ring-2 focus:ring-blue-400 outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-400 text-center">💡 この人数が全日に適用されます。日ごとの変更はカレンダーから可能です。</p>
                                 </div>
                             )}
 
