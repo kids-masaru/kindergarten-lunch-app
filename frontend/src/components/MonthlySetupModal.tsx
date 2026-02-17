@@ -428,20 +428,6 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                 <h3 className="font-black text-gray-800">最終確認と備考</h3>
                             </div>
 
-                            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-4">
-                                <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">申請内容の概要</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-white p-4 rounded-xl border border-gray-100">
-                                        <p className="text-[10px] font-black text-gray-400 mb-1">対象クラス数</p>
-                                        <p className="text-xl font-black text-gray-800">{editableClasses.length} <span className="text-xs">クラス</span></p>
-                                    </div>
-                                    <div className="bg-white p-4 rounded-xl border border-gray-100">
-                                        <p className="text-[10px] font-black text-gray-400 mb-1">給食提供日数</p>
-                                        <p className="text-xl font-black text-gray-800">{days.length} <span className="text-xs">日間</span></p>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div className="space-y-2">
                                 <label className="text-xs font-black text-gray-500 ml-1">管理者への備考・お伝え事項（任意）</label>
                                 <textarea
