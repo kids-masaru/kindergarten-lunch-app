@@ -370,7 +370,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     />
                                                 </div>
                                                 <div className="flex items-center gap-0.5">
-                                                    <span className="text-[8px] text-gray-300 font-bold w-3">ア</span>
+                                                    <span className="text-[8px] text-gray-300 font-bold w-3">アレルギー</span>
                                                     <input
                                                         type="number"
                                                         value={dayInfo.allergyCount}

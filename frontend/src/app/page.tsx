@@ -473,11 +473,12 @@ export default function CalendarPage() {
         <div className="mt-8 p-6 text-xs text-gray-500 bg-white rounded-xl border border-gray-100 shadow-sm leading-relaxed">
           <h3 className="font-bold text-gray-700 mb-2 border-b pb-1">⚠️ ご注文に関する注意点</h3>
           <div className="space-y-2">
-            <p className="font-bold text-gray-800">注文の締め切りは、**前日の14:00まで**となっております。必ず期限内にお願いいたします。</p>
+            <p className="font-bold text-gray-800">注文の締め切りは、<span className="text-red-500">前日の15:00まで</span>となっております。必ず期限内にお願いいたします。</p>
             <ul className="list-disc pl-4 space-y-1">
               <li>「今月の申請（基本設定）」は、毎月25日までに翌月分の送信を完了させてください。</li>
               <li>人数やメニューの急な変更は、こちらのカレンダーから修正後「内容を送信する」を押してください。</li>
-              <li>3日前を過ぎた変更や緊急の場合は、お電話（0120-XXX-XXX）にて直接ご連絡ください。</li>
+              <li><span className="text-orange-600 font-bold">3日前の18:00</span>を過ぎた変更は警告が表示されます。<span className="text-red-500 font-bold">前日15:00</span>を過ぎるとシステムからの変更はできません。</li>
+              <li>緊急の場合は、お電話（0120-XXX-XXX）にて直接ご連絡ください。</li>
               <li>システムに関するお問い合わせは、担当：山田（平日 9:00-17:00）まで。</li>
             </ul>
           </div>

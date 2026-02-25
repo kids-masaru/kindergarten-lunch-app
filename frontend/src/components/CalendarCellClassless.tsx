@@ -184,7 +184,7 @@ export default function CalendarCellClassless({
                     />
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-300 font-bold">ア</span>
+                    <span className="text-[10px] text-gray-300 font-bold">アレルギー</span>
                     <input
                         type="number"
                         value={allergyCount}
