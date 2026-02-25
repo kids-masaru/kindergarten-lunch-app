@@ -173,7 +173,7 @@ export default function CalendarCellClassless({
             {/* Inputs */}
             <div className="flex-1 flex flex-col justify-center gap-1">
                 <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-300 font-bold">園</span>
+                    <span className="text-[10px] text-gray-300 font-bold">園児</span>
                     <input
                         type="number"
                         value={studentCount}
@@ -195,7 +195,7 @@ export default function CalendarCellClassless({
                     />
                 </div>
                 <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-300 font-bold">先</span>
+                    <span className="text-[10px] text-gray-300 font-bold">先生</span>
                     <input
                         type="number"
                         value={teacherCount}

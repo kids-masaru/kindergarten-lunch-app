@@ -361,7 +361,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     </button>
                                                 </div>
                                                 <div className="flex items-center gap-0.5">
-                                                    <span className="text-[8px] text-gray-300 font-bold w-3">園</span>
+                                                    <span className="text-[8px] text-gray-300 font-bold w-3">園児</span>
                                                     <input
                                                         type="number"
                                                         value={dayInfo.studentCount}
@@ -379,7 +379,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     />
                                                 </div>
                                                 <div className="flex items-center gap-0.5">
-                                                    <span className="text-[8px] text-gray-300 font-bold w-3">先</span>
+                                                    <span className="text-[8px] text-gray-300 font-bold w-3">先生</span>
                                                     <input
                                                         type="number"
                                                         value={dayInfo.teacherCount}
