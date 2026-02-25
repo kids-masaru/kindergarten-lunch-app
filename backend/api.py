@@ -13,6 +13,7 @@ from backend.sheets import (
     update_class_counts,
     update_kindergarten_master,
     update_kindergarten_classes as update_sheets_classes,
+    get_pending_class_snapshots,
     get_system_settings,
     update_system_settings
 )
@@ -64,6 +65,7 @@ class ClassUpdateItem(BaseModel):
     default_student_count: int
     default_allergy_count: int
     default_teacher_count: int
+    effective_from: Optional[str] = None
 
 class ClassListUpdateRequest(BaseModel):
     classes: List[ClassUpdateItem]
@@ -171,12 +173,24 @@ def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRe
     print(f"[DEBUG] Received class update for {kindergarten_id}")
     try:
         data_to_save = [c.model_dump() for c in request.classes]
-        success = update_sheets_classes(kindergarten_id, data_to_save)
+        
+        # Detect scheduled_date: if ALL classes have the same effective_from, use it.
+        # Otherwise, fall back to immediate mode (today's date).
+        scheduled_date = None
+        effective_dates = set(c.effective_from for c in request.classes if c.effective_from)
+        if len(effective_dates) == 1:
+            candidate = effective_dates.pop()
+            today = datetime.now().strftime("%Y-%m-%d")
+            if candidate > today:
+                scheduled_date = candidate
+                print(f"[DEBUG] Scheduled mode: effective_from={scheduled_date}")
+        
+        success = update_sheets_classes(kindergarten_id, data_to_save, scheduled_date=scheduled_date)
         
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update classes in sheet")
             
-        return {"status": "success", "message": "Classes updated"}
+        return {"status": "success", "message": "Classes updated", "scheduled_date": scheduled_date}
     except Exception as e:
         print(f"[CRITICAL ERROR] {str(e)}")
         import traceback
@@ -437,6 +451,12 @@ def update_kindergarten_classes(kindergarten_id: str, new_classes: List[dict]):
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update classes")
     return {"status": "success"}
+
+@router.get("/masters/classes/{kindergarten_id}/pending")
+def get_pending_changes(kindergarten_id: str):
+    """Get future-dated class snapshots (scheduled but not yet active)."""
+    snapshots = get_pending_class_snapshots(kindergarten_id)
+    return {"pending_snapshots": snapshots}
 
 @router.get("/admin/system-info")
 def get_system_info():

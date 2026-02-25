@@ -138,6 +138,40 @@ def get_classes_for_kindergarten(kindergarten_id: str, base_date: Optional[str] 
         print(f"Error in get_classes_for_kindergarten: {e}")
         return []
 
+def get_pending_class_snapshots(kindergarten_id: str) -> List[Dict]:
+    """Get future-dated class snapshots (scheduled changes not yet active)."""
+    try:
+        wb = get_db_connection()
+        if not wb: return []
+        ws = wb.worksheet("classes")
+        records = ws.get_all_records()
+        
+        today = datetime.now().strftime("%Y-%m-%d")
+        
+        # Find all classes for this kindergarten with effective_from > today
+        future_classes = []
+        for r in records:
+            if str(r.get("kindergarten_id")) == str(kindergarten_id):
+                ef = str(r.get("effective_from", ""))
+                if ef > today:
+                    future_classes.append(ClassMaster(**r))
+        
+        if not future_classes:
+            return []
+        
+        # Group by effective_from date
+        snapshots = {}
+        for c in future_classes:
+            if c.effective_from not in snapshots:
+                snapshots[c.effective_from] = []
+            snapshots[c.effective_from].append(c.model_dump())
+        
+        # Return as list of {date, classes}
+        return [{"date": d, "classes": cls} for d, cls in sorted(snapshots.items())]
+    except Exception as e:
+        print(f"Error in get_pending_class_snapshots: {e}")
+        return []
+
 def get_orders_for_month(kindergarten_id: str, year: int, month: int) -> List[OrderData]:
     """Fetch orders for a specific kindergarten and month from the flat 'orders' sheet."""
     try:
@@ -230,8 +264,14 @@ def batch_save_orders(orders: List[Dict]) -> bool:
         print(f"Error in batch_save_orders: {e}")
         return False
 
-def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict]) -> bool:
-    """Batch update or replace classes for a kindergarten (for a specific effective_from date)."""
+def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict], scheduled_date: str = None) -> bool:
+    """Batch update or replace classes for a kindergarten.
+    
+    Two modes:
+    - Immediate (scheduled_date=None): Full replace with today's date. Used by MonthlySetupModal.
+    - Scheduled (scheduled_date="YYYY-MM-DD"): Append a future snapshot, preserving other snapshots. 
+      Used by ClassChangeRequestModal for future-dated changes.
+    """
     try:
         wb = get_db_connection()
         if not wb: return False
@@ -243,32 +283,43 @@ def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict]) -> bo
         if "effective_from" not in headers:
             headers.append("effective_from")
             ws.update("A1", [headers])
-            # Re-fetch all rows to get updated headers/structure
             all_rows = ws.get_all_values()
             headers = all_rows[0]
 
-        # ALWAYS use today's date as the effective_from for admin updates.
-        # This ensures the saved data is always the "newest snapshot",
-        # preventing ghost data from overriding deletions or edits.
-        target_effective_date = datetime.now().strftime("%Y-%m-%d")
-
-        # 1. Identify which rows to KEEP
-        # Keep ONLY rows from OTHER kindergartens.
-        # All existing rows for THIS kindergarten are removed (any effective_from date).
-        new_all_rows = [headers]
-        
         kid_idx = headers.index("kindergarten_id")
-        
-        for i, row in enumerate(all_rows):
-            if i == 0: continue
-            # Only keep rows from OTHER kindergartens
-            if str(row[kid_idx]) != str(kindergarten_id):
-                # Padding row if headers were extended
+        ef_idx = headers.index("effective_from") if "effective_from" in headers else -1
+
+        if scheduled_date:
+            # === SCHEDULED MODE ===
+            # Keep all rows EXCEPT this kindergarten's rows with the same effective_from date.
+            # This preserves the current snapshot and other scheduled snapshots.
+            target_effective_date = scheduled_date
+            new_all_rows = [headers]
+            
+            for i, row in enumerate(all_rows):
+                if i == 0: continue
                 while len(row) < len(headers):
                     row.append("")
+                # Remove only rows matching BOTH this kindergarten AND this effective_from date
+                is_same_kid = str(row[kid_idx]) == str(kindergarten_id)
+                is_same_date = ef_idx >= 0 and str(row[ef_idx]) == scheduled_date
+                if is_same_kid and is_same_date:
+                    continue  # Skip — will be replaced
                 new_all_rows.append(row)
+        else:
+            # === IMMEDIATE MODE (existing behavior) ===
+            # Remove ALL rows for this kindergarten, use today's date.
+            target_effective_date = datetime.now().strftime("%Y-%m-%d")
+            new_all_rows = [headers]
+            
+            for i, row in enumerate(all_rows):
+                if i == 0: continue
+                if str(row[kid_idx]) != str(kindergarten_id):
+                    while len(row) < len(headers):
+                        row.append("")
+                    new_all_rows.append(row)
         
-        # 2. Add the new/updated classes for THIS kindergarten and THIS date
+        # Add the new/updated classes for THIS kindergarten and THIS date
         for c in classes:
             row_vals = []
             for h in headers:
@@ -278,7 +329,7 @@ def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict]) -> bo
                 row_vals.append(val)
             new_all_rows.append(row_vals)
             
-        # 3. Overwrite the sheet
+        # Overwrite the sheet
         ws.clear()
         ws.update("A1", new_all_rows)
         return True

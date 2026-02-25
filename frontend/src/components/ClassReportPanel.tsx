@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Save, Minus, Plus, Edit3 } from 'lucide-react';
-import { updateClassMaster } from '@/lib/api';
+import { Save, Minus, Plus, Edit3, Calendar } from 'lucide-react';
+import { updateClassMaster, getPendingClassSnapshots } from '@/lib/api';
 import { ClassMaster, LoginUser } from '@/types';
 
 interface ClassReportPanelProps {
@@ -15,6 +15,7 @@ interface ClassReportPanelProps {
 export default function ClassReportPanel({ user, classes, onSaved, onOpenChangeRequest }: ClassReportPanelProps) {
     const [edits, setEdits] = useState<Record<string, ClassMaster>>({});
     const [saving, setSaving] = useState(false);
+    const [pendingSnapshots, setPendingSnapshots] = useState<{ date: string, classes: any[] }[]>([]);
 
     // Initialize edits when classes change
     useEffect(() => {
@@ -26,6 +27,15 @@ export default function ClassReportPanel({ user, classes, onSaved, onOpenChangeR
             setEdits(initialEdits);
         }
     }, [classes]);
+
+    // Fetch pending future snapshots
+    useEffect(() => {
+        if (user.kindergarten_id) {
+            getPendingClassSnapshots(user.kindergarten_id)
+                .then(res => setPendingSnapshots(res.pending_snapshots || []))
+                .catch(() => setPendingSnapshots([]));
+        }
+    }, [user.kindergarten_id, classes]);
 
     const updateCount = (className: string, field: keyof ClassMaster, delta: number) => {
         setEdits(prev => {
@@ -125,6 +135,30 @@ export default function ClassReportPanel({ user, classes, onSaved, onOpenChangeR
                         </div>
                     )}
                 </div>
+
+                {/* Pending Changes Indicator */}
+                {pendingSnapshots.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                        {pendingSnapshots.map(snap => (
+                            <div key={snap.date} className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                    <span className="text-xs font-black text-blue-600">
+                                        📅 {snap.date} から新設定が適用されます
+                                    </span>
+                                </div>
+                                <div className="space-y-1">
+                                    {snap.classes.map((c: any, i: number) => (
+                                        <div key={i} className="flex items-center gap-2 text-[10px] text-blue-700">
+                                            <span className="font-bold">{c.class_name}</span>
+                                            <span>園児{c.default_student_count} / アレルギー{c.default_allergy_count} / 先生{c.default_teacher_count}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Footer */}

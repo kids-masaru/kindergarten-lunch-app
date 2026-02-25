@@ -118,3 +118,8 @@ export const createOrdersBulk = async (orders: any[]) => {
     const res = await api.post('/orders/bulk', orders);
     return res.data;
 };
+
+export const getPendingClassSnapshots = async (kindergartenId: string) => {
+    const res = await api.get(`/masters/classes/${kindergartenId}/pending`);
+    return res.data;
+};
