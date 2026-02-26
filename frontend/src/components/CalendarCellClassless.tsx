@@ -163,45 +163,42 @@ export default function CalendarCellClassless({
                 </div>
             </div>
 
-            {/* Count Rows — compact on mobile, stacked labels on desktop */}
-            <div className="flex flex-col gap-1.5 sm:gap-2 flex-1 justify-center mt-1">
+            {/* Count Rows — compact side-by-side on both mobile and desktop */}
+            <div className="flex flex-col gap-1.5 sm:gap-1.5 flex-1 justify-center mt-1">
                 {/* Student */}
-                <div className="flex flex-row sm:flex-col items-center sm:items-end gap-1 sm:gap-0">
-                    <span className="text-[11px] sm:text-[10px] text-gray-300 font-bold w-4 sm:w-auto shrink-0 sm:hidden">児</span>
-                    <span className="text-[10px] sm:text-[10px] text-gray-300 font-bold hidden sm:block text-right w-full">園児</span>
+                <div className="flex flex-row items-center justify-between gap-1 w-full">
+                    <span className="text-[11px] sm:text-[11px] text-gray-400 font-bold shrink-0">児</span>
                     <input
                         type="number"
                         value={studentCount}
                         onChange={(e) => handleCountChange('student', e.target.value)}
                         onBlur={() => handleBlur('student_count')}
                         disabled={isLocked}
-                        className="w-full text-right text-base sm:text-lg font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-[2rem]"
+                        className="w-full text-right text-base sm:text-base font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-[1.5rem]"
                     />
                 </div>
                 {/* Allergy */}
-                <div className="flex flex-row sm:flex-col items-center sm:items-end gap-1 sm:gap-0">
-                    <span className="text-[11px] sm:text-[10px] text-red-300 font-bold w-4 sm:w-auto shrink-0 sm:hidden">ア</span>
-                    <span className="text-[10px] sm:text-[10px] text-red-300 font-bold hidden sm:block text-right w-full">アレルギー</span>
+                <div className="flex flex-row items-center justify-between gap-1 w-full">
+                    <span className="text-[11px] sm:text-[11px] text-red-400 font-bold shrink-0">ア</span>
                     <input
                         type="number"
                         value={allergyCount}
                         onChange={(e) => handleCountChange('allergy', e.target.value)}
                         onBlur={() => handleBlur('allergy_count')}
                         disabled={isLocked}
-                        className={`w-full text-right text-base sm:text-lg font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 min-w-[2rem] ${allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
+                        className={`w-full text-right text-base sm:text-base font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 min-w-[1.5rem] ${allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
                     />
                 </div>
                 {/* Teacher */}
-                <div className="flex flex-row sm:flex-col items-center sm:items-end gap-1 sm:gap-0">
-                    <span className="text-[11px] sm:text-[10px] text-gray-300 font-bold w-4 sm:w-auto shrink-0 sm:hidden">先</span>
-                    <span className="text-[10px] sm:text-[10px] text-gray-300 font-bold hidden sm:block text-right w-full">先生</span>
+                <div className="flex flex-row items-center justify-between gap-1 w-full">
+                    <span className="text-[11px] sm:text-[11px] text-gray-400 font-bold shrink-0">先</span>
                     <input
                         type="number"
                         value={teacherCount}
                         onChange={(e) => handleCountChange('teacher', e.target.value)}
                         onBlur={() => handleBlur('teacher_count')}
                         disabled={isLocked}
-                        className="w-full text-right text-base sm:text-lg font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-[2rem]"
+                        className="w-full text-right text-base sm:text-base font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-[1.5rem]"
                     />
                 </div>
             </div>
