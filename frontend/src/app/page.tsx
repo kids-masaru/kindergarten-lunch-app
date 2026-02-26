@@ -293,7 +293,7 @@ export default function CalendarPage() {
             <div className="flex-1">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 sm:p-4 overflow-x-auto">
                 {/* Calendar Grid */}
-                <div className="min-w-[600px] sm:min-w-0">
+                <div className="min-w-[850px] sm:min-w-0">
                   <div className="grid grid-cols-7 gap-1 mb-2">
                     {['日', '月', '火', '水', '木', '金', '土'].map((d, i) => (
                       <div key={d} className={`text-center text-xs font-bold ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-400'}`}>

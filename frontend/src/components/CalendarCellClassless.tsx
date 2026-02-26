@@ -129,25 +129,25 @@ export default function CalendarCellClassless({
     // Non-service day: minimal cell
     if (!isServiceDay) {
         return (
-            <div className="rounded-lg sm:rounded-[1.25rem] bg-gray-50/50 border border-transparent p-1 sm:p-2 flex items-center justify-center text-gray-300 opacity-50 min-h-[3rem] sm:min-h-[5rem]">
-                <span className="text-sm sm:text-xl font-black">{day}</span>
+            <div className="rounded-xl sm:rounded-[1.25rem] bg-gray-50/50 border border-transparent p-2 sm:p-2 flex items-center justify-center text-gray-300 opacity-50 min-h-[4rem] sm:min-h-[5rem]">
+                <span className="text-lg sm:text-xl font-black">{day}</span>
             </div>
         );
     }
 
     return (
-        <div className={`rounded-lg sm:rounded-[1.25rem] p-1 sm:p-2 flex flex-col relative border transition-all shadow-sm
+        <div className={`rounded-xl sm:rounded-[1.25rem] p-2 flex flex-col relative border transition-all shadow-sm
             ${isLocked ? 'bg-gray-100 border-gray-200 opacity-60' : 'bg-white border-gray-100 hover:border-orange-200'}
         `}>
             {/* Header: Date + Meal Badge */}
-            <div className="flex justify-between items-center mb-0.5 sm:mb-1">
-                <span className={`text-[10px] sm:text-sm font-black leading-none ${isToday ? 'text-orange-500' : 'text-gray-400'}`}>
+            <div className="flex justify-between items-center mb-1.5 sm:mb-1">
+                <span className={`text-sm sm:text-sm font-black leading-none ${isToday ? 'text-orange-500' : 'text-gray-400'}`}>
                     {day}
                 </span>
                 <button
                     onClick={toggleMealType}
                     disabled={isLocked || isSaving}
-                    className={`px-1 py-0.5 rounded border text-[7px] sm:text-[10px] font-black transition-all leading-none
+                    className={`px-1.5 py-1 rounded-md border text-[10px] font-black transition-all leading-none
                         ${meal.bg} ${meal.text} ${meal.border} ${isSaving ? 'animate-pulse' : ''}`}
                 >
                     {isSaving ? <Loader2 className="w-2 h-2 sm:w-3 sm:h-3 animate-spin" /> : meal.label}
@@ -155,44 +155,44 @@ export default function CalendarCellClassless({
             </div>
 
             {/* Count Rows — compact on mobile */}
-            <div className="flex flex-col gap-0 sm:gap-1 flex-1 justify-center">
+            <div className="flex flex-col gap-1.5 sm:gap-1 flex-1 justify-center mt-1">
                 {/* Student */}
-                <div className="flex items-center gap-0.5">
-                    <span className="text-[7px] sm:text-[10px] text-gray-300 font-bold w-2 sm:w-auto shrink-0 sm:hidden">児</span>
-                    <span className="text-[7px] sm:text-[10px] text-gray-300 font-bold hidden sm:inline">園児</span>
+                <div className="flex items-center gap-1">
+                    <span className="text-[11px] sm:text-[10px] text-gray-300 font-bold w-4 sm:w-auto shrink-0 sm:hidden">児</span>
+                    <span className="text-[10px] sm:text-[10px] text-gray-300 font-bold hidden sm:inline">園児</span>
                     <input
                         type="number"
                         value={studentCount}
                         onChange={(e) => handleCountChange('student', e.target.value)}
                         onBlur={() => handleBlur('student_count')}
                         disabled={isLocked}
-                        className="w-full text-right text-[10px] sm:text-sm font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-0"
+                        className="w-full text-right text-base sm:text-sm font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-0"
                     />
                 </div>
                 {/* Allergy */}
-                <div className="flex items-center gap-0.5">
-                    <span className="text-[7px] sm:text-[10px] text-red-300 font-bold w-2 sm:w-auto shrink-0 sm:hidden">ア</span>
-                    <span className="text-[7px] sm:text-[10px] text-red-300 font-bold hidden sm:inline">アレルギー</span>
+                <div className="flex items-center gap-1">
+                    <span className="text-[11px] sm:text-[10px] text-red-300 font-bold w-4 sm:w-auto shrink-0 sm:hidden">ア</span>
+                    <span className="text-[10px] sm:text-[10px] text-red-300 font-bold hidden sm:inline">アレルギー</span>
                     <input
                         type="number"
                         value={allergyCount}
                         onChange={(e) => handleCountChange('allergy', e.target.value)}
                         onBlur={() => handleBlur('allergy_count')}
                         disabled={isLocked}
-                        className={`w-full text-right text-[10px] sm:text-sm font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 min-w-0 ${allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
+                        className={`w-full text-right text-base sm:text-sm font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 min-w-0 ${allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
                     />
                 </div>
                 {/* Teacher */}
-                <div className="flex items-center gap-0.5">
-                    <span className="text-[7px] sm:text-[10px] text-gray-300 font-bold w-2 sm:w-auto shrink-0 sm:hidden">先</span>
-                    <span className="text-[7px] sm:text-[10px] text-gray-300 font-bold hidden sm:inline">先生</span>
+                <div className="flex items-center gap-1">
+                    <span className="text-[11px] sm:text-[10px] text-gray-300 font-bold w-4 sm:w-auto shrink-0 sm:hidden">先</span>
+                    <span className="text-[10px] sm:text-[10px] text-gray-300 font-bold hidden sm:inline">先生</span>
                     <input
                         type="number"
                         value={teacherCount}
                         onChange={(e) => handleCountChange('teacher', e.target.value)}
                         onBlur={() => handleBlur('teacher_count')}
                         disabled={isLocked}
-                        className="w-full text-right text-[10px] sm:text-sm font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-0"
+                        className="w-full text-right text-base sm:text-sm font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-0"
                     />
                 </div>
             </div>
