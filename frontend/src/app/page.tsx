@@ -291,131 +291,133 @@ export default function CalendarPage() {
 
             {/* Calendar Section */}
             <div className="flex-1">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 sm:p-4">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 sm:p-4 overflow-x-auto">
                 {/* Calendar Grid */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                  {['日', '月', '火', '水', '木', '金', '土'].map((d, i) => (
-                    <div key={d} className={`text-center text-xs font-bold ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-400'}`}>
-                      {d}
-                    </div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-7 gap-0.5 sm:gap-1 auto-rows-auto">
-                  {Array(firstDay).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
-                  {Array(daysInMonth).fill(null).map((_, i) => {
-                    const day = i + 1;
-                    const dayOrders = getOrdersForDay(day);
-                    const dObj = new Date(year, month - 1, day);
-                    const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
+                <div className="min-w-[600px] sm:min-w-0">
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {['日', '月', '火', '水', '木', '金', '土'].map((d, i) => (
+                      <div key={d} className={`text-center text-xs font-bold ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-400'}`}>
+                        {d}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 auto-rows-auto">
+                    {Array(firstDay).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
+                    {Array(daysInMonth).fill(null).map((_, i) => {
+                      const day = i + 1;
+                      const dayOrders = getOrdersForDay(day);
+                      const dObj = new Date(year, month - 1, day);
+                      const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
 
-                    // Service Day Check
-                    let isServiceDay = true;
-                    if (user && user.settings) {
-                      const dayOfWeek = dObj.getDay();
-                      const s = user.settings as any;
-                      const mapping: any = { 0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat' };
-                      isServiceDay = s[`service_${mapping[dayOfWeek]}`] !== false;
-                    }
+                      // Service Day Check
+                      let isServiceDay = true;
+                      if (user && user.settings) {
+                        const dayOfWeek = dObj.getDay();
+                        const s = user.settings as any;
+                        const mapping: any = { 0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat' };
+                        isServiceDay = s[`service_${mapping[dayOfWeek]}`] !== false;
+                      }
 
-                    // Deadline Logic
-                    const now = new Date();
+                      // Deadline Logic
+                      const now = new Date();
 
-                    // 1. Strict Lock (Day before 15:00)
-                    const lockDeadline = new Date(year, month - 1, day - 1, 15, 0, 0);
-                    const isStrictLocked = now > lockDeadline;
+                      // 1. Strict Lock (Day before 15:00)
+                      const lockDeadline = new Date(year, month - 1, day - 1, 15, 0, 0);
+                      const isStrictLocked = now > lockDeadline;
 
-                    // 2. Grace Period Lock (3 days before 18:00)
-                    const graceDeadline = new Date(year, month - 1, day - 3, 18, 0, 0);
-                    const isGraceLocked = now > graceDeadline;
+                      // 2. Grace Period Lock (3 days before 18:00)
+                      const graceDeadline = new Date(year, month - 1, day - 3, 18, 0, 0);
+                      const isGraceLocked = now > graceDeadline;
 
-                    // --- Class-less Mode Logic ---
-                    const isClasslessMode = classes.length === 0;
+                      // --- Class-less Mode Logic ---
+                      const isClasslessMode = classes.length === 0;
 
-                    if (isClasslessMode) {
-                      const existingOrder = dayOrders.find(o => o.class_name === '共通');
+                      if (isClasslessMode) {
+                        const existingOrder = dayOrders.find(o => o.class_name === '共通');
+
+                        return (
+                          <div key={day} className="relative">
+                            <CalendarCellClassless
+                              day={day}
+                              year={year}
+                              month={month}
+                              kindergartenId={user?.kindergarten_id || ''}
+                              existingOrder={existingOrder}
+                              isServiceDay={isServiceDay}
+                              isLocked={isStrictLocked}
+                              isGraceLocked={isGraceLocked}
+                              onSave={async (order) => {
+                                // Save single order
+                                await saveOrder(order);
+                                fetchOrders(user!.kindergarten_id, year, month);
+                              }}
+                            />
+                          </div>
+                        );
+                      }
+
+                      // --- Standard Mode (Classes Exist) ---
+                      let displayLabel = null;
+                      if (!isServiceDay) {
+                        displayLabel = <span className="text-xs text-gray-300">－</span>;
+                      } else if (dayOrders.length > 0) {
+                        const type = dayOrders[0].meal_type;
+                        displayLabel = (
+                          <div className={`px-2 py-1.5 rounded-xl border-2 text-[10px] sm:text-[11px] font-black leading-none transition-all
+                          ${type === '通常'
+                              ? 'border-gray-100 text-gray-400'
+                              : type === '飯なし'
+                                ? 'border-gray-200 bg-gray-50 text-gray-400'
+                                : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
+                            }`}>
+                            {type}
+                          </div>
+                        );
+                      }
 
                       return (
-                        <div key={day} className="relative">
-                          <CalendarCellClassless
-                            day={day}
-                            year={year}
-                            month={month}
-                            kindergartenId={user?.kindergarten_id || ''}
-                            existingOrder={existingOrder}
-                            isServiceDay={isServiceDay}
-                            isLocked={isStrictLocked}
-                            isGraceLocked={isGraceLocked}
-                            onSave={async (order) => {
-                              // Save single order
-                              await saveOrder(order);
-                              fetchOrders(user!.kindergarten_id, year, month);
-                            }}
-                          />
-                        </div>
-                      );
-                    }
-
-                    // --- Standard Mode (Classes Exist) ---
-                    let displayLabel = null;
-                    if (!isServiceDay) {
-                      displayLabel = <span className="text-xs text-gray-300">－</span>;
-                    } else if (dayOrders.length > 0) {
-                      const type = dayOrders[0].meal_type;
-                      displayLabel = (
-                        <div className={`px-2 py-1.5 rounded-xl border-2 text-[10px] sm:text-[11px] font-black leading-none transition-all
-                          ${type === '通常'
-                            ? 'border-gray-100 text-gray-400'
-                            : type === '飯なし'
-                              ? 'border-gray-200 bg-gray-50 text-gray-400'
-                              : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
-                          }`}>
-                          {type}
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <button
-                        key={day}
-                        onClick={() => {
-                          if (!isServiceDay) return;
-                          if (isStrictLocked) {
-                            alert("前日15:00を過ぎたため、システムからは変更できません。お電話にてご連絡ください。");
-                            return;
-                          }
-                          if (isGraceLocked) {
-                            if (confirm("3日前を過ぎた変更や緊急の場合は、お電話（0120-XXX-XXX）にて直接ご連絡いただく必要があります。このまま入力を続けますか？")) {
-                              handleDateClick(day);
+                        <button
+                          key={day}
+                          onClick={() => {
+                            if (!isServiceDay) return;
+                            if (isStrictLocked) {
+                              alert("前日15:00を過ぎたため、システムからは変更できません。お電話にてご連絡ください。");
+                              return;
                             }
-                            return;
-                          }
-                          handleDateClick(day);
-                        }}
-                        disabled={!isServiceDay}
-                        className={`aspect-square rounded-[1.25rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all 
+                            if (isGraceLocked) {
+                              if (confirm("3日前を過ぎた変更や緊急の場合は、お電話（0120-XXX-XXX）にて直接ご連絡いただく必要があります。このまま入力を続けますか？")) {
+                                handleDateClick(day);
+                              }
+                              return;
+                            }
+                            handleDateClick(day);
+                          }}
+                          disabled={!isServiceDay}
+                          className={`aspect-square rounded-[1.25rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all 
                           ${!isServiceDay
-                            ? 'bg-gray-50/50 border-transparent text-gray-300 cursor-not-allowed opacity-50'
-                            : isStrictLocked
-                              ? 'bg-gray-100 border-gray-200 opacity-40 grayscale cursor-not-allowed'
-                              : isGraceLocked
-                                ? 'bg-gray-50 border-gray-200 opacity-80'
-                                : isToday
-                                  ? 'bg-orange-50 border-orange-300 active:scale-95 shadow-sm hover:border-orange-200'
-                                  : 'bg-white border-gray-100 active:scale-95 shadow-sm hover:border-orange-200'
-                          }`}
-                      >
-                        <span className={`text-[10px] font-black leading-none mb-1 ${!isServiceDay ? 'text-gray-300' : isToday ? 'text-orange-600' : 'text-gray-400'}`}>{day}</span>
-                        <div className="flex-1 flex items-center justify-center w-full p-1">
-                          {displayLabel}
-                        </div>
-                        {isStrictLocked && isServiceDay && (
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="w-1/2 h-[2px] bg-gray-300 rotate-45"></div>
+                              ? 'bg-gray-50/50 border-transparent text-gray-300 cursor-not-allowed opacity-50'
+                              : isStrictLocked
+                                ? 'bg-gray-100 border-gray-200 opacity-40 grayscale cursor-not-allowed'
+                                : isGraceLocked
+                                  ? 'bg-gray-50 border-gray-200 opacity-80'
+                                  : isToday
+                                    ? 'bg-orange-50 border-orange-300 active:scale-95 shadow-sm hover:border-orange-200'
+                                    : 'bg-white border-gray-100 active:scale-95 shadow-sm hover:border-orange-200'
+                            }`}
+                        >
+                          <span className={`text-[10px] font-black leading-none mb-1 ${!isServiceDay ? 'text-gray-300' : isToday ? 'text-orange-600' : 'text-gray-400'}`}>{day}</span>
+                          <div className="flex-1 flex items-center justify-center w-full p-1">
+                            {displayLabel}
                           </div>
-                        )}
-                      </button>
-                    );
-                  })}
+                          {isStrictLocked && isServiceDay && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="w-1/2 h-[2px] bg-gray-300 rotate-45"></div>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
