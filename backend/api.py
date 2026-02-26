@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from backend.sheets import (
     get_kindergartens,
     get_kindergarten_master,
@@ -219,8 +219,22 @@ def get_calendar(kindergarten_id: str, year: int, month: int):
     orders = get_orders_for_month(kindergarten_id, year, month)
     return {"orders": [o.model_dump() for o in orders]}
 
+def is_order_locked(order_date_str: str) -> bool:
+    """Check if the order date is past the strict deadline (15:00 day before)."""
+    try:
+        order_date = datetime.strptime(order_date_str, "%Y-%m-%d").date()
+        now = datetime.now()
+        # Deadline is 15:00 the day before
+        lock_deadline = datetime.combine(order_date, datetime.min.time()).replace(hour=15) - timedelta(days=1)
+        return now > lock_deadline
+    except Exception:
+        return False
+
 @router.post("/orders")
 def create_order(order: OrderItem):
+    if is_order_locked(order.date):
+        raise HTTPException(status_code=400, detail="Deadline passed (15:00 day before). Changes are not allowed.")
+
     # For compatibility, this still handles single order but uses batch_save_orders
     if not order.order_id:
         order.order_id = f"{order.date}_{order.kindergarten_id}_{order.class_name}"
@@ -235,6 +249,8 @@ def create_orders_bulk(orders: List[OrderItem]):
     """Bulk create orders, used for monthly initialization."""
     data = []
     for o in orders:
+        if is_order_locked(o.date):
+            continue # Skip locked orders during bulk init
         if not o.order_id:
             o.order_id = f"{o.date}_{o.kindergarten_id}_{o.class_name}"
         data.append(o.model_dump())
