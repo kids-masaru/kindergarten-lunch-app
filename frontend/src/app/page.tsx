@@ -291,7 +291,7 @@ export default function CalendarPage() {
 
             {/* Calendar Section */}
             <div className="flex-1">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 sm:p-4">
                 {/* Calendar Grid */}
                 <div className="grid grid-cols-7 gap-1 mb-2">
                   {['日', '月', '火', '水', '木', '金', '土'].map((d, i) => (
@@ -300,7 +300,7 @@ export default function CalendarPage() {
                     </div>
                   ))}
                 </div>
-                <div className="grid grid-cols-7 gap-1 auto-rows-fr">
+                <div className="grid grid-cols-7 gap-0.5 sm:gap-1 auto-rows-auto">
                   {Array(firstDay).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
                   {Array(daysInMonth).fill(null).map((_, i) => {
                     const day = i + 1;

@@ -43,7 +43,6 @@ export default function CalendarCellClassless({
             setAllergyCount(existingOrder.allergy_count);
             setTeacherCount(existingOrder.teacher_count);
         } else {
-            // Defaults if no order exists yet
             setMealType('通常');
             setStudentCount(0);
             setAllergyCount(0);
@@ -54,12 +53,11 @@ export default function CalendarCellClassless({
     const handleSave = async (updates: Partial<OrderData>) => {
         if (!isServiceDay || isLocked) return;
 
-        // Construct full order object
         const order: OrderData = {
             order_id: existingOrder?.order_id,
             kindergarten_id: kindergartenId,
             date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-            class_name: '共通', // Virtual Class Name
+            class_name: '共通',
             meal_type: updates.meal_type ?? mealType,
             student_count: updates.student_count ?? studentCount,
             allergy_count: updates.allergy_count ?? allergyCount,
@@ -70,7 +68,6 @@ export default function CalendarCellClassless({
         setIsSaving(true);
         try {
             await onSave(order);
-            // Update local state to match (in case parent doesn't re-render immediately)
             if (updates.meal_type !== undefined) setMealType(updates.meal_type);
             if (updates.student_count !== undefined) setStudentCount(updates.student_count);
             if (updates.allergy_count !== undefined) setAllergyCount(updates.allergy_count);
@@ -92,7 +89,7 @@ export default function CalendarCellClassless({
             if (!confirm("3日前を過ぎた変更です。電話連絡が必要です。続けますか？")) return;
         }
 
-        const types = ['通常', '飯なし', 'カレー']; // Rotate
+        const types = ['通常', '飯なし', 'カレー'];
         const nextIndex = (types.indexOf(mealType) + 1) % types.length;
         const nextType = types[nextIndex];
         await handleSave({ meal_type: nextType });
@@ -100,21 +97,9 @@ export default function CalendarCellClassless({
 
     const handleCountChange = async (field: 'student' | 'allergy' | 'teacher', val: string) => {
         if (isLocked) return;
-        if (isGraceLocked) {
-            // For simplicity in direct input, we might warn on blur or focus? 
-            // Let's just allow it but maybe indicate it visually? 
-            // Or verify on every change? That's annoying. 
-            // Let's rely on the user knowing the rule or blocking it if strictly needed.
-            // Actually, for consistency, let's allow editing but maybe show a warning icon?
-            // For now, allow direct edit.
-        }
-
         const num = parseInt(val) || 0;
         if (field === 'student') {
-            setStudentCount(num); // Optimistic update
-            // Debounce or save on blur? 
-            // Saving on every keystroke might be too much API call. 
-            // Let's save on BLUR for text inputs.
+            setStudentCount(num);
         } else if (field === 'allergy') {
             setAllergyCount(num);
         } else if (field === 'teacher') {
@@ -124,93 +109,96 @@ export default function CalendarCellClassless({
 
     const handleBlur = (field: 'student_count' | 'allergy_count' | 'teacher_count') => {
         if (isLocked) return;
-        // Trigger save with current state values
-        // We need to pass the specific value because state might not be updated in the closure?
-        // Actually state `studentCount` etc are in closure.
-
-        handleSave({}); // Just save current state
+        handleSave({});
     };
 
-    // Render Helpers
-    const getMealColor = () => {
-        if (!isServiceDay) return 'bg-gray-100 text-gray-300 border-transparent';
+    // Meal type badge styles
+    const getMealBadge = () => {
+        if (!isServiceDay) return { bg: 'bg-gray-100', text: 'text-gray-300', border: 'border-transparent', label: '-' };
         switch (mealType) {
-            case '通常': return 'bg-white border-gray-200 text-gray-600';
-            case '飯なし': return 'bg-gray-50 border-gray-200 text-gray-400';
-            case 'カレー': return 'bg-orange-50 border-orange-200 text-orange-600 font-bold';
-            default: return 'bg-white border-gray-100';
+            case '通常': return { bg: 'bg-gray-50', text: 'text-gray-400', border: 'border-gray-200', label: '通常' };
+            case '飯なし': return { bg: 'bg-gray-50', text: 'text-gray-400', border: 'border-gray-300', label: '飯なし' };
+            case 'カレー': return { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-300', label: 'カレー' };
+            default: return { bg: 'bg-white', text: 'text-gray-400', border: 'border-gray-100', label: mealType };
         }
     };
 
+    const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
+    const meal = getMealBadge();
+
+    // Non-service day: minimal cell
     if (!isServiceDay) {
         return (
-            <div className="aspect-square rounded-[1.25rem] bg-gray-50/50 border border-transparent p-2 flex flex-col items-center justify-center text-gray-300 opacity-50 relative">
-                <span className="text-xl font-black mb-1">{day}</span>
-                <span className="text-[10px]">-</span>
+            <div className="rounded-lg sm:rounded-[1.25rem] bg-gray-50/50 border border-transparent p-1 sm:p-2 flex items-center justify-center text-gray-300 opacity-50 min-h-[3rem] sm:min-h-[5rem]">
+                <span className="text-sm sm:text-xl font-black">{day}</span>
             </div>
         );
     }
 
     return (
-        <div className={`aspect-square rounded-[1.25rem] p-2 flex flex-col relative border transition-all shadow-sm group
+        <div className={`rounded-lg sm:rounded-[1.25rem] p-1 sm:p-2 flex flex-col relative border transition-all shadow-sm
             ${isLocked ? 'bg-gray-100 border-gray-200 opacity-60' : 'bg-white border-gray-100 hover:border-orange-200'}
         `}>
-            {/* Header: Date & Meal Type Badge */}
-            <div className="flex justify-between items-start mb-1">
-                <span className={`text-sm font-black leading-none ${new Date().getDate() === day && new Date().getMonth() + 1 === month ? 'text-orange-500' : 'text-gray-400'}`}>
+            {/* Header: Date + Meal Badge */}
+            <div className="flex justify-between items-center mb-0.5 sm:mb-1">
+                <span className={`text-[10px] sm:text-sm font-black leading-none ${isToday ? 'text-orange-500' : 'text-gray-400'}`}>
                     {day}
                 </span>
-
                 <button
                     onClick={toggleMealType}
                     disabled={isLocked || isSaving}
-                    className={`px-1.5 py-0.5 rounded-md border text-[10px] items-center transition-all ${getMealColor()} ${isSaving ? 'animate-pulse' : ''}`}
+                    className={`px-1 py-0.5 rounded border text-[7px] sm:text-[10px] font-black transition-all leading-none
+                        ${meal.bg} ${meal.text} ${meal.border} ${isSaving ? 'animate-pulse' : ''}`}
                 >
-                    {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : mealType}
+                    {isSaving ? <Loader2 className="w-2 h-2 sm:w-3 sm:h-3 animate-spin" /> : meal.label}
                 </button>
             </div>
 
-            {/* Inputs */}
-            <div className="flex-1 flex flex-col justify-center gap-1">
-                <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-300 font-bold">園児</span>
+            {/* Count Rows — compact on mobile */}
+            <div className="flex flex-col gap-0 sm:gap-1 flex-1 justify-center">
+                {/* Student */}
+                <div className="flex items-center gap-0.5">
+                    <span className="text-[7px] sm:text-[10px] text-gray-300 font-bold w-2 sm:w-auto shrink-0 sm:hidden">児</span>
+                    <span className="text-[7px] sm:text-[10px] text-gray-300 font-bold hidden sm:inline">園児</span>
                     <input
                         type="number"
                         value={studentCount}
                         onChange={(e) => handleCountChange('student', e.target.value)}
                         onBlur={() => handleBlur('student_count')}
                         disabled={isLocked}
-                        className="w-10 text-right text-sm font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700"
+                        className="w-full text-right text-[10px] sm:text-sm font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-0"
                     />
                 </div>
-                <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-300 font-bold">アレルギー</span>
+                {/* Allergy */}
+                <div className="flex items-center gap-0.5">
+                    <span className="text-[7px] sm:text-[10px] text-red-300 font-bold w-2 sm:w-auto shrink-0 sm:hidden">ア</span>
+                    <span className="text-[7px] sm:text-[10px] text-red-300 font-bold hidden sm:inline">アレルギー</span>
                     <input
                         type="number"
                         value={allergyCount}
                         onChange={(e) => handleCountChange('allergy', e.target.value)}
                         onBlur={() => handleBlur('allergy_count')}
                         disabled={isLocked}
-                        className={`w-10 text-right text-sm font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 ${allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
+                        className={`w-full text-right text-[10px] sm:text-sm font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 min-w-0 ${allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
                     />
                 </div>
-                <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-300 font-bold">先生</span>
+                {/* Teacher */}
+                <div className="flex items-center gap-0.5">
+                    <span className="text-[7px] sm:text-[10px] text-gray-300 font-bold w-2 sm:w-auto shrink-0 sm:hidden">先</span>
+                    <span className="text-[7px] sm:text-[10px] text-gray-300 font-bold hidden sm:inline">先生</span>
                     <input
                         type="number"
                         value={teacherCount}
                         onChange={(e) => handleCountChange('teacher', e.target.value)}
                         onBlur={() => handleBlur('teacher_count')}
                         disabled={isLocked}
-                        className="w-10 text-right text-sm font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700"
+                        className="w-full text-right text-[10px] sm:text-sm font-bold bg-transparent border-b border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-0"
                     />
                 </div>
             </div>
 
             {isLocked && (
-                <div className="absolute inset-0 bg-gray-100/10 pointer-events-none flex items-center justify-center">
-                    {/* Optional Lock Icon override or pattern */}
-                </div>
+                <div className="absolute inset-0 bg-gray-100/10 pointer-events-none" />
             )}
         </div>
     );
