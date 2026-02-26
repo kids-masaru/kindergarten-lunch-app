@@ -80,7 +80,7 @@ export default function CalendarCellClassless({
         }
     };
 
-    const toggleMealType = async () => {
+    const toggleMealType = async (newType: string) => {
         if (isLocked) {
             alert("締切を過ぎているため変更できません。");
             return;
@@ -89,10 +89,7 @@ export default function CalendarCellClassless({
             if (!confirm("3日前を過ぎた変更です。電話連絡が必要です。続けますか？")) return;
         }
 
-        const types = ['通常', '飯なし', 'カレー'];
-        const nextIndex = (types.indexOf(mealType) + 1) % types.length;
-        const nextType = types[nextIndex];
-        await handleSave({ meal_type: nextType });
+        await handleSave({ meal_type: newType });
     };
 
     const handleCountChange = async (field: 'student' | 'allergy' | 'teacher', val: string) => {
@@ -140,59 +137,71 @@ export default function CalendarCellClassless({
             ${isLocked ? 'bg-gray-100 border-gray-200 opacity-60' : 'bg-white border-gray-100 hover:border-orange-200'}
         `}>
             {/* Header: Date + Meal Badge */}
-            <div className="flex justify-between items-center mb-1.5 sm:mb-1">
-                <span className={`text-sm sm:text-sm font-black leading-none ${isToday ? 'text-orange-500' : 'text-gray-400'}`}>
+            <div className="flex justify-between items-center mb-1.5 sm:mb-2">
+                <span className={`text-sm sm:text-base font-black leading-none ${isToday ? 'text-orange-500' : 'text-gray-400'}`}>
                     {day}
                 </span>
-                <button
-                    onClick={toggleMealType}
-                    disabled={isLocked || isSaving}
-                    className={`px-1.5 py-1 rounded-md border text-[10px] font-black transition-all leading-none
-                        ${meal.bg} ${meal.text} ${meal.border} ${isSaving ? 'animate-pulse' : ''}`}
-                >
-                    {isSaving ? <Loader2 className="w-2 h-2 sm:w-3 sm:h-3 animate-spin" /> : meal.label}
-                </button>
+
+                <div className="relative">
+                    {/* The native select is styled to look like a badge */}
+                    <select
+                        value={mealType}
+                        onChange={(e) => toggleMealType(e.target.value)}
+                        disabled={isLocked || isSaving}
+                        className={`appearance-none outline-none pl-1.5 pr-4 py-1 rounded-md border text-[10px] sm:text-xs font-black transition-all leading-none cursor-pointer
+                            ${meal.bg} ${meal.text} ${meal.border} ${isSaving ? 'animate-pulse opacity-50' : ''}`}
+                    >
+                        <option value="通常">通常</option>
+                        <option value="飯なし">飯なし</option>
+                        <option value="カレー">カレー</option>
+                    </select>
+                    {/* Custom Dropdown Arrow */}
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-current opacity-50">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                    </div>
+                    {isSaving && <Loader2 className="absolute right-[-14px] top-1/2 -translate-y-1/2 w-3 h-3 animate-spin text-orange-500" />}
+                </div>
             </div>
 
-            {/* Count Rows — compact on mobile */}
-            <div className="flex flex-col gap-1.5 sm:gap-1 flex-1 justify-center mt-1">
+            {/* Count Rows — compact on mobile, stacked labels on desktop */}
+            <div className="flex flex-col gap-1.5 sm:gap-2 flex-1 justify-center mt-1">
                 {/* Student */}
-                <div className="flex items-center gap-1">
+                <div className="flex flex-row sm:flex-col items-center sm:items-end gap-1 sm:gap-0">
                     <span className="text-[11px] sm:text-[10px] text-gray-300 font-bold w-4 sm:w-auto shrink-0 sm:hidden">児</span>
-                    <span className="text-[10px] sm:text-[10px] text-gray-300 font-bold hidden sm:inline">園児</span>
+                    <span className="text-[10px] sm:text-[10px] text-gray-300 font-bold hidden sm:block text-right w-full">園児</span>
                     <input
                         type="number"
                         value={studentCount}
                         onChange={(e) => handleCountChange('student', e.target.value)}
                         onBlur={() => handleBlur('student_count')}
                         disabled={isLocked}
-                        className="w-full text-right text-base sm:text-sm font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-0"
+                        className="w-full text-right text-base sm:text-lg font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-[2rem]"
                     />
                 </div>
                 {/* Allergy */}
-                <div className="flex items-center gap-1">
+                <div className="flex flex-row sm:flex-col items-center sm:items-end gap-1 sm:gap-0">
                     <span className="text-[11px] sm:text-[10px] text-red-300 font-bold w-4 sm:w-auto shrink-0 sm:hidden">ア</span>
-                    <span className="text-[10px] sm:text-[10px] text-red-300 font-bold hidden sm:inline">アレルギー</span>
+                    <span className="text-[10px] sm:text-[10px] text-red-300 font-bold hidden sm:block text-right w-full">アレルギー</span>
                     <input
                         type="number"
                         value={allergyCount}
                         onChange={(e) => handleCountChange('allergy', e.target.value)}
                         onBlur={() => handleBlur('allergy_count')}
                         disabled={isLocked}
-                        className={`w-full text-right text-base sm:text-sm font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 min-w-0 ${allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
+                        className={`w-full text-right text-base sm:text-lg font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 min-w-[2rem] ${allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
                     />
                 </div>
                 {/* Teacher */}
-                <div className="flex items-center gap-1">
+                <div className="flex flex-row sm:flex-col items-center sm:items-end gap-1 sm:gap-0">
                     <span className="text-[11px] sm:text-[10px] text-gray-300 font-bold w-4 sm:w-auto shrink-0 sm:hidden">先</span>
-                    <span className="text-[10px] sm:text-[10px] text-gray-300 font-bold hidden sm:inline">先生</span>
+                    <span className="text-[10px] sm:text-[10px] text-gray-300 font-bold hidden sm:block text-right w-full">先生</span>
                     <input
                         type="number"
                         value={teacherCount}
                         onChange={(e) => handleCountChange('teacher', e.target.value)}
                         onBlur={() => handleBlur('teacher_count')}
                         disabled={isLocked}
-                        className="w-full text-right text-base sm:text-sm font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-0"
+                        className="w-full text-right text-base sm:text-lg font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-[2rem]"
                     />
                 </div>
             </div>
