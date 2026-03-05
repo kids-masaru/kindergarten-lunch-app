@@ -116,7 +116,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
     const handleSubmit = async () => {
         setSubmitting(true);
         try {
-            await updateKindergartenClasses(user.kindergarten_id, editableClasses);
+            await updateKindergartenClasses(user.kindergarten_id, editableClasses, true);
 
             const allOrders: Order[] = [];
 

@@ -1,8 +1,14 @@
 import os
 import datetime
+import threading
 import requests
 from typing import List, Optional
 from backend.sheets import get_system_settings, get_kindergartens, get_orders_for_month
+
+# --- Batching: group order notifications within a time window ---
+_order_buffer = {}   # key: (kindergarten_id, date) -> dict
+_buffer_lock = threading.Lock()
+BATCH_WINDOW_SECONDS = 5
 
 LOG_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'notifications.log')
 
@@ -102,6 +108,62 @@ def _format_template(template: str, variables: dict) -> str:
                 value = variables.get(field_name, "{" + field_name + "}")
                 result.append(str(value))
         return "".join(result)
+
+
+def _flush_order_batch(key):
+    """Called after BATCH_WINDOW_SECONDS — sends one combined email for all queued orders."""
+    with _buffer_lock:
+        if key not in _order_buffer:
+            return
+        entry = _order_buffer.pop(key)
+
+    lines = []
+    for cls_name, details in entry["changes"].items():
+        lines.append(f"【{cls_name}】\n{details}")
+
+    send_change_notification(
+        action="注文変更",
+        kindergarten_name=entry["kg_name"],
+        kindergarten_id=entry["kindergarten_id"],
+        class_name="複数クラス" if len(entry["changes"]) > 1 else next(iter(entry["changes"])),
+        target_date=entry["target_date"],
+        details="\n\n".join(lines),
+        contact_name=entry["contact_name"],
+        contact_email=entry["contact_email"],
+    )
+
+
+def queue_order_notification(
+    kindergarten_id: str,
+    kg_name: str,
+    class_name: str,
+    target_date: str,
+    details: str,
+    contact_name: str = "",
+    contact_email: str = "",
+):
+    """
+    Buffers order change notifications and sends one combined email
+    after BATCH_WINDOW_SECONDS of inactivity for the same kindergarten+date.
+    """
+    key = (kindergarten_id, target_date)
+    with _buffer_lock:
+        if key in _order_buffer:
+            _order_buffer[key]["timer"].cancel()
+            _order_buffer[key]["changes"][class_name] = details
+        else:
+            _order_buffer[key] = {
+                "kindergarten_id": kindergarten_id,
+                "kg_name": kg_name,
+                "target_date": target_date,
+                "contact_name": contact_name,
+                "contact_email": contact_email,
+                "changes": {class_name: details},
+            }
+        timer = threading.Timer(BATCH_WINDOW_SECONDS, _flush_order_batch, args=[key])
+        timer.daemon = True
+        timer.start()
+        _order_buffer[key]["timer"] = timer
 
 
 def send_change_notification(

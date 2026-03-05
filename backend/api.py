@@ -70,6 +70,7 @@ class ClassUpdateItem(BaseModel):
 
 class ClassListUpdateRequest(BaseModel):
     classes: List[ClassUpdateItem]
+    skip_notify: bool = False  # True when called from monthly setup
 
 class KindergartenUpdateRequest(BaseModel):
     kindergarten_id: str
@@ -190,7 +191,10 @@ def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRe
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update classes in sheet")
 
-        # Send notification in background thread (non-blocking)
+        # Send notification in background thread (skip if called from monthly setup)
+        if request.skip_notify:
+            return {"status": "success", "message": "Classes updated", "scheduled_date": scheduled_date}
+
         classes_snapshot = list(request.classes)
         _scheduled = scheduled_date
 
@@ -275,24 +279,23 @@ def create_order(order: OrderItem):
     if not success:
         raise HTTPException(status_code=500, detail="Failed to save order")
 
-    # Send notification in background thread (non-blocking)
+    # Queue notification (batched per kindergarten+date within 5 seconds)
     order_snapshot = order.model_dump()
     def _notify():
         try:
-            from backend.notifications import send_change_notification
+            from backend.notifications import queue_order_notification
             kindergartens = get_kindergartens()
             kg = next((k for k in kindergartens if k.kindergarten_id == order_snapshot["kindergarten_id"]), None)
             details = (
-                f"園児数: {order_snapshot['student_count']}\n"
-                f"アレルギー: {order_snapshot['allergy_count']}\n"
-                f"先生: {order_snapshot['teacher_count']}"
+                f"園児数: {order_snapshot['student_count']}名\n"
+                f"アレルギー: {order_snapshot['allergy_count']}名\n"
+                f"先生: {order_snapshot['teacher_count']}名"
             )
             if order_snapshot.get("memo"):
                 details += f"\nメモ: {order_snapshot['memo']}"
-            send_change_notification(
-                action="注文変更",
-                kindergarten_name=kg.name if kg else order_snapshot["kindergarten_id"],
+            queue_order_notification(
                 kindergarten_id=order_snapshot["kindergarten_id"],
+                kg_name=kg.name if kg else order_snapshot["kindergarten_id"],
                 class_name=order_snapshot["class_name"],
                 target_date=order_snapshot["date"],
                 details=details,
@@ -312,14 +315,38 @@ def create_orders_bulk(orders: List[OrderItem]):
     data = []
     for o in orders:
         if is_order_locked(o.date):
-            continue # Skip locked orders during bulk init
+            continue
         if not o.order_id:
             o.order_id = f"{o.date}_{o.kindergarten_id}_{o.class_name}"
         data.append(o.model_dump())
-    
+
     success = batch_save_orders(data)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to save bulk orders")
+
+    # Send single monthly summary notification
+    if data:
+        first = data[0]
+        date_obj = datetime.strptime(first["date"], "%Y-%m-%d")
+        def _notify_bulk():
+            try:
+                from backend.notifications import send_change_notification
+                kindergartens = get_kindergartens()
+                kg = next((k for k in kindergartens if k.kindergarten_id == first["kindergarten_id"]), None)
+                send_change_notification(
+                    action=f"{date_obj.year}年{date_obj.month}月分 月次申請",
+                    kindergarten_name=kg.name if kg else first["kindergarten_id"],
+                    kindergarten_id=first["kindergarten_id"],
+                    class_name="(月次申請)",
+                    target_date=f"{date_obj.year}-{date_obj.month:02d}",
+                    details=f"{date_obj.year}年{date_obj.month}月分の申請が完了しました。\n対象件数: {len(data)}件",
+                    contact_name=kg.contact_name if kg else "",
+                    contact_email=kg.contact_email if kg else "",
+                )
+            except Exception as e:
+                print(f"[WARNING] Bulk notification failed: {e}")
+        threading.Thread(target=_notify_bulk, daemon=True).start()
+
     return {"status": "success", "count": len(orders)}
 
 
