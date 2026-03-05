@@ -1,8 +1,6 @@
 import os
 import datetime
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
 from typing import List, Optional
 from backend.sheets import get_system_settings, get_kindergartens, get_orders_for_month
 
@@ -56,34 +54,36 @@ def _log_email(to: str, subject: str, body: str):
 
 
 def _send_email(to: str, subject: str, body: str):
-    """Sends an email via SMTP if configured, otherwise logs to file."""
-    smtp_host = os.getenv("SMTP_HOST", "")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASS", "")
-    smtp_from = os.getenv("SMTP_FROM", smtp_user)
+    """Sends an email via Resend API if configured, otherwise logs to file."""
+    api_key = os.getenv("RESEND_API_KEY", "")
+    from_addr = os.getenv("RESEND_FROM", "ママミレ通知 <onboarding@resend.dev>")
 
-    if not smtp_host or not smtp_user:
+    if not api_key:
         _log_email(to, subject, body)
         return
 
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = smtp_from
-        msg["To"] = to
-        msg.attach(MIMEText(body, "plain", "utf-8"))
-
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            server.login(smtp_user, smtp_pass)
-            server.sendmail(smtp_from, [to], msg.as_string())
-
-        print(f"[NOTIFICATION] Email sent to {to}: {subject}")
+        resp = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": from_addr,
+                "to": [to],
+                "subject": subject,
+                "text": body,
+            },
+            timeout=15,
+        )
+        if resp.status_code in (200, 201):
+            print(f"[NOTIFICATION] Email sent to {to}: {subject}")
+        else:
+            print(f"[WARNING] Resend API error {resp.status_code}: {resp.text}")
+            _log_email(to, subject, body)
     except Exception as e:
-        print(f"[WARNING] SMTP send failed ({e}), falling back to log.")
+        print(f"[WARNING] Resend send failed ({e}), falling back to log.")
         _log_email(to, subject, body)
 
 
