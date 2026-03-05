@@ -19,12 +19,14 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
     const [mealType, setMealType] = useState('通常'); // Used for Bulk Apply
     // Include order_id and meal_type in state to track per-class orders
     const [classOrders, setClassOrders] = useState<Record<string, { order_id?: string, meal_type: string, student: number, allergy: number, teacher: number, memo: string }>>({});
+    const [prevOrders, setPrevOrders] = useState<Record<string, { student: number, allergy: number, teacher: number } | null>>({});
     const [loading, setLoading] = useState(false);
 
     // Initial State Setup
     useEffect(() => {
         if (isOpen) {
             const initialOrders: any = {};
+            const initialPrev: any = {};
             // Determine bulk meal type from first order if exists, otherwise "通常"
             const firstOrder = existingOrders[0];
             if (firstOrder) setMealType(firstOrder.meal_type); // This is just for initial UI state of bulk selector
@@ -40,8 +42,15 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                     teacher: order ? order.teacher_count : cls.default_teacher_count,
                     memo: order ? (order.memo || "") : ""
                 };
+                // Track "before" values (only if an existing order exists)
+                initialPrev[cls.class_name] = order ? {
+                    student: order.student_count,
+                    allergy: order.allergy_count,
+                    teacher: order.teacher_count,
+                } : null;
             });
             setClassOrders(initialOrders);
+            setPrevOrders(initialPrev);
         }
     }, [isOpen, classes, existingOrders]);
 
@@ -94,6 +103,7 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
             // Save order for each class
             const promises = classes.map(cls => {
                 const data = classOrders[cls.class_name];
+                const prev = prevOrders[cls.class_name];
                 const orderData: Order = {
                     order_id: data.order_id, // include ID if exists
                     kindergarten_id: user.kindergarten_id,
@@ -103,7 +113,13 @@ export default function OrderModal({ date, isOpen, onClose, user, classes, exist
                     student_count: data.student,
                     allergy_count: data.allergy,
                     teacher_count: data.teacher,
-                    memo: data.memo
+                    memo: data.memo,
+                    // Include prev counts when updating an existing order
+                    ...(prev ? {
+                        prev_student_count: prev.student,
+                        prev_allergy_count: prev.allergy,
+                        prev_teacher_count: prev.teacher,
+                    } : {})
                 };
                 return saveOrder(orderData);
             });

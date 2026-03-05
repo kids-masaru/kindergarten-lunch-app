@@ -27,6 +27,9 @@ export interface Order {
     teacher_count: number;
     memo?: string;
     updated_at?: string;
+    prev_student_count?: number;
+    prev_allergy_count?: number;
+    prev_teacher_count?: number;
 }
 
 export interface ClassMaster {

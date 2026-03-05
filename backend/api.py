@@ -46,6 +46,9 @@ class OrderItem(BaseModel):
     allergy_count: int
     teacher_count: int
     memo: Optional[str] = ""
+    prev_student_count: Optional[int] = None
+    prev_allergy_count: Optional[int] = None
+    prev_teacher_count: Optional[int] = None
 
 class MonthRequest(BaseModel):
     year: int
@@ -286,13 +289,22 @@ def create_order(order: OrderItem):
             from backend.notifications import queue_order_notification
             kindergartens = get_kindergartens()
             kg = next((k for k in kindergartens if k.kindergarten_id == order_snapshot["kindergarten_id"]), None)
-            details = (
-                f"園児数: {order_snapshot['student_count']}名\n"
-                f"アレルギー: {order_snapshot['allergy_count']}名\n"
-                f"先生: {order_snapshot['teacher_count']}名"
-            )
+
+            def _fmt_change(label: str, prev, curr: int) -> str:
+                if prev is not None and prev != curr:
+                    return f"{label}: {prev}名 → {curr}名"
+                return f"{label}: {curr}名"
+
+            details = "\n".join([
+                _fmt_change("園児数", order_snapshot.get("prev_student_count"), order_snapshot["student_count"]),
+                _fmt_change("アレルギー", order_snapshot.get("prev_allergy_count"), order_snapshot["allergy_count"]),
+                _fmt_change("先生", order_snapshot.get("prev_teacher_count"), order_snapshot["teacher_count"]),
+            ])
             if order_snapshot.get("memo"):
                 details += f"\nメモ: {order_snapshot['memo']}"
+
+            contact_email = kg.contact_email if kg else ""
+            print(f"[NOTIFY] class={order_snapshot['class_name']} contact_email={contact_email!r}")
             queue_order_notification(
                 kindergarten_id=order_snapshot["kindergarten_id"],
                 kg_name=kg.name if kg else order_snapshot["kindergarten_id"],
@@ -300,7 +312,7 @@ def create_order(order: OrderItem):
                 target_date=order_snapshot["date"],
                 details=details,
                 contact_name=kg.contact_name if kg else "",
-                contact_email=kg.contact_email if kg else "",
+                contact_email=contact_email,
             )
         except Exception as e:
             print(f"[WARNING] Notification failed: {e}")
