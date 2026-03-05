@@ -173,9 +173,8 @@ def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRe
     print(f"[DEBUG] Received class update for {kindergarten_id}")
     try:
         data_to_save = [c.model_dump() for c in request.classes]
-        
+
         # Detect scheduled_date: if ALL classes have the same effective_from, use it.
-        # Otherwise, fall back to immediate mode (today's date).
         scheduled_date = None
         effective_dates = set(c.effective_from for c in request.classes if c.effective_from)
         if len(effective_dates) == 1:
@@ -184,12 +183,42 @@ def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRe
             if candidate > today:
                 scheduled_date = candidate
                 print(f"[DEBUG] Scheduled mode: effective_from={scheduled_date}")
-        
+
         success = update_sheets_classes(kindergarten_id, data_to_save, scheduled_date=scheduled_date)
-        
+
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update classes in sheet")
-            
+
+        # Send notification about class master update
+        try:
+            from backend.notifications import send_change_notification
+            kindergartens = get_kindergartens()
+            kg = next((k for k in kindergartens if k.kindergarten_id == kindergarten_id), None)
+
+            lines = []
+            for c in request.classes:
+                lines.append(
+                    f"{c.class_name}: 園児 {c.default_student_count}名 / "
+                    f"アレルギー {c.default_allergy_count}名 / "
+                    f"先生 {c.default_teacher_count}名"
+                )
+            details = "\n".join(lines)
+            if scheduled_date:
+                details += f"\n（適用日: {scheduled_date}）"
+
+            send_change_notification(
+                action="クラスマスター変更",
+                kindergarten_name=kg.name if kg else kindergarten_id,
+                kindergarten_id=kindergarten_id,
+                class_name="(全クラス)",
+                target_date=scheduled_date or datetime.now().strftime("%Y-%m-%d"),
+                details=details,
+                contact_name=kg.contact_name if kg else "",
+                contact_email=kg.contact_email if kg else "",
+            )
+        except Exception as e:
+            print(f"[WARNING] Notification failed: {e}")
+
         return {"status": "success", "message": "Classes updated", "scheduled_date": scheduled_date}
     except Exception as e:
         print(f"[CRITICAL ERROR] {str(e)}")
@@ -235,13 +264,64 @@ def create_order(order: OrderItem):
     if is_order_locked(order.date):
         raise HTTPException(status_code=400, detail="Deadline passed (15:00 day before). Changes are not allowed.")
 
-    # For compatibility, this still handles single order but uses batch_save_orders
+    # Fetch existing order for before/after comparison
+    before_order = None
+    try:
+        date_obj = datetime.strptime(order.date, "%Y-%m-%d")
+        existing = get_orders_for_month(order.kindergarten_id, date_obj.year, date_obj.month)
+        for o in existing:
+            if o.class_name == order.class_name and o.date == order.date:
+                before_order = o
+                break
+    except Exception as e:
+        print(f"[WARNING] Could not fetch before-order: {e}")
+
     if not order.order_id:
         order.order_id = f"{order.date}_{order.kindergarten_id}_{order.class_name}"
-    
+
     success = batch_save_orders([order.model_dump()])
     if not success:
         raise HTTPException(status_code=500, detail="Failed to save order")
+
+    # Send change notification in background
+    try:
+        from backend.notifications import send_change_notification
+        kindergartens = get_kindergartens()
+        kg = next((k for k in kindergartens if k.kindergarten_id == order.kindergarten_id), None)
+
+        if before_order:
+            details = (
+                f"園児数: {before_order.student_count} → {order.student_count} "
+                f"（変化: {order.student_count - before_order.student_count:+d}）\n"
+                f"アレルギー: {before_order.allergy_count} → {order.allergy_count} "
+                f"（変化: {order.allergy_count - before_order.allergy_count:+d}）\n"
+                f"先生: {before_order.teacher_count} → {order.teacher_count} "
+                f"（変化: {order.teacher_count - before_order.teacher_count:+d}）"
+            )
+            if order.memo:
+                details += f"\nメモ: {order.memo}"
+        else:
+            details = (
+                f"園児数: {order.student_count}\n"
+                f"アレルギー: {order.allergy_count}\n"
+                f"先生: {order.teacher_count}"
+            )
+            if order.memo:
+                details += f"\nメモ: {order.memo}"
+
+        send_change_notification(
+            action="注文変更",
+            kindergarten_name=kg.name if kg else order.kindergarten_id,
+            kindergarten_id=order.kindergarten_id,
+            class_name=order.class_name,
+            target_date=order.date,
+            details=details,
+            contact_name=kg.contact_name if kg else "",
+            contact_email=kg.contact_email if kg else "",
+        )
+    except Exception as e:
+        print(f"[WARNING] Notification failed: {e}")
+
     return {"status": "success", "order_id": order.order_id}
 
 @router.post("/orders/bulk")
@@ -497,12 +577,21 @@ def get_system_info():
         
     # Merge with Admin settings
     settings = get_system_settings() or {}
-    
+
+    from backend.notifications import (
+        DEFAULT_ADMIN_TEMPLATE_SUBJECT, DEFAULT_ADMIN_TEMPLATE_BODY,
+        DEFAULT_CUSTOMER_TEMPLATE_SUBJECT, DEFAULT_CUSTOMER_TEMPLATE_BODY,
+    )
+
     return {
         "service_account_email": email,
         "drive_folder_config": folder_status,
         "admin_emails": settings.get("admin_emails", ""),
-        "reminder_days": settings.get("reminder_days", "5,3")
+        "reminder_days": settings.get("reminder_days", "5,3"),
+        "email_template_admin_subject": settings.get("email_template_admin_subject", DEFAULT_ADMIN_TEMPLATE_SUBJECT),
+        "email_template_admin_body": settings.get("email_template_admin_body", DEFAULT_ADMIN_TEMPLATE_BODY),
+        "email_template_customer_subject": settings.get("email_template_customer_subject", DEFAULT_CUSTOMER_TEMPLATE_SUBJECT),
+        "email_template_customer_body": settings.get("email_template_customer_body", DEFAULT_CUSTOMER_TEMPLATE_BODY),
     }
 
 @router.post("/admin/system-settings")
