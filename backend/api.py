@@ -268,18 +268,6 @@ def create_order(order: OrderItem):
     if is_order_locked(order.date):
         raise HTTPException(status_code=400, detail="Deadline passed (15:00 day before). Changes are not allowed.")
 
-    # Fetch existing order for before/after comparison
-    before_order = None
-    try:
-        date_obj = datetime.strptime(order.date, "%Y-%m-%d")
-        existing = get_orders_for_month(order.kindergarten_id, date_obj.year, date_obj.month)
-        for o in existing:
-            if o.class_name == order.class_name and o.date == order.date:
-                before_order = o
-                break
-    except Exception as e:
-        print(f"[WARNING] Could not fetch before-order: {e}")
-
     if not order.order_id:
         order.order_id = f"{order.date}_{order.kindergarten_id}_{order.class_name}"
 
@@ -288,38 +276,25 @@ def create_order(order: OrderItem):
         raise HTTPException(status_code=500, detail="Failed to save order")
 
     # Send notification in background thread (non-blocking)
+    order_snapshot = order.model_dump()
     def _notify():
         try:
             from backend.notifications import send_change_notification
             kindergartens = get_kindergartens()
-            kg = next((k for k in kindergartens if k.kindergarten_id == order.kindergarten_id), None)
-
-            if before_order:
-                details = (
-                    f"園児数: {before_order.student_count} → {order.student_count} "
-                    f"（変化: {order.student_count - before_order.student_count:+d}）\n"
-                    f"アレルギー: {before_order.allergy_count} → {order.allergy_count} "
-                    f"（変化: {order.allergy_count - before_order.allergy_count:+d}）\n"
-                    f"先生: {before_order.teacher_count} → {order.teacher_count} "
-                    f"（変化: {order.teacher_count - before_order.teacher_count:+d}）"
-                )
-                if order.memo:
-                    details += f"\nメモ: {order.memo}"
-            else:
-                details = (
-                    f"園児数: {order.student_count}\n"
-                    f"アレルギー: {order.allergy_count}\n"
-                    f"先生: {order.teacher_count}"
-                )
-                if order.memo:
-                    details += f"\nメモ: {order.memo}"
-
+            kg = next((k for k in kindergartens if k.kindergarten_id == order_snapshot["kindergarten_id"]), None)
+            details = (
+                f"園児数: {order_snapshot['student_count']}\n"
+                f"アレルギー: {order_snapshot['allergy_count']}\n"
+                f"先生: {order_snapshot['teacher_count']}"
+            )
+            if order_snapshot.get("memo"):
+                details += f"\nメモ: {order_snapshot['memo']}"
             send_change_notification(
                 action="注文変更",
-                kindergarten_name=kg.name if kg else order.kindergarten_id,
-                kindergarten_id=order.kindergarten_id,
-                class_name=order.class_name,
-                target_date=order.date,
+                kindergarten_name=kg.name if kg else order_snapshot["kindergarten_id"],
+                kindergarten_id=order_snapshot["kindergarten_id"],
+                class_name=order_snapshot["class_name"],
+                target_date=order_snapshot["date"],
                 details=details,
                 contact_name=kg.contact_name if kg else "",
                 contact_email=kg.contact_email if kg else "",
@@ -608,6 +583,23 @@ def update_admin_settings(data: Dict):
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update system settings")
     return {"status": "success"}
+@router.post("/admin/test-email")
+def test_email(data: Dict):
+    """Send a test email directly — no Sheets access, SMTP only."""
+    to = data.get("to", "")
+    if not to:
+        raise HTTPException(status_code=400, detail="'to' email address required")
+    try:
+        from backend.notifications import _send_email
+        _send_email(
+            to=to,
+            subject="【ママミレ】テストメール",
+            body=f"これはテストメールです。\n送信日時: {datetime.now().strftime('%Y/%m/%d %H:%M:%S')}\n\n---\nママミレ (MamaMiRe) システム",
+        )
+        return {"status": "success", "message": f"Test email sent to {to}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/admin/run-reminders")
 def run_reminders_check():
     """Manually triggers the reminder check."""
