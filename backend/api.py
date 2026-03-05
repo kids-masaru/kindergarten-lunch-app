@@ -586,9 +586,15 @@ def update_admin_settings(data: Dict):
 @router.post("/admin/test-email")
 def test_email(data: Dict):
     """Send a test email directly — no Sheets access, SMTP only."""
+    import os
     to = data.get("to", "")
     if not to:
         raise HTTPException(status_code=400, detail="'to' email address required")
+
+    smtp_host = os.getenv("SMTP_HOST", "")
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_configured = bool(smtp_host and smtp_user)
+
     try:
         from backend.notifications import _send_email
         _send_email(
@@ -596,7 +602,8 @@ def test_email(data: Dict):
             subject="【ママミレ】テストメール",
             body=f"これはテストメールです。\n送信日時: {datetime.now().strftime('%Y/%m/%d %H:%M:%S')}\n\n---\nママミレ (MamaMiRe) システム",
         )
-        return {"status": "success", "message": f"Test email sent to {to}"}
+        mode = "SMTP" if smtp_configured else "LOG(SMTP未設定)"
+        return {"status": "success", "message": f"Test email processed via {mode} to {to}", "smtp_configured": smtp_configured}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
