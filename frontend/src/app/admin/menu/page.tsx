@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses } from '@/lib/api';
-import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, Save, Trash2 } from 'lucide-react';
+import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, ArrowLeft, Save, Trash2 } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
 
 // --- Kindergarten Editor Component ---
@@ -440,6 +440,9 @@ export default function AdminConsole() {
     const [systemInfo, setSystemInfo] = useState<any>(null);
     const [showSettings, setShowSettings] = useState(false);
 
+    // Dashboard navigation
+    const [activeSection, setActiveSection] = useState<'menu' | 'kindergarten' | null>(null);
+
 
     const fetchKindergartens = () => {
         getKindergartens().then(res => {
@@ -527,215 +530,227 @@ export default function AdminConsole() {
     };
 
     return (
-        <div className="min-h-screen bg-orange-50/50 p-4 md:p-8">
-            <div className="max-w-5xl mx-auto space-y-6">
+        <div className="min-h-screen bg-orange-50/50 p-4 md:p-6">
+            <div className="max-w-4xl mx-auto space-y-5">
 
-                {/* Header Card */}
-                <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-orange-100 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-6">
-                        <div className="p-4 bg-white rounded-2xl shadow-orange-200 shadow-md flex items-center justify-center">
-                            <img src="/icon-mamamire.png" className="w-16 h-16 object-contain" alt="MamaMiRe" />
-                        </div>
+                {/* Compact Header */}
+                <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-3">
+                        {activeSection && (
+                            <button
+                                onClick={() => setActiveSection(null)}
+                                className="p-2 hover:bg-orange-100 rounded-xl transition-colors"
+                            >
+                                <ArrowLeft className="w-5 h-5 text-orange-500" />
+                            </button>
+                        )}
+                        <img src="/icon-mamamire.png" className="w-7 h-7 object-contain" alt="MamaMiRe" />
                         <div>
-                            <h1 className="text-3xl font-black text-gray-800 tracking-tight">
+                            <h1 className="text-base font-black text-gray-800 leading-tight">
                                 <span className="text-orange-600">ママミレ</span> 管理ポータル
                             </h1>
-                            <p className="text-gray-500 text-sm font-medium italic">MamaMiRe: Admin Portal</p>
+                            {activeSection === 'menu' && <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">献立作成</p>}
+                            {activeSection === 'kindergarten' && <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">幼稚園マスター</p>}
                         </div>
                     </div>
                     <button
                         onClick={() => setShowSettings(true)}
-                        className="flex items-center gap-2 bg-white text-gray-600 px-6 py-3 rounded-2xl font-black text-sm hover:bg-orange-50 transition-all border border-orange-100 shadow-sm"
+                        className="flex items-center gap-2 bg-white text-gray-500 px-4 py-2 rounded-xl font-bold text-xs hover:bg-orange-50 transition-all border border-orange-100 shadow-sm"
                     >
-                        <SettingsIcon className="w-4 h-4" /> システム設定
+                        <SettingsIcon className="w-3.5 h-3.5" /> システム設定
                     </button>
                 </div>
 
-                <div className="space-y-6">
-                    {/* Master Upload (Moved to top level) */}
-                    <div className="bg-white rounded-3xl shadow-sm border border-orange-100 overflow-hidden">
-                        <div className="bg-orange-50/50 px-6 py-4 border-b border-orange-50 flex items-center justify-between">
-                            <h2 className="text-sm font-bold text-orange-700 flex items-center gap-2">
-                                <Upload className="w-4 h-4" />
-                                献立マスターのアップロード
-                            </h2>
-                            {systemInfo && (
-                                <div className="text-[10px] text-gray-400 font-bold flex items-center gap-2">
-                                    Drive API:
-                                    <span className={systemInfo.drive_folder_config.includes("Configured") ? "text-green-500" : "text-red-400"}>
-                                        {systemInfo.drive_folder_config.includes("Configured") ? "CONNECTED" : "OFFLINE"}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                        <div className="p-6">
-                            <div className="flex flex-col md:flex-row gap-6 items-end">
-                                <div className="w-full md:w-32">
-                                    <label className="text-[10px] uppercase font-bold text-gray-400 mb-2 block">対象年月</label>
-                                    <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-2xl border border-gray-100 focus-within:ring-2 ring-orange-100 transition-all">
-                                        <input type="number" value={year} onChange={e => setYear(parseInt(e.target.value))} className="bg-transparent w-full font-bold text-gray-700 outline-none text-center" />
-                                        <span className="text-gray-300">/</span>
-                                        <input type="number" value={month} onChange={e => setMonth(parseInt(e.target.value))} className="bg-transparent w-full font-bold text-gray-700 outline-none text-center" />
-                                    </div>
-                                </div>
+                {/* Dashboard */}
+                {!activeSection && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {/* 献立作成 */}
+                        <button
+                            onClick={() => setActiveSection('menu')}
+                            className="bg-white rounded-2xl border border-orange-100 shadow-sm p-6 flex flex-col items-center gap-3 hover:bg-orange-50/50 hover:shadow-md hover:border-orange-200 transition-all group"
+                        >
+                            <div className="p-3 bg-orange-100 rounded-xl group-hover:bg-orange-200 transition-colors">
+                                <Upload className="w-6 h-6 text-orange-600" />
+                            </div>
+                            <div className="text-center">
+                                <p className="font-black text-gray-800 text-sm">献立作成</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">マスターアップロード</p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-500 transition-colors" />
+                        </button>
 
-                                <div className="flex-1 w-full relative group">
-                                    <div className="relative h-14 w-full border-2 border-dashed border-orange-100 rounded-2xl group-hover:border-orange-300 transition-colors flex items-center justify-center gap-3 px-4 bg-orange-50/20">
-                                        <input
-                                            type="file"
-                                            accept=".xlsx, .xls"
-                                            onChange={handleFileChange}
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                        />
-                                        <Upload className={`w-5 h-5 ${file ? 'text-green-500' : 'text-orange-300'}`} />
-                                        <span className="text-xs font-bold text-gray-500 truncate">
-                                            {file ? file.name : "メニューExcelを選択またはドラッグ＆ドロップ"}
+                        {/* 幼稚園マスター */}
+                        <button
+                            onClick={() => setActiveSection('kindergarten')}
+                            className="bg-white rounded-2xl border border-orange-100 shadow-sm p-6 flex flex-col items-center gap-3 hover:bg-orange-50/50 hover:shadow-md hover:border-orange-200 transition-all group"
+                        >
+                            <div className="p-3 bg-blue-50 rounded-xl group-hover:bg-blue-100 transition-colors">
+                                <img src="/icon-mamamire.png" className="w-6 h-6 object-contain" alt="" />
+                            </div>
+                            <div className="text-center">
+                                <p className="font-black text-gray-800 text-sm">幼稚園マスター</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">施設・クラス管理</p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-500 transition-colors" />
+                        </button>
+
+                        {/* 数出表・納品書 - grayed out */}
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-3 opacity-40 cursor-not-allowed">
+                            <div className="p-3 bg-gray-100 rounded-xl">
+                                <FileDown className="w-6 h-6 text-gray-400" />
+                            </div>
+                            <div className="text-center">
+                                <p className="font-black text-gray-500 text-sm">数出表・納品書</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">集計・帳票出力</p>
+                            </div>
+                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
+                        </div>
+
+                        {/* シール作成 - grayed out */}
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-3 opacity-40 cursor-not-allowed">
+                            <div className="p-3 bg-gray-100 rounded-xl">
+                                <Copy className="w-6 h-6 text-gray-400" />
+                            </div>
+                            <div className="text-center">
+                                <p className="font-black text-gray-500 text-sm">シール作成</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">ラベル印刷</p>
+                            </div>
+                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* 献立作成 Section */}
+                {activeSection === 'menu' && (
+                    <div className="space-y-4">
+                        {/* Upload card */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden">
+                            <div className="bg-orange-50/50 px-6 py-4 border-b border-orange-50 flex items-center justify-between">
+                                <h2 className="text-sm font-bold text-orange-700 flex items-center gap-2">
+                                    <Upload className="w-4 h-4" />
+                                    献立マスターのアップロード
+                                </h2>
+                                {systemInfo && (
+                                    <div className="text-[10px] text-gray-400 font-bold flex items-center gap-2">
+                                        Drive API:
+                                        <span className={systemInfo.drive_folder_config.includes("Configured") ? "text-green-500" : "text-red-400"}>
+                                            {systemInfo.drive_folder_config.includes("Configured") ? "CONNECTED" : "OFFLINE"}
                                         </span>
                                     </div>
-                                </div>
-
-                                <button
-                                    onClick={handleUpload}
-                                    disabled={isUploading || !file}
-                                    className={`w-full md:w-48 py-4 rounded-2xl font-bold text-white shadow-lg transition-all active:scale-[0.98]
-                                        ${isUploading || !file ? 'bg-gray-200 cursor-not-allowed text-gray-400 shadow-none' : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 hover:shadow-orange-200'}`}
-                                >
-                                    {isUploading ? <Loader2 className="animate-spin mx-auto w-5 h-5" /> : 'マスター取り込み開始'}
-                                </button>
+                                )}
                             </div>
-
-                            {status && (
-                                <div className={`mt-4 p-3 rounded-xl flex items-center gap-3 text-xs ${status.includes('Failed') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
-                                    {status.includes('Failed') ? <AlertCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                                    <span className="font-medium">{status}</span>
+                            <div className="p-6">
+                                <div className="flex flex-col md:flex-row gap-4 items-end">
+                                    <div className="w-full md:w-32">
+                                        <label className="text-[10px] uppercase font-bold text-gray-400 mb-2 block">対象年月</label>
+                                        <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-xl border border-gray-100 focus-within:ring-2 ring-orange-100 transition-all">
+                                            <input type="number" value={year} onChange={e => setYear(parseInt(e.target.value))} className="bg-transparent w-full font-bold text-gray-700 outline-none text-center" />
+                                            <span className="text-gray-300">/</span>
+                                            <input type="number" value={month} onChange={e => setMonth(parseInt(e.target.value))} className="bg-transparent w-full font-bold text-gray-700 outline-none text-center" />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 w-full relative group">
+                                        <div className="relative h-14 w-full border-2 border-dashed border-orange-100 rounded-xl group-hover:border-orange-300 transition-colors flex items-center justify-center gap-3 px-4 bg-orange-50/20">
+                                            <input
+                                                type="file"
+                                                accept=".xlsx, .xls"
+                                                onChange={handleFileChange}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                            />
+                                            <Upload className={`w-5 h-5 ${file ? 'text-green-500' : 'text-orange-300'}`} />
+                                            <span className="text-xs font-bold text-gray-500 truncate">
+                                                {file ? file.name : "メニューExcelを選択またはドラッグ＆ドロップ"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={handleUpload}
+                                        disabled={isUploading || !file}
+                                        className={`w-full md:w-40 py-4 rounded-xl font-bold text-white shadow-md transition-all active:scale-[0.98]
+                                            ${isUploading || !file ? 'bg-gray-200 cursor-not-allowed text-gray-400 shadow-none' : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700'}`}
+                                    >
+                                        {isUploading ? <Loader2 className="animate-spin mx-auto w-5 h-5" /> : 'マスター取り込み'}
+                                    </button>
                                 </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Kindergarten Master Table */}
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden min-h-[500px]">
-                        <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-                            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-3">
-                                <img src="/icon-mamamire.png" className="w-8 h-8 object-contain" alt="Logo" />
-                                幼稚園・施設マスター
-                            </h2>
-                            <span className="text-xs font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">
-                                登録数: {kindergartens.length}
-                            </span>
+                                {status && (
+                                    <div className={`mt-4 p-3 rounded-xl flex items-center gap-3 text-xs ${status.includes('Failed') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                                        {status.includes('Failed') ? <AlertCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                                        <span className="font-medium">{status}</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="bg-gray-50/50 border-b border-gray-100">
-                                        <th className="px-8 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">ID</th>
-                                        <th className="px-4 py-4 text-xs font-bold text-gray-600">園名 / 担当者</th>
-                                        <th className="px-4 py-4 text-xs font-bold text-gray-600 text-center">稼働日</th>
-                                        <th className="px-4 py-4 text-xs font-bold text-gray-600 text-center">スープ</th>
-                                        <th className="px-4 py-4 text-xs font-bold text-gray-600">設定済みメニュー</th>
-                                        <th className="px-4 py-4 text-xs font-bold text-gray-600">カレー項目</th>
-                                        <th className="px-8 py-4 text-xs font-bold text-gray-600 text-right">アクション</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {kindergartens.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={7} className="py-20 text-center">
-                                                <AlertCircle className="w-12 h-12 mx-auto text-gray-100 mb-2" />
-                                                <p className="text-gray-400 font-bold">幼稚園が見つかりません</p>
-                                            </td>
-                                        </tr>
-                                    ) : kindergartens.map(k => (
-                                        <tr
+                        {/* 献立生成 (result) */}
+                        {result && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+                                <h3 className="text-sm font-bold text-green-700 mb-4 flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4" /> 取り込み完了 — 幼稚園別に献立表を生成
+                                </h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {kindergartens.map(k => (
+                                        <button
                                             key={k.kindergarten_id}
-                                            onClick={() => { setEditingK(k); setShowEditor(true); }}
-                                            className="border-b border-gray-50 hover:bg-orange-50/10 transition-colors group cursor-pointer"
+                                            onClick={() => handleDownload(k)}
+                                            disabled={!!downloadingId}
+                                            className="flex items-center gap-3 p-3 rounded-xl border border-orange-100 hover:bg-orange-50 transition-all text-left disabled:opacity-50"
                                         >
-                                            <td className="px-8 py-5">
-                                                <span className="text-[10px] font-black text-orange-200 group-hover:text-orange-400 transition-colors tracking-widest">{k.kindergarten_id}</span>
-                                            </td>
-                                            <td className="px-4 py-5 font-bold text-gray-800">
-                                                <div className="flex flex-col">
-                                                    <span>{k.name || '---'}</span>
-                                                    <span className="text-[10px] text-gray-400 font-medium">{k.contact_name ? `${k.contact_name} 様` : '担当者未登録'}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-5">
-                                                <div className="flex justify-center gap-0.5">
-                                                    {['月', '火', '水', '木', '金', '土', '日'].map((day, idx) => {
-                                                        const field = ['service_mon', 'service_tue', 'service_wed', 'service_thu', 'service_fri', 'service_sat', 'service_sun'][idx];
-                                                        const active = k[field] !== false;
-                                                        return (
-                                                            <div key={day} className={`w-5 h-5 flex items-center justify-center rounded-sm text-[8px] font-bold ${active ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-300'}`}>
-                                                                {day}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-5 text-center">
-                                                {k.has_soup ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-black border border-green-100">
-                                                        <Check className="w-3 h-3" /> あり
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-gray-300 text-[10px] font-bold">－</span>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-5">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {(k.services || []).map((s: string) => (
-                                                        <span key={s} className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold">
-                                                            {s}
-                                                        </span>
-                                                    ))}
-                                                    {(!k.services || k.services.length === 0) && (
-                                                        <span className="text-gray-300 text-[10px]">なし</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-5">
-                                                {k.curry_trigger ? (
-                                                    <span className="px-2 py-1 bg-orange-50 text-orange-600 rounded-lg text-[10px] font-black border border-orange-100">
-                                                        {k.curry_trigger}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-gray-200 text-[10px] font-bold">未設定</span>
-                                                )}
-                                            </td>
-                                            <td className="px-8 py-5 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); handleDownload(k); }}
-                                                        disabled={!!downloadingId || !result}
-                                                        className={`px-4 py-2 border rounded-xl text-[10px] font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-30 disabled:grayscale
-                                                            ${result ? 'bg-white border-orange-200 text-orange-600 hover:bg-orange-50' : 'bg-gray-50 border-gray-100 text-gray-400'}`}
-                                                    >
-                                                        {downloadingId === k.kindergarten_id ? (
-                                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                                        ) : (
-                                                            <FileDown className="w-3 h-3" />
-                                                        )}
-                                                        献立表(Excel)
-                                                    </button>
-                                                    <button
-                                                        title="PDF (Soon)"
-                                                        disabled
-                                                        className="p-2 bg-gray-50 border border-gray-100 text-gray-300 rounded-xl cursor-not-allowed"
-                                                    >
-                                                        <Copy className="w-3 h-3 grayscale" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                            <img src={k.icon_url || "/icon-mamamire.png"} className="w-7 h-7 object-contain rounded-lg flex-shrink-0" alt="" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-bold text-gray-700 truncate">{k.name}</p>
+                                                <p className="text-[10px] text-orange-500 font-bold">献立表(Excel)</p>
+                                            </div>
+                                            {downloadingId === k.kindergarten_id ? <Loader2 className="w-4 h-4 animate-spin text-orange-400 flex-shrink-0" /> : <FileDown className="w-4 h-4 text-orange-300 flex-shrink-0" />}
+                                        </button>
                                     ))}
-                                </tbody>
-                            </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* その他 開発中 */}
+                        <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 flex flex-col items-center gap-2 text-center">
+                            <p className="text-sm font-bold text-gray-300">その他の献立機能</p>
+                            <p className="text-xs text-gray-300">開発中</p>
                         </div>
                     </div>
-                </div>
+                )}
 
+                {/* 幼稚園マスター Section */}
+                {activeSection === 'kindergarten' && (
+                    <div className="space-y-3">
+                        <p className="text-xs font-bold text-gray-400 px-1">{kindergartens.length}件の施設</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {kindergartens.length === 0 ? (
+                                <div className="col-span-2 py-16 text-center">
+                                    <AlertCircle className="w-8 h-8 mx-auto text-gray-200 mb-2" />
+                                    <p className="text-sm text-gray-300 font-bold">幼稚園が見つかりません</p>
+                                </div>
+                            ) : kindergartens.map(k => (
+                                <button
+                                    key={k.kindergarten_id}
+                                    onClick={() => { setEditingK(k); setShowEditor(true); }}
+                                    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-4 hover:border-orange-200 hover:shadow-md transition-all text-left group"
+                                >
+                                    <div className="p-2 bg-orange-50 rounded-xl border border-orange-100 flex-shrink-0">
+                                        <img src={k.icon_url || "/icon-mamamire.png"} className="w-8 h-8 object-contain" alt="" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-black text-gray-800 text-sm truncate">{k.name || '---'}</p>
+                                        <p className="text-[10px] text-gray-400 font-medium">{k.contact_name ? `${k.contact_name} 様` : '担当者未登録'}</p>
+                                        <div className="flex gap-1 mt-1.5 flex-wrap">
+                                            {(k.services || []).map((s: string) => (
+                                                <span key={s} className="px-1.5 py-0.5 bg-blue-50 text-blue-500 rounded text-[9px] font-bold">{s}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-orange-400 transition-colors flex-shrink-0" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Modals */}
                 {showEditor && editingK && (
                     <KindergartenEditor
                         k={editingK}
@@ -743,7 +758,7 @@ export default function AdminConsole() {
                         onSave={() => {
                             setShowEditor(false);
                             setEditingK(null);
-                            fetchKindergartens(); // Refresh list
+                            fetchKindergartens();
                         }}
                     />
                 )}
