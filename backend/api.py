@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 import uuid
+import threading
 from datetime import datetime, timedelta
 from backend.sheets import (
     get_kindergartens,
@@ -189,35 +190,38 @@ def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRe
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update classes in sheet")
 
-        # Send notification about class master update
-        try:
-            from backend.notifications import send_change_notification
-            kindergartens = get_kindergartens()
-            kg = next((k for k in kindergartens if k.kindergarten_id == kindergarten_id), None)
+        # Send notification in background thread (non-blocking)
+        classes_snapshot = list(request.classes)
+        _scheduled = scheduled_date
 
-            lines = []
-            for c in request.classes:
-                lines.append(
+        def _notify_classes():
+            try:
+                from backend.notifications import send_change_notification
+                kindergartens = get_kindergartens()
+                kg = next((k for k in kindergartens if k.kindergarten_id == kindergarten_id), None)
+                lines = [
                     f"{c.class_name}: 園児 {c.default_student_count}名 / "
                     f"アレルギー {c.default_allergy_count}名 / "
                     f"先生 {c.default_teacher_count}名"
+                    for c in classes_snapshot
+                ]
+                details = "\n".join(lines)
+                if _scheduled:
+                    details += f"\n（適用日: {_scheduled}）"
+                send_change_notification(
+                    action="クラスマスター変更",
+                    kindergarten_name=kg.name if kg else kindergarten_id,
+                    kindergarten_id=kindergarten_id,
+                    class_name="(全クラス)",
+                    target_date=_scheduled or datetime.now().strftime("%Y-%m-%d"),
+                    details=details,
+                    contact_name=kg.contact_name if kg else "",
+                    contact_email=kg.contact_email if kg else "",
                 )
-            details = "\n".join(lines)
-            if scheduled_date:
-                details += f"\n（適用日: {scheduled_date}）"
+            except Exception as e:
+                print(f"[WARNING] Notification failed: {e}")
 
-            send_change_notification(
-                action="クラスマスター変更",
-                kindergarten_name=kg.name if kg else kindergarten_id,
-                kindergarten_id=kindergarten_id,
-                class_name="(全クラス)",
-                target_date=scheduled_date or datetime.now().strftime("%Y-%m-%d"),
-                details=details,
-                contact_name=kg.contact_name if kg else "",
-                contact_email=kg.contact_email if kg else "",
-            )
-        except Exception as e:
-            print(f"[WARNING] Notification failed: {e}")
+        threading.Thread(target=_notify_classes, daemon=True).start()
 
         return {"status": "success", "message": "Classes updated", "scheduled_date": scheduled_date}
     except Exception as e:
@@ -283,44 +287,47 @@ def create_order(order: OrderItem):
     if not success:
         raise HTTPException(status_code=500, detail="Failed to save order")
 
-    # Send change notification in background
-    try:
-        from backend.notifications import send_change_notification
-        kindergartens = get_kindergartens()
-        kg = next((k for k in kindergartens if k.kindergarten_id == order.kindergarten_id), None)
+    # Send notification in background thread (non-blocking)
+    def _notify():
+        try:
+            from backend.notifications import send_change_notification
+            kindergartens = get_kindergartens()
+            kg = next((k for k in kindergartens if k.kindergarten_id == order.kindergarten_id), None)
 
-        if before_order:
-            details = (
-                f"園児数: {before_order.student_count} → {order.student_count} "
-                f"（変化: {order.student_count - before_order.student_count:+d}）\n"
-                f"アレルギー: {before_order.allergy_count} → {order.allergy_count} "
-                f"（変化: {order.allergy_count - before_order.allergy_count:+d}）\n"
-                f"先生: {before_order.teacher_count} → {order.teacher_count} "
-                f"（変化: {order.teacher_count - before_order.teacher_count:+d}）"
-            )
-            if order.memo:
-                details += f"\nメモ: {order.memo}"
-        else:
-            details = (
-                f"園児数: {order.student_count}\n"
-                f"アレルギー: {order.allergy_count}\n"
-                f"先生: {order.teacher_count}"
-            )
-            if order.memo:
-                details += f"\nメモ: {order.memo}"
+            if before_order:
+                details = (
+                    f"園児数: {before_order.student_count} → {order.student_count} "
+                    f"（変化: {order.student_count - before_order.student_count:+d}）\n"
+                    f"アレルギー: {before_order.allergy_count} → {order.allergy_count} "
+                    f"（変化: {order.allergy_count - before_order.allergy_count:+d}）\n"
+                    f"先生: {before_order.teacher_count} → {order.teacher_count} "
+                    f"（変化: {order.teacher_count - before_order.teacher_count:+d}）"
+                )
+                if order.memo:
+                    details += f"\nメモ: {order.memo}"
+            else:
+                details = (
+                    f"園児数: {order.student_count}\n"
+                    f"アレルギー: {order.allergy_count}\n"
+                    f"先生: {order.teacher_count}"
+                )
+                if order.memo:
+                    details += f"\nメモ: {order.memo}"
 
-        send_change_notification(
-            action="注文変更",
-            kindergarten_name=kg.name if kg else order.kindergarten_id,
-            kindergarten_id=order.kindergarten_id,
-            class_name=order.class_name,
-            target_date=order.date,
-            details=details,
-            contact_name=kg.contact_name if kg else "",
-            contact_email=kg.contact_email if kg else "",
-        )
-    except Exception as e:
-        print(f"[WARNING] Notification failed: {e}")
+            send_change_notification(
+                action="注文変更",
+                kindergarten_name=kg.name if kg else order.kindergarten_id,
+                kindergarten_id=order.kindergarten_id,
+                class_name=order.class_name,
+                target_date=order.date,
+                details=details,
+                contact_name=kg.contact_name if kg else "",
+                contact_email=kg.contact_email if kg else "",
+            )
+        except Exception as e:
+            print(f"[WARNING] Notification failed: {e}")
+
+    threading.Thread(target=_notify, daemon=True).start()
 
     return {"status": "success", "order_id": order.order_id}
 
