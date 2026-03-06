@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { X, Send, Loader2, Minus, Plus } from 'lucide-react';
 
 interface OrderData {
     order_id?: string;
@@ -20,192 +22,196 @@ interface CalendarCellClasslessProps {
     kindergartenId: string;
     existingOrder?: OrderData;
     isServiceDay: boolean;
-    isLocked: boolean; // Strict lock
-    isGraceLocked: boolean; // 3-day lock (requires confirmation)
+    isLocked: boolean;
+    isGraceLocked: boolean;
+    mealOptions?: string[];
     onSave: (order: OrderData) => Promise<void>;
 }
 
 export default function CalendarCellClassless({
-    day, year, month, kindergartenId, existingOrder, isServiceDay, isLocked, isGraceLocked, onSave
+    day, year, month, kindergartenId, existingOrder, isServiceDay, isLocked, isGraceLocked, mealOptions = [], onSave
 }: CalendarCellClasslessProps) {
-    // Default State
-    const [mealType, setMealType] = useState('通常');
-    const [studentCount, setStudentCount] = useState(0);
-    const [allergyCount, setAllergyCount] = useState(0);
-    const [teacherCount, setTeacherCount] = useState(0);
+    const [isOpen, setIsOpen] = useState(false);
+    const [mealType, setMealType] = useState(existingOrder?.meal_type || '通常');
+    const [studentCount, setStudentCount] = useState(existingOrder?.student_count || 0);
+    const [allergyCount, setAllergyCount] = useState(existingOrder?.allergy_count || 0);
+    const [teacherCount, setTeacherCount] = useState(existingOrder?.teacher_count || 0);
+    const [memo, setMemo] = useState(existingOrder?.memo || '');
     const [isSaving, setIsSaving] = useState(false);
 
-    // Load existing order
     useEffect(() => {
         if (existingOrder) {
             setMealType(existingOrder.meal_type);
             setStudentCount(existingOrder.student_count);
             setAllergyCount(existingOrder.allergy_count);
             setTeacherCount(existingOrder.teacher_count);
-        } else {
-            setMealType('通常');
-            setStudentCount(0);
-            setAllergyCount(0);
-            setTeacherCount(0);
+            setMemo(existingOrder.memo || '');
         }
     }, [existingOrder]);
 
-    const handleSave = async (updates: Partial<OrderData>) => {
+    const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const displayOptions = mealOptions.length > 0 ? mealOptions : ['通常', '飯なし'];
+
+    const handleOpen = () => {
         if (!isServiceDay || isLocked) return;
+        if (isGraceLocked) {
+            if (!confirm("3日前を過ぎた変更です。電話連絡が必要な場合があります。続けますか？")) return;
+        }
+        setIsOpen(true);
+    };
 
-        const order: OrderData = {
-            order_id: existingOrder?.order_id,
-            kindergarten_id: kindergartenId,
-            date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-            class_name: '共通',
-            meal_type: updates.meal_type ?? mealType,
-            student_count: updates.student_count ?? studentCount,
-            allergy_count: updates.allergy_count ?? allergyCount,
-            teacher_count: updates.teacher_count ?? teacherCount,
-            memo: existingOrder?.memo || ''
-        };
-
+    const handleSubmit = async () => {
         setIsSaving(true);
         try {
-            await onSave(order);
-            if (updates.meal_type !== undefined) setMealType(updates.meal_type);
-            if (updates.student_count !== undefined) setStudentCount(updates.student_count);
-            if (updates.allergy_count !== undefined) setAllergyCount(updates.allergy_count);
-            if (updates.teacher_count !== undefined) setTeacherCount(updates.teacher_count);
+            await onSave({
+                order_id: existingOrder?.order_id,
+                kindergarten_id: kindergartenId,
+                date: dateStr,
+                class_name: '共通',
+                meal_type: mealType,
+                student_count: studentCount,
+                allergy_count: allergyCount,
+                teacher_count: teacherCount,
+                memo,
+            });
+            setIsOpen(false);
         } catch (e) {
-            console.error("Auto-save failed", e);
-            alert("保存に失敗しました");
+            alert('保存に失敗しました');
         } finally {
             setIsSaving(false);
         }
     };
 
-    const toggleMealType = async (newType: string) => {
-        if (isLocked) {
-            alert("締切を過ぎているため変更できません。");
-            return;
-        }
-        if (isGraceLocked) {
-            if (!confirm("3日前を過ぎた変更です。電話連絡が必要です。続けますか？")) return;
-        }
-
-        await handleSave({ meal_type: newType });
-    };
-
-    const handleCountChange = async (field: 'student' | 'allergy' | 'teacher', val: string) => {
-        if (isLocked) return;
-        const num = parseInt(val) || 0;
-        if (field === 'student') {
-            setStudentCount(num);
-        } else if (field === 'allergy') {
-            setAllergyCount(num);
-        } else if (field === 'teacher') {
-            setTeacherCount(num);
-        }
-    };
-
-    const handleBlur = (field: 'student_count' | 'allergy_count' | 'teacher_count') => {
-        if (isLocked) return;
-        handleSave({});
-    };
-
-    // Meal type badge styles
-    const getMealBadge = () => {
-        if (!isServiceDay) return { bg: 'bg-gray-100', text: 'text-gray-300', border: 'border-transparent', label: '-' };
-        switch (mealType) {
-            case '通常': return { bg: 'bg-gray-50', text: 'text-gray-400', border: 'border-gray-200', label: '通常' };
-            case '飯なし': return { bg: 'bg-gray-50', text: 'text-gray-400', border: 'border-gray-300', label: '飯なし' };
-            case 'カレー': return { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-300', label: 'カレー' };
-            default: return { bg: 'bg-white', text: 'text-gray-400', border: 'border-gray-100', label: mealType };
-        }
-    };
-
-    const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
-    const meal = getMealBadge();
-
-    // Non-service day: minimal cell
     if (!isServiceDay) {
         return (
-            <div className="rounded-xl sm:rounded-[1.25rem] bg-gray-50/50 border border-transparent p-2 sm:p-2 flex items-center justify-center text-gray-300 opacity-50 min-h-[4rem] sm:min-h-[5rem]">
-                <span className="text-lg sm:text-xl font-black">{day}</span>
+            <div className="h-full rounded-xl bg-gray-50/50 border border-transparent flex items-center justify-center text-gray-300 opacity-40">
+                <span className="text-sm font-black">{day}</span>
             </div>
         );
     }
 
+    const hasOrder = !!existingOrder;
+    const isSpecialMeal = mealType !== '通常' && mealType !== '飯なし';
+
     return (
-        <div className={`rounded-xl sm:rounded-[1.25rem] p-2 flex flex-col relative border transition-all shadow-sm
-            ${isLocked ? 'bg-gray-100 border-gray-200 opacity-60' : 'bg-white border-gray-100 hover:border-orange-200'}
-        `}>
-            {/* Header: Date + Meal Badge */}
-            <div className="flex justify-between items-center mb-1.5 sm:mb-2">
-                <span className={`text-sm sm:text-base font-black leading-none ${isToday ? 'text-orange-500' : 'text-gray-400'}`}>
-                    {day}
-                </span>
-
-                <div className="relative">
-                    {/* The native select is styled to look like a badge */}
-                    <select
-                        value={mealType}
-                        onChange={(e) => toggleMealType(e.target.value)}
-                        disabled={isLocked || isSaving}
-                        className={`appearance-none outline-none pl-1.5 pr-4 py-1 rounded-md border text-[10px] sm:text-xs font-black transition-all leading-none cursor-pointer
-                            ${meal.bg} ${meal.text} ${meal.border} ${isSaving ? 'animate-pulse opacity-50' : ''}`}
-                    >
-                        <option value="通常">通常</option>
-                        <option value="飯なし">飯なし</option>
-                        <option value="カレー">カレー</option>
-                    </select>
-                    {/* Custom Dropdown Arrow */}
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-current opacity-50">
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+        <>
+            <button
+                onClick={handleOpen}
+                disabled={isLocked}
+                className={`h-full w-full rounded-xl sm:rounded-[1rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all
+                    ${isLocked
+                        ? 'bg-gray-100 border-gray-200 opacity-40 grayscale cursor-not-allowed'
+                        : isGraceLocked
+                            ? 'bg-amber-50/50 border-amber-100 hover:border-amber-200 shadow-sm active:scale-95'
+                            : isToday
+                                ? 'bg-orange-50 border-orange-300 hover:border-orange-400 shadow-sm active:scale-95'
+                                : 'bg-white border-gray-100 hover:border-orange-200 shadow-sm active:scale-95'
+                    }`}
+            >
+                <span className={`text-[10px] font-black leading-none mb-1 ${isToday ? 'text-orange-600' : 'text-gray-400'}`}>{day}</span>
+                <div className="flex-1 flex flex-col items-center justify-center w-full px-0.5 gap-0.5">
+                    {hasOrder ? (
+                        <>
+                            {mealType === '飯なし' ? (
+                                <span className="text-[9px] font-black text-gray-400">飯なし</span>
+                            ) : (
+                                <>
+                                    {isSpecialMeal && (
+                                        <span className="text-[9px] font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 py-0.5 rounded leading-none">{mealType}</span>
+                                    )}
+                                    <span className="text-[11px] font-black text-gray-600 leading-none">{studentCount}名</span>
+                                    {allergyCount > 0 && (
+                                        <span className="text-[9px] font-bold text-red-400 leading-none">ア{allergyCount}</span>
+                                    )}
+                                </>
+                            )}
+                        </>
+                    ) : (
+                        <span className="text-[8px] text-gray-300 font-bold">未入力</span>
+                    )}
+                </div>
+                {isLocked && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-1/2 h-[2px] bg-gray-300 rotate-45"></div>
                     </div>
-                    {isSaving && <Loader2 className="absolute right-[-14px] top-1/2 -translate-y-1/2 w-3 h-3 animate-spin text-orange-500" />}
-                </div>
-            </div>
+                )}
+            </button>
 
-            {/* Count Rows — compact side-by-side on both mobile and desktop */}
-            <div className="flex flex-col gap-1.5 sm:gap-1.5 flex-1 justify-center mt-1">
-                {/* Student */}
-                <div className="flex flex-row items-center justify-between gap-1 w-full">
-                    <span className="text-[11px] sm:text-[11px] text-gray-400 font-bold shrink-0">児</span>
-                    <input
-                        type="number"
-                        value={studentCount}
-                        onChange={(e) => handleCountChange('student', e.target.value)}
-                        onBlur={() => handleBlur('student_count')}
-                        disabled={isLocked}
-                        className="w-full text-right text-base sm:text-base font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-[1.5rem]"
-                    />
-                </div>
-                {/* Allergy */}
-                <div className="flex flex-row items-center justify-between gap-1 w-full">
-                    <span className="text-[11px] sm:text-[11px] text-red-400 font-bold shrink-0">ア</span>
-                    <input
-                        type="number"
-                        value={allergyCount}
-                        onChange={(e) => handleCountChange('allergy', e.target.value)}
-                        onBlur={() => handleBlur('allergy_count')}
-                        disabled={isLocked}
-                        className={`w-full text-right text-base sm:text-base font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 min-w-[1.5rem] ${allergyCount > 0 ? 'text-red-500' : 'text-gray-700'}`}
-                    />
-                </div>
-                {/* Teacher */}
-                <div className="flex flex-row items-center justify-between gap-1 w-full">
-                    <span className="text-[11px] sm:text-[11px] text-gray-400 font-bold shrink-0">先</span>
-                    <input
-                        type="number"
-                        value={teacherCount}
-                        onChange={(e) => handleCountChange('teacher', e.target.value)}
-                        onBlur={() => handleBlur('teacher_count')}
-                        disabled={isLocked}
-                        className="w-full text-right text-base sm:text-base font-black bg-transparent border-b-2 border-gray-100 focus:border-orange-400 outline-none p-0 text-gray-700 min-w-[1.5rem]"
-                    />
-                </div>
-            </div>
+            {isOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                    <div className="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col">
+                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-orange-50 rounded-t-2xl sm:rounded-t-2xl">
+                            <h2 className="font-bold text-gray-800">{month}月{day}日 の注文</h2>
+                            <button onClick={() => setIsOpen(false)} className="p-2 bg-white rounded-full text-gray-400 hover:bg-gray-100">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
 
-            {isLocked && (
-                <div className="absolute inset-0 bg-gray-100/10 pointer-events-none" />
+                        <div className="p-4 space-y-4">
+                            {/* Meal type selector */}
+                            <div>
+                                <p className="text-xs font-black text-gray-400 mb-2 uppercase">本日の給食</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {[...displayOptions, '飯なし'].map(opt => (
+                                        <button
+                                            key={opt}
+                                            onClick={() => setMealType(opt)}
+                                            className={`py-1.5 px-3 text-xs rounded-full border font-medium transition-colors ${mealType === opt
+                                                ? 'bg-orange-500 text-white border-orange-600'
+                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-orange-50'
+                                                }`}
+                                        >
+                                            {opt === '飯なし' ? 'なし' : opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Counts */}
+                            <div className="grid grid-cols-3 gap-3">
+                                <Counter label="園児" value={studentCount} onChange={(d) => setStudentCount(v => Math.max(0, v + d))} />
+                                <Counter label="アレルギー" value={allergyCount} onChange={(d) => setAllergyCount(v => Math.max(0, v + d))} color="text-red-600" />
+                                <Counter label="先生" value={teacherCount} onChange={(d) => setTeacherCount(v => Math.max(0, v + d))} />
+                            </div>
+
+                            <input
+                                type="text"
+                                placeholder="備考 (例: 10:20納品)"
+                                value={memo}
+                                onChange={e => setMemo(e.target.value)}
+                                className="w-full text-xs border border-gray-200 rounded-lg p-2 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-orange-100"
+                            />
+                        </div>
+
+                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+                            <button
+                                onClick={handleSubmit}
+                                disabled={isSaving}
+                                className="w-full bg-orange-500 text-white py-4 rounded-xl font-bold text-base hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg ring-4 ring-orange-100 active:scale-95 transition-all"
+                            >
+                                {isSaving
+                                    ? <Loader2 className="w-5 h-5 animate-spin" />
+                                    : <><Send className="w-4 h-4" /> 変更を申請する</>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
+        </>
+    );
+}
+
+function Counter({ label, value, onChange, color = "text-gray-900" }: { label: string, value: number, onChange: (d: number) => void, color?: string }) {
+    return (
+        <div className="flex flex-col items-center">
+            <span className="text-xs text-gray-500 mb-1">{label}</span>
+            <div className="flex items-center gap-1 bg-white rounded-lg border border-gray-300 p-1">
+                <button onClick={() => onChange(-1)} className="p-1 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Minus className="w-4 h-4" /></button>
+                <span className={`font-bold text-lg w-8 text-center ${color}`}>{value}</span>
+                <button onClick={() => onChange(1)} className="p-1 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Plus className="w-4 h-4" /></button>
+            </div>
         </div>
     );
 }

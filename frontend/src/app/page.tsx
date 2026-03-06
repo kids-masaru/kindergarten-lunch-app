@@ -7,8 +7,7 @@ import { LoginUser, Order, ClassMaster } from '@/types';
 import OrderModal from '@/components/OrderModal';
 import ClassReportPanel from '@/components/ClassReportPanel';
 import MonthlySetupModal from '@/components/MonthlySetupModal';
-import ClassChangeRequestModal from '@/components/ClassChangeRequestModal';
-import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, ClipboardList, Send, AlertCircle, Check, Download, AlertTriangle, Clock, Phone, Edit3, Settings as SettingsIcon, X, Save, Edit, Users } from 'lucide-react';
+import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, Send, Settings as SettingsIcon, X, Save, Users } from 'lucide-react';
 import CalendarCellClassless from '@/components/CalendarCellClassless';
 
 // Version: UI Layout V3 (Split & Tabs)
@@ -87,7 +86,6 @@ export default function CalendarPage() {
   const [activeTab, setActiveTab] = useState<'calendar' | 'report'>('calendar');
   const [loading, setLoading] = useState(true);
   const [isMonthlySetupOpen, setIsMonthlySetupOpen] = useState(false);
-  const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleMonthlySetupComplete = () => {
@@ -267,23 +265,23 @@ export default function CalendarPage() {
       <div className="max-w-6xl mx-auto p-2 sm:p-6">
         {/* Conditional View: Not Submitted vs Submitted */}
         {!isSubmitted ? (
-          <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 p-12 text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="mx-auto w-24 h-24 bg-orange-50 rounded-[2rem] flex items-center justify-center border-4 border-white shadow-lg">
-              <CalendarIcon className="w-12 h-12 text-orange-500" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-black text-gray-800 tracking-tight">{year}年 {month}月 の<br />注文申請が未完了です</h2>
-            </div>
-
-            <button
-              onClick={() => setIsMonthlySetupOpen(true)}
-              className="mx-auto bg-orange-500 text-white px-10 py-6 rounded-[2rem] font-black text-2xl hover:bg-orange-600 transition-all shadow-2xl shadow-orange-200 active:scale-95 flex items-center gap-4 group"
-            >
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center transition-transform group-hover:rotate-12">
-                <Send className="w-6 h-6 text-white" />
+          <div className="bg-white rounded-2xl shadow-sm border border-orange-100 p-5 animate-in fade-in duration-300">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center flex-shrink-0 border border-orange-100">
+                <CalendarIcon className="w-6 h-6 text-orange-500" />
               </div>
-              今月の申請を開始する
-            </button>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-black text-gray-800 text-base">{year}年 {month}月の注文申請が未完了です</h2>
+                <p className="text-xs text-gray-400 mt-0.5">毎月25日までに翌月分の申請を完了してください</p>
+              </div>
+              <button
+                onClick={() => setIsMonthlySetupOpen(true)}
+                className="bg-orange-500 text-white px-4 py-3 rounded-xl font-black text-sm hover:bg-orange-600 transition-all shadow-md shadow-orange-100 active:scale-95 flex items-center gap-2 flex-shrink-0"
+              >
+                <Send className="w-4 h-4" />
+                申請を開始
+              </button>
+            </div>
           </div>
         ) : (
           /* Desktop Split View: Always show both side-by-side (responsively stacked on mobile) */
@@ -301,7 +299,7 @@ export default function CalendarPage() {
                       </div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-7 gap-1 auto-rows-auto">
+                  <div className="grid grid-cols-7 gap-1 auto-rows-[5rem]">
                     {Array(firstDay).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
                     {Array(daysInMonth).fill(null).map((_, i) => {
                       const day = i + 1;
@@ -336,7 +334,7 @@ export default function CalendarPage() {
                         const existingOrder = dayOrders.find(o => o.class_name === '共通');
 
                         return (
-                          <div key={day} className="relative">
+                          <div key={day} className="h-[5rem]">
                             <CalendarCellClassless
                               day={day}
                               year={year}
@@ -346,8 +344,8 @@ export default function CalendarPage() {
                               isServiceDay={isServiceDay}
                               isLocked={isStrictLocked}
                               isGraceLocked={isGraceLocked}
+                              mealOptions={user?.services || []}
                               onSave={async (order) => {
-                                // Save single order
                                 await saveOrder(order);
                                 fetchOrders(user!.kindergarten_id, year, month);
                               }}
@@ -393,7 +391,7 @@ export default function CalendarPage() {
                             handleDateClick(day);
                           }}
                           disabled={!isServiceDay}
-                          className={`aspect-square rounded-[1.25rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all 
+                          className={`h-full w-full rounded-xl sm:rounded-[1rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all
                           ${!isServiceDay
                               ? 'bg-gray-50/50 border-transparent text-gray-300 cursor-not-allowed opacity-50'
                               : isStrictLocked
@@ -429,7 +427,6 @@ export default function CalendarPage() {
                   user={user}
                   classes={classes}
                   onSaved={() => fetchMasters(user.kindergarten_id, year, month)}
-                  onOpenChangeRequest={() => setIsChangeRequestOpen(true)}
                 />
               </div>
             ) : (
@@ -510,14 +507,6 @@ export default function CalendarPage() {
         year={year}
         month={month}
         onComplete={handleMonthlySetupComplete}
-      />
-
-      <ClassChangeRequestModal
-        isOpen={isChangeRequestOpen}
-        onClose={() => setIsChangeRequestOpen(false)}
-        user={user}
-        currentClasses={classes}
-        onSaved={() => fetchMasters(user.kindergarten_id, year, month)}
       />
 
       {showSettings && user && (
