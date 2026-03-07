@@ -579,20 +579,17 @@ export default function AdminConsole() {
                 {/* Dashboard */}
                 {!activeSection && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {/* 献立作成 */}
-                        <button
-                            onClick={() => setActiveSection('menu')}
-                            className="bg-white rounded-2xl border border-orange-100 shadow-sm p-6 flex flex-col items-center gap-3 hover:bg-orange-50/50 hover:shadow-md hover:border-orange-200 transition-all group"
-                        >
-                            <div className="p-3 bg-orange-100 rounded-xl group-hover:bg-orange-200 transition-colors">
-                                <Upload className="w-6 h-6 text-orange-600" />
+                        {/* 献立作成 - grayed out */}
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-3 opacity-40 cursor-not-allowed">
+                            <div className="p-3 bg-gray-100 rounded-xl">
+                                <Upload className="w-6 h-6 text-gray-400" />
                             </div>
                             <div className="text-center">
-                                <p className="font-black text-gray-800 text-sm">献立作成</p>
+                                <p className="font-black text-gray-500 text-sm">献立作成</p>
                                 <p className="text-[10px] text-gray-400 mt-0.5">マスターアップロード</p>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-500 transition-colors" />
-                        </button>
+                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
+                        </div>
 
                         {/* 幼稚園マスター */}
                         <button

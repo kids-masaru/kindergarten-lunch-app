@@ -120,10 +120,11 @@ export default function CalendarCellClassless({
                                     {isSpecialMeal && (
                                         <span className="text-[9px] font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 py-0.5 rounded leading-none">{mealType}</span>
                                     )}
-                                    <span className="text-[11px] font-black text-gray-600 leading-none">{studentCount}名</span>
+                                    <span className="text-[10px] font-black text-gray-600 leading-none">児{studentCount}</span>
                                     {allergyCount > 0 && (
                                         <span className="text-[9px] font-bold text-red-400 leading-none">ア{allergyCount}</span>
                                     )}
+                                    <span className="text-[9px] font-bold text-gray-400 leading-none">師{teacherCount}</span>
                                 </>
                             )}
                         </>

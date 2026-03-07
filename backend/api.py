@@ -130,6 +130,9 @@ def login(creds: LoginRequest):
             return {
                 "kindergarten_id": user.kindergarten_id,
                 "name": user.name,
+                "services": user.services,
+                "contact_name": user.contact_name,
+                "contact_email": user.contact_email,
                 "settings": {
                     # Service Days
                     "service_mon": user.service_mon,
@@ -360,6 +363,88 @@ def create_orders_bulk(orders: List[OrderItem]):
         threading.Thread(target=_notify_bulk, daemon=True).start()
 
     return {"status": "success", "count": len(orders)}
+
+
+class ClasslessDefaultUpdateRequest(BaseModel):
+    kindergarten_id: str
+    from_date: str
+    student_count: int
+    allergy_count: int
+    teacher_count: int
+
+@router.put("/orders/update-defaults")
+def update_order_defaults(request: ClasslessDefaultUpdateRequest):
+    """Update all 共通 orders for a classless kindergarten from a given date."""
+    try:
+        from_date_obj = datetime.strptime(request.from_date, "%Y-%m-%d")
+
+        # Fetch orders for the month of from_date (and next month)
+        all_orders = get_orders_for_month(request.kindergarten_id, from_date_obj.year, from_date_obj.month)
+        next_month = from_date_obj.month % 12 + 1
+        next_year = from_date_obj.year + (1 if from_date_obj.month == 12 else 0)
+        all_orders += get_orders_for_month(request.kindergarten_id, next_year, next_month)
+
+        # Filter 共通 orders from from_date onwards
+        to_update = [
+            o for o in all_orders
+            if o.class_name == '共通' and o.date >= request.from_date
+        ]
+
+        if not to_update:
+            return {"status": "success", "updated": 0, "message": "対象の注文がありませんでした"}
+
+        updated_data = []
+        for o in to_update:
+            d = o.model_dump()
+            d['student_count'] = request.student_count
+            d['allergy_count'] = request.allergy_count
+            d['teacher_count'] = request.teacher_count
+            updated_data.append(d)
+
+        success = batch_save_orders(updated_data)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to update orders")
+
+        # Send notification in background
+        kid_id = request.kindergarten_id
+        snap = {
+            "from_date": request.from_date,
+            "student_count": request.student_count,
+            "allergy_count": request.allergy_count,
+            "teacher_count": request.teacher_count,
+            "updated": len(to_update),
+        }
+        def _notify_defaults():
+            try:
+                from backend.notifications import send_change_notification
+                kindergartens = get_kindergartens()
+                kg = next((k for k in kindergartens if k.kindergarten_id == kid_id), None)
+                details = (
+                    f"{snap['from_date']} 以降の基本人数を変更しました\n"
+                    f"園児数: {snap['student_count']}名\n"
+                    f"アレルギー: {snap['allergy_count']}名\n"
+                    f"先生: {snap['teacher_count']}名\n"
+                    f"（対象: {snap['updated']}件の注文を更新）"
+                )
+                send_change_notification(
+                    action="基本人数変更",
+                    kindergarten_name=kg.name if kg else kid_id,
+                    kindergarten_id=kid_id,
+                    class_name="共通",
+                    target_date=snap["from_date"],
+                    details=details,
+                    contact_name=kg.contact_name if kg else "",
+                    contact_email=kg.contact_email if kg else "",
+                )
+            except Exception as e:
+                print(f"[WARNING] Defaults notification failed: {e}")
+        threading.Thread(target=_notify_defaults, daemon=True).start()
+
+        return {"status": "success", "updated": len(to_update)}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/upload-icon")

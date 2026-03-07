@@ -80,20 +80,12 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
         setEditableClasses(editableClasses.filter((_, i) => i !== index));
     };
 
-    const handleMealTypeToggle = (dateStr: string) => {
-        const mealOptions = ['通常', 'カレー', 'パン', '誕生日会'];
-        setDays(prev => prev.map(d => {
-            if (d.dateStr === dateStr) {
-                const currentMealType = d.mealType;
-                let currentIndex = mealOptions.indexOf(currentMealType);
-                if (currentIndex === -1) { // If current mealType is not in the new cycle (e.g., '飯なし' or '')
-                    currentIndex = mealOptions.indexOf('通常'); // Default to '通常'
-                }
-                const nextIndex = (currentIndex + 1) % mealOptions.length;
-                return { ...d, mealType: mealOptions[nextIndex] };
-            }
-            return d;
-        }));
+    const mealTypeOptions = user.services && user.services.length > 0
+        ? user.services
+        : ['通常', 'カレー', 'パン', '誕生日会'];
+
+    const handleMealTypeChange = (dateStr: string, newType: string) => {
+        setDays(prev => prev.map(d => d.dateStr === dateStr ? { ...d, mealType: newType } : d));
     };
 
     const handleDayCountChange = (dateStr: string, field: 'studentCount' | 'allergyCount' | 'teacherCount', value: number) => {
@@ -347,18 +339,20 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                     if (isClassless) {
                                         return (
                                             <div key={d} className="rounded-xl border border-gray-100 bg-white p-1.5 flex flex-col gap-0.5">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-[10px] font-black text-gray-400">{d}</span>
-                                                    <button
-                                                        onClick={() => handleMealTypeToggle(dateStr)}
-                                                        className={`px-1 py-0.5 rounded border text-[8px] font-black transition-all
+                                                <div className="flex justify-between items-center gap-0.5">
+                                                    <span className="text-[10px] font-black text-gray-400 flex-shrink-0">{d}</span>
+                                                    <select
+                                                        value={dayInfo.mealType}
+                                                        onChange={(e) => handleMealTypeChange(dateStr, e.target.value)}
+                                                        className={`text-[8px] font-black rounded border outline-none px-0.5 py-0.5 w-full
                                                             ${dayInfo.mealType === '通常'
-                                                                ? 'border-gray-200 text-gray-400'
+                                                                ? 'border-gray-200 text-gray-400 bg-white'
                                                                 : 'border-orange-400 bg-orange-50 text-orange-600'
                                                             }`}
                                                     >
-                                                        {dayInfo.mealType}
-                                                    </button>
+                                                        {mealTypeOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                                        <option value="飯なし">飯なし</option>
+                                                    </select>
                                                 </div>
                                                 <div className="flex items-center gap-0.5">
                                                     <span className="text-[8px] text-gray-300 font-bold w-3">園児</span>
@@ -391,30 +385,30 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                         );
                                     }
 
-                                    // Standard mode: meal type toggle only
+                                    // Standard mode: meal type select
                                     return (
-                                        <button
+                                        <div
                                             key={d}
-                                            onClick={() => handleMealTypeToggle(dateStr)}
-                                            className="aspect-square rounded-xl flex flex-col items-center transition-all active:scale-95 border bg-white border-gray-100 hover:border-orange-200"
+                                            className="aspect-square rounded-xl flex flex-col items-start border bg-white border-gray-100 hover:border-orange-200 overflow-hidden"
                                         >
-                                            <span className="p-1.5 text-[10px] font-black text-gray-400 self-start">{d}</span>
+                                            <span className="px-1.5 pt-1 text-[10px] font-black text-gray-400">{d}</span>
                                             <div className="flex-1 flex items-center justify-center w-full px-1 pb-1">
-                                                <div className={`
-                                                    px-1 py-1 rounded-lg border text-[9px] font-black leading-none transition-all w-full text-center
-                                                    ${dayInfo.mealType === '通常'
-                                                        ? 'border-transparent text-gray-300'
-                                                        : dayInfo.mealType === '飯なし'
-                                                            ? 'border-gray-200 bg-gray-50 text-gray-400'
-                                                            : dayInfo.mealType === ''
-                                                                ? 'border-dashed border-gray-200 text-gray-200'
-                                                                : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
-                                                    }
-                                                `}>
-                                                    {dayInfo.mealType === '' ? '未選択' : dayInfo.mealType === '通常' ? '通常' : dayInfo.mealType}
-                                                </div>
+                                                <select
+                                                    value={dayInfo.mealType}
+                                                    onChange={(e) => handleMealTypeChange(dateStr, e.target.value)}
+                                                    className={`w-full text-[9px] font-black rounded border outline-none px-1 py-1 text-center cursor-pointer
+                                                        ${dayInfo.mealType === '通常'
+                                                            ? 'border-gray-200 text-gray-400 bg-white'
+                                                            : dayInfo.mealType === '飯なし'
+                                                                ? 'border-gray-300 bg-gray-50 text-gray-400'
+                                                                : 'border-orange-400 bg-orange-50 text-orange-600'
+                                                        }`}
+                                                >
+                                                    {mealTypeOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                                                    <option value="飯なし">飯なし</option>
+                                                </select>
                                             </div>
-                                        </button>
+                                        </div>
                                     );
                                 })}
                             </div>

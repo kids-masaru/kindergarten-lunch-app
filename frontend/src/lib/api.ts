@@ -123,3 +123,14 @@ export const getPendingClassSnapshots = async (kindergartenId: string) => {
     const res = await api.get(`/masters/classes/${kindergartenId}/pending`);
     return res.data;
 };
+
+export const updateOrderDefaults = async (data: {
+    kindergarten_id: string;
+    from_date: string;
+    student_count: number;
+    allergy_count: number;
+    teacher_count: number;
+}) => {
+    const res = await api.put('/orders/update-defaults', data);
+    return res.data;
+};

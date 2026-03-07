@@ -2,15 +2,113 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCalendar, getMasters, generateMenu, saveOrder } from '@/lib/api';
+import { getCalendar, getMasters, generateMenu, saveOrder, updateOrderDefaults } from '@/lib/api';
 import { LoginUser, Order, ClassMaster } from '@/types';
 import OrderModal from '@/components/OrderModal';
 import ClassReportPanel from '@/components/ClassReportPanel';
 import MonthlySetupModal from '@/components/MonthlySetupModal';
-import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, Send, Settings as SettingsIcon, X, Save, Users } from 'lucide-react';
+import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, Send, Settings as SettingsIcon, X, Save, Users, Minus, Plus, Calendar } from 'lucide-react';
 import CalendarCellClassless from '@/components/CalendarCellClassless';
 
 // Version: UI Layout V3 (Split & Tabs)
+
+// --- Classless Default Panel ---
+function ClasslessPanel({ user, orders, onRefresh }: { user: LoginUser, orders: Order[], onRefresh: () => void }) {
+  const firstOrder = orders.find(o => o.class_name === '共通');
+  const [student, setStudent] = useState(firstOrder?.student_count ?? 0);
+  const [allergy, setAllergy] = useState(firstOrder?.allergy_count ?? 0);
+  const [teacher, setTeacher] = useState(firstOrder?.teacher_count ?? 0);
+  const [fromDate, setFromDate] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (firstOrder) {
+      setStudent(firstOrder.student_count);
+      setAllergy(firstOrder.allergy_count);
+      setTeacher(firstOrder.teacher_count);
+    }
+  }, [orders]);
+
+  const handleSave = async () => {
+    if (!fromDate) { alert("変更開始日を選択してください"); return; }
+    setSaving(true);
+    try {
+      await updateOrderDefaults({
+        kindergarten_id: user.kindergarten_id,
+        from_date: fromDate,
+        student_count: student,
+        allergy_count: allergy,
+        teacher_count: teacher,
+      });
+      alert(`${fromDate} 以降の基本人数を変更しました`);
+      setFromDate('');
+      onRefresh();
+    } catch (e) {
+      alert('更新に失敗しました');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const adj = (setter: React.Dispatch<React.SetStateAction<number>>, d: number) =>
+    setter(v => Math.max(0, v + d));
+
+  return (
+    <div className="w-full lg:w-96">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+          <h3 className="font-bold text-gray-800 text-base flex items-center gap-2">
+            <Users className="w-4 h-4 text-blue-500" /> 基本人数
+          </h3>
+          <p className="text-[10px] text-gray-400 mt-0.5">※ 全日に適用される基本人数（日ごとの変更はカレンダーから）</p>
+        </div>
+        <div className="p-4 space-y-3">
+          {/* Current defaults display */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: '園児', value: student, set: setStudent, color: 'text-gray-800' },
+              { label: 'アレルギー', value: allergy, set: setAllergy, color: 'text-red-500' },
+              { label: '先生', value: teacher, set: setTeacher, color: 'text-gray-800' },
+            ].map(({ label, value, set, color }) => (
+              <div key={label} className="bg-gray-50 rounded-xl p-2 border border-gray-100">
+                <p className={`text-[9px] font-black uppercase text-center mb-1 ${label === 'アレルギー' ? 'text-red-400' : 'text-gray-400'}`}>{label}</p>
+                <div className="flex items-center justify-between gap-1">
+                  <button onClick={() => adj(set, -1)} className="p-1 text-gray-400 hover:text-orange-500 rounded"><Minus className="w-3 h-3" /></button>
+                  <span className={`font-black text-lg ${color}`}>{value}</span>
+                  <button onClick={() => adj(set, 1)} className="p-1 text-gray-400 hover:text-orange-500 rounded"><Plus className="w-3 h-3" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Date picker */}
+          <div>
+            <label className="text-[10px] font-black text-gray-400 uppercase block mb-1 flex items-center gap-1">
+              <Calendar className="w-3 h-3" /> 変更の適用開始日
+            </label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+              className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-200 text-sm font-bold focus:ring-2 focus:ring-orange-100 outline-none"
+            />
+            <p className="text-[9px] text-gray-400 mt-1">
+              {fromDate ? `${fromDate} 以降の注文に反映されます` : '開始日を選択してください'}
+            </p>
+          </div>
+
+          <button
+            onClick={handleSave}
+            disabled={saving || !fromDate}
+            className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-bold text-base hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg ring-4 ring-orange-100 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Send className="w-4 h-4" /> 変更を申請する</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // --- Settings Modal ---
 function SettingsModal({ kindergarten, onClose, onSave }: { kindergarten: any, onClose: () => void, onSave: (data: any) => void }) {
@@ -430,38 +528,12 @@ export default function CalendarPage() {
                 />
               </div>
             ) : (
-              /* Classless Mode: Show summary panel with defaults from 共通 orders */
-              (() => {
-                // Get first available order to show current defaults
-                const firstOrder = orders.find(o => o.class_name === '共通');
-                return (
-                  <div className="w-full lg:w-96">
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-blue-50 rounded-xl">
-                          <Users className="w-5 h-5 text-blue-500" />
-                        </div>
-                        <h3 className="font-black text-gray-800 text-sm">基本人数</h3>
-                      </div>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
-                          <p className="text-[10px] font-black text-gray-400 uppercase mb-1">園児</p>
-                          <p className="text-2xl font-black text-gray-800">{firstOrder?.student_count ?? '-'}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
-                          <p className="text-[10px] font-black text-red-400 uppercase mb-1">アレルギー</p>
-                          <p className={`text-2xl font-black ${(firstOrder?.allergy_count ?? 0) > 0 ? 'text-red-500' : 'text-gray-800'}`}>{firstOrder?.allergy_count ?? '-'}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
-                          <p className="text-[10px] font-black text-gray-400 uppercase mb-1">先生</p>
-                          <p className="text-2xl font-black text-gray-800">{firstOrder?.teacher_count ?? '-'}</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-400 text-center">💡 日ごとの変更はカレンダーから直接入力できます</p>
-                    </div>
-                  </div>
-                );
-              })()
+              /* Classless Mode: Editable defaults panel */
+              <ClasslessPanel
+                user={user}
+                orders={orders}
+                onRefresh={() => fetchOrders(user.kindergarten_id, year, month)}
+              />
             )}
 
           </div>
