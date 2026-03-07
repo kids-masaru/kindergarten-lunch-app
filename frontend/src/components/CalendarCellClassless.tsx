@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Send, Loader2, Minus, Plus } from 'lucide-react';
 
 interface OrderData {
@@ -32,6 +33,9 @@ export default function CalendarCellClassless({
     day, year, month, kindergartenId, existingOrder, isServiceDay, isLocked, isGraceLocked, mealOptions = [], onSave
 }: CalendarCellClasslessProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
+    const buttonRef = useRef<HTMLButtonElement>(null);
+
     const [mealType, setMealType] = useState(existingOrder?.meal_type || '通常');
     const [studentCount, setStudentCount] = useState(existingOrder?.student_count || 0);
     const [allergyCount, setAllergyCount] = useState(existingOrder?.allergy_count || 0);
@@ -51,12 +55,33 @@ export default function CalendarCellClassless({
 
     const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const displayOptions = mealOptions.length > 0 ? mealOptions : ['通常', '飯なし'];
+    const displayOptions = mealOptions.length > 0 ? mealOptions : ['通常'];
 
     const handleOpen = () => {
         if (!isServiceDay || isLocked) return;
         if (isGraceLocked) {
             if (!confirm("3日前を過ぎた変更です。電話連絡が必要な場合があります。続けますか？")) return;
+        }
+        if (buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const popoverWidth = 280;
+            const popoverHeight = 360;
+            const margin = 8;
+
+            // Horizontal: center on cell, clamp to viewport
+            let left = rect.left + rect.width / 2 - popoverWidth / 2;
+            left = Math.max(margin, Math.min(left, window.innerWidth - popoverWidth - margin));
+
+            // Vertical: prefer below, flip to above if not enough space
+            let top: number;
+            if (rect.bottom + popoverHeight + margin < window.innerHeight) {
+                top = rect.bottom + margin;
+            } else {
+                top = rect.top - popoverHeight - margin;
+            }
+            top = Math.max(margin, top);
+
+            setPopoverStyle({ position: 'fixed', top, left, width: popoverWidth, zIndex: 50 });
         }
         setIsOpen(true);
     };
@@ -97,6 +122,7 @@ export default function CalendarCellClassless({
     return (
         <>
             <button
+                ref={buttonRef}
                 onClick={handleOpen}
                 disabled={isLocked}
                 className={`h-full w-full rounded-xl sm:rounded-[1rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all
@@ -124,7 +150,7 @@ export default function CalendarCellClassless({
                                     {allergyCount > 0 && (
                                         <span className="text-[9px] font-bold text-red-400 leading-none">ア{allergyCount}</span>
                                     )}
-                                    <span className="text-[9px] font-bold text-gray-400 leading-none">師{teacherCount}</span>
+                                    <span className="text-[9px] font-bold text-gray-400 leading-none">先{teacherCount}</span>
                                 </>
                             )}
                         </>
@@ -139,29 +165,40 @@ export default function CalendarCellClassless({
                 )}
             </button>
 
-            {isOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-                    <div className="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col">
-                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-orange-50 rounded-t-2xl sm:rounded-t-2xl">
-                            <h2 className="font-bold text-gray-800">{month}月{day}日 の注文</h2>
-                            <button onClick={() => setIsOpen(false)} className="p-2 bg-white rounded-full text-gray-400 hover:bg-gray-100">
-                                <X className="w-5 h-5" />
+            {isOpen && typeof window !== 'undefined' && createPortal(
+                <>
+                    {/* Transparent backdrop — click to close */}
+                    <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setIsOpen(false)}
+                    />
+                    {/* Popover card */}
+                    <div
+                        style={popoverStyle}
+                        onClick={e => e.stopPropagation()}
+                        className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+                    >
+                        {/* Header */}
+                        <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-orange-50">
+                            <h2 className="font-bold text-gray-800 text-sm">{month}月{day}日 の注文</h2>
+                            <button onClick={() => setIsOpen(false)} className="p-1.5 bg-white rounded-full text-gray-400 hover:bg-gray-100">
+                                <X className="w-4 h-4" />
                             </button>
                         </div>
 
-                        <div className="p-4 space-y-4">
-                            {/* Meal type selector */}
+                        <div className="p-3 space-y-3">
+                            {/* Meal type */}
                             <div>
-                                <p className="text-xs font-black text-gray-400 mb-2 uppercase">本日の給食</p>
-                                <div className="flex flex-wrap gap-2">
+                                <p className="text-[10px] font-black text-gray-400 mb-1.5 uppercase">給食タイプ</p>
+                                <div className="flex flex-wrap gap-1.5">
                                     {[...displayOptions, '飯なし'].map(opt => (
                                         <button
                                             key={opt}
                                             onClick={() => setMealType(opt)}
-                                            className={`py-1.5 px-3 text-xs rounded-full border font-medium transition-colors ${mealType === opt
+                                            className={`py-1 px-2.5 text-xs rounded-full border font-medium transition-colors ${mealType === opt
                                                 ? 'bg-orange-500 text-white border-orange-600'
                                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-orange-50'
-                                                }`}
+                                            }`}
                                         >
                                             {opt === '飯なし' ? 'なし' : opt}
                                         </button>
@@ -169,49 +206,50 @@ export default function CalendarCellClassless({
                                 </div>
                             </div>
 
-                            {/* Counts */}
-                            <div className="grid grid-cols-3 gap-3">
-                                <Counter label="園児" value={studentCount} onChange={(d) => setStudentCount(v => Math.max(0, v + d))} />
-                                <Counter label="アレルギー" value={allergyCount} onChange={(d) => setAllergyCount(v => Math.max(0, v + d))} color="text-red-600" />
-                                <Counter label="先生" value={teacherCount} onChange={(d) => setTeacherCount(v => Math.max(0, v + d))} />
+                            {/* Counters */}
+                            <div className="grid grid-cols-3 gap-2">
+                                <MiniCounter label="園児" value={studentCount} onChange={d => setStudentCount(v => Math.max(0, v + d))} />
+                                <MiniCounter label="アレルギー" value={allergyCount} onChange={d => setAllergyCount(v => Math.max(0, v + d))} color="text-red-600" />
+                                <MiniCounter label="先生" value={teacherCount} onChange={d => setTeacherCount(v => Math.max(0, v + d))} />
                             </div>
 
                             <input
                                 type="text"
-                                placeholder="備考 (例: 10:20納品)"
+                                placeholder="備考"
                                 value={memo}
                                 onChange={e => setMemo(e.target.value)}
                                 className="w-full text-xs border border-gray-200 rounded-lg p-2 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-orange-100"
                             />
                         </div>
 
-                        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+                        <div className="px-3 pb-3">
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSaving}
-                                className="w-full bg-orange-500 text-white py-4 rounded-xl font-bold text-base hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg ring-4 ring-orange-100 active:scale-95 transition-all"
+                                className="w-full bg-orange-500 text-white py-3 rounded-xl font-bold text-sm hover:bg-orange-600 flex items-center justify-center gap-2 shadow-md ring-4 ring-orange-100 active:scale-95 transition-all"
                             >
                                 {isSaving
-                                    ? <Loader2 className="w-5 h-5 animate-spin" />
-                                    : <><Send className="w-4 h-4" /> 変更を申請する</>
+                                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                                    : <><Send className="w-3.5 h-3.5" /> 変更を申請する</>
                                 }
                             </button>
                         </div>
                     </div>
-                </div>
+                </>,
+                document.body
             )}
         </>
     );
 }
 
-function Counter({ label, value, onChange, color = "text-gray-900" }: { label: string, value: number, onChange: (d: number) => void, color?: string }) {
+function MiniCounter({ label, value, onChange, color = "text-gray-900" }: { label: string, value: number, onChange: (d: number) => void, color?: string }) {
     return (
         <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-500 mb-1">{label}</span>
-            <div className="flex items-center gap-1 bg-white rounded-lg border border-gray-300 p-1">
-                <button onClick={() => onChange(-1)} className="p-1 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Minus className="w-4 h-4" /></button>
-                <span className={`font-bold text-lg w-8 text-center ${color}`}>{value}</span>
-                <button onClick={() => onChange(1)} className="p-1 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Plus className="w-4 h-4" /></button>
+            <span className="text-[10px] text-gray-500 mb-1">{label}</span>
+            <div className="flex items-center gap-0.5 bg-white rounded-lg border border-gray-200 p-0.5">
+                <button onClick={() => onChange(-1)} className="p-1 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Minus className="w-3 h-3" /></button>
+                <span className={`font-bold text-base w-7 text-center ${color}`}>{value}</span>
+                <button onClick={() => onChange(1)} className="p-1 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Plus className="w-3 h-3" /></button>
             </div>
         </div>
     );
