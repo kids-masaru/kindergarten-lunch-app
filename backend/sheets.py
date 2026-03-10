@@ -203,6 +203,145 @@ def delete_pending_class_snapshot(kindergarten_id: str, date: str) -> bool:
         print(f"Error in delete_pending_class_snapshot: {e}")
         return False
 
+ORDERS_BACKUP_SHEET = "orders_change_backup"
+BACKUP_HEADERS = [
+    "kindergarten_id", "snapshot_date", "date", "class_name",
+    "orig_student", "orig_allergy", "orig_teacher",
+    "applied_student", "applied_allergy", "applied_teacher",
+]
+
+def backup_orders_for_class_change(
+    kindergarten_id: str,
+    snapshot_date: str,
+    orders_before: List[Dict],
+    new_class_counts: Dict,
+) -> bool:
+    """Save pre-change orders and the auto-applied counts for smart restore later."""
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        try:
+            ws = wb.worksheet(ORDERS_BACKUP_SHEET)
+        except:
+            ws = wb.add_worksheet(title=ORDERS_BACKUP_SHEET, rows=2000, cols=len(BACKUP_HEADERS))
+            ws.update("A1", [BACKUP_HEADERS])
+
+        new_rows = []
+        for order in orders_before:
+            class_name = str(order.get("class_name", ""))
+            applied = new_class_counts.get(class_name, {})
+            new_rows.append([
+                kindergarten_id,
+                snapshot_date,
+                order.get("date", ""),
+                class_name,
+                int(order.get("student_count", 0)),
+                int(order.get("allergy_count", 0)),
+                int(order.get("teacher_count", 0)),
+                int(applied.get("student_count", 0)),
+                int(applied.get("allergy_count", 0)),
+                int(applied.get("teacher_count", 0)),
+            ])
+        if new_rows:
+            ws.append_rows(new_rows)
+        return True
+    except Exception as e:
+        print(f"Error in backup_orders_for_class_change: {e}")
+        return False
+
+
+def restore_orders_from_class_change(kindergarten_id: str, snapshot_date: str) -> bool:
+    """Smart restore: only restore orders whose counts still match the auto-applied values.
+    Orders manually changed after the class change are left untouched."""
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        try:
+            bws = wb.worksheet(ORDERS_BACKUP_SHEET)
+        except:
+            return True  # No backup sheet — nothing to restore
+
+        backup_records = bws.get_all_records()
+        relevant = [
+            r for r in backup_records
+            if str(r.get("kindergarten_id")) == str(kindergarten_id)
+            and str(r.get("snapshot_date")) == str(snapshot_date)
+        ]
+        if not relevant:
+            return True
+
+        # Build (date, class_name) -> backup row
+        backup_map = {(str(r["date"]), str(r["class_name"])): r for r in relevant}
+
+        # Fetch current orders for all affected months
+        months = set()
+        for d in (r["date"] for r in relevant):
+            parts = str(d).split("-")
+            if len(parts) == 3:
+                months.add((int(parts[0]), int(parts[1])))
+
+        current_orders = []
+        for (yr, mo) in months:
+            current_orders += [o.model_dump() for o in get_orders_for_month(kindergarten_id, yr, mo)]
+
+        orders_to_restore = []
+        for order in current_orders:
+            key = (str(order["date"]), str(order["class_name"]))
+            if key not in backup_map:
+                continue
+            bk = backup_map[key]
+            curr_s = int(order.get("student_count", 0))
+            curr_a = int(order.get("allergy_count", 0))
+            curr_t = int(order.get("teacher_count", 0))
+            appl_s = int(bk.get("applied_student", 0))
+            appl_a = int(bk.get("applied_allergy", 0))
+            appl_t = int(bk.get("applied_teacher", 0))
+
+            # Only restore if the order hasn't been manually changed
+            if curr_s == appl_s and curr_a == appl_a and curr_t == appl_t:
+                restored = dict(order)
+                restored["student_count"] = int(bk["orig_student"])
+                restored["allergy_count"] = int(bk["orig_allergy"])
+                restored["teacher_count"] = int(bk["orig_teacher"])
+                orders_to_restore.append(restored)
+
+        if orders_to_restore:
+            batch_save_orders(orders_to_restore)
+        return True
+    except Exception as e:
+        print(f"Error in restore_orders_from_class_change: {e}")
+        return False
+
+
+def delete_orders_backup(kindergarten_id: str, snapshot_date: str) -> bool:
+    """Remove backup rows for a completed or cancelled class change."""
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        try:
+            ws = wb.worksheet(ORDERS_BACKUP_SHEET)
+        except:
+            return True
+
+        all_rows = ws.get_all_values()
+        if len(all_rows) < 2:
+            return True
+        headers = all_rows[0]
+        kid_idx = headers.index("kindergarten_id")
+        snap_idx = headers.index("snapshot_date")
+
+        new_rows = [headers] + [
+            row for row in all_rows[1:]
+            if not (str(row[kid_idx]) == str(kindergarten_id) and str(row[snap_idx]) == str(snapshot_date))
+        ]
+        ws.clear()
+        ws.update("A1", new_rows)
+        return True
+    except Exception as e:
+        print(f"Error in delete_orders_backup: {e}")
+        return False
+
+
 def get_orders_for_month(kindergarten_id: str, year: int, month: int) -> List[OrderData]:
     """Fetch orders for a specific kindergarten and month from the flat 'orders' sheet."""
     try:

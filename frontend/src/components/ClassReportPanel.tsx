@@ -45,7 +45,7 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
     };
 
     const handleDeletePending = async (date: string) => {
-        if (!confirm(`${date} からの予定変更をキャンセルしますか？`)) return;
+        if (!confirm(`${date} からの変更をキャンセルします。\n手動で修正していない注文は申請前の人数に戻ります。\nよろしいですか？`)) return;
         setDeletingDate(date);
         try {
             await deletePendingClassSnapshot(user.kindergarten_id, date);
@@ -58,6 +58,11 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
     };
 
     const handleSave = async () => {
+        const confirmMsg = effectiveDate
+            ? `${effectiveDate} 以降のクラス人数を変更します。\n既存の保存済み注文もこの日以降は新しい人数に更新されます。\nよろしいですか？`
+            : 'クラス人数を今すぐ変更します。よろしいですか？';
+        if (!confirm(confirmMsg)) return;
+
         setSaving(true);
         try {
             const dataToSave = Object.values(edits).map(cls => ({
@@ -66,7 +71,7 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
             }));
             await updateKindergartenClasses(user.kindergarten_id, dataToSave);
             const msg = effectiveDate
-                ? `${effectiveDate} 以降の基本人数を申請しました`
+                ? `${effectiveDate} 以降の基本人数と既存注文を更新しました`
                 : '基本人数の変更を申請しました';
             alert(msg);
             setEffectiveDate('');

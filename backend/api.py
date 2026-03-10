@@ -16,6 +16,9 @@ from backend.sheets import (
     update_kindergarten_classes as update_sheets_classes,
     get_pending_class_snapshots,
     delete_pending_class_snapshot,
+    backup_orders_for_class_change,
+    restore_orders_from_class_change,
+    delete_orders_backup,
     get_system_settings,
     update_system_settings
 )
@@ -197,6 +200,42 @@ def update_kindergarten_classes(kindergarten_id: str, request: ClassListUpdateRe
 
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update classes in sheet")
+
+        # If scheduled (future date), also update existing orders and backup for undo
+        if scheduled_date:
+            new_class_counts = {
+                c.class_name: {
+                    "student_count": c.default_student_count,
+                    "allergy_count": c.default_allergy_count,
+                    "teacher_count": c.default_teacher_count,
+                }
+                for c in request.classes
+            }
+            # Fetch existing orders from scheduled_date onwards (3 months)
+            from_dt = datetime.strptime(scheduled_date, "%Y-%m-%d")
+            affected_orders = []
+            for i in range(3):
+                yr = from_dt.year + ((from_dt.month - 1 + i) // 12)
+                mo = ((from_dt.month - 1 + i) % 12) + 1
+                month_orders = get_orders_for_month(kindergarten_id, yr, mo)
+                affected_orders += [o for o in month_orders if o.date >= scheduled_date]
+
+            if affected_orders:
+                # Backup before overwriting
+                backup_orders_for_class_change(
+                    kindergarten_id, scheduled_date,
+                    [o.model_dump() for o in affected_orders],
+                    new_class_counts,
+                )
+                # Update orders with new counts
+                updated = []
+                for order in affected_orders:
+                    if order.class_name in new_class_counts:
+                        d = order.model_dump()
+                        d.update(new_class_counts[order.class_name])
+                        updated.append(d)
+                if updated:
+                    batch_save_orders(updated)
 
         # Send notification in background thread (skip if called from monthly setup)
         if request.skip_notify:
@@ -663,10 +702,15 @@ def get_pending_changes(kindergarten_id: str):
 
 @router.delete("/masters/classes/{kindergarten_id}/pending/{date}")
 def delete_pending_change(kindergarten_id: str, date: str):
-    """Delete a scheduled class snapshot."""
+    """Delete a scheduled class snapshot and smart-restore orders to pre-change state."""
+    # 1. Smart restore: revert only orders not manually changed since the class change
+    restore_orders_from_class_change(kindergarten_id, date)
+    # 2. Delete the class snapshot
     success = delete_pending_class_snapshot(kindergarten_id, date)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to delete pending snapshot")
+    # 3. Clean up backup
+    delete_orders_backup(kindergarten_id, date)
     return {"status": "success"}
 
 @router.get("/admin/orders/{year}/{month}")
