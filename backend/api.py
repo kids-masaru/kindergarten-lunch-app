@@ -15,6 +15,7 @@ from backend.sheets import (
     update_kindergarten_master,
     update_kindergarten_classes as update_sheets_classes,
     get_pending_class_snapshots,
+    delete_pending_class_snapshot,
     get_system_settings,
     update_system_settings
 )
@@ -659,6 +660,30 @@ def get_pending_changes(kindergarten_id: str):
     """Get future-dated class snapshots (scheduled but not yet active)."""
     snapshots = get_pending_class_snapshots(kindergarten_id)
     return {"pending_snapshots": snapshots}
+
+@router.delete("/masters/classes/{kindergarten_id}/pending/{date}")
+def delete_pending_change(kindergarten_id: str, date: str):
+    """Delete a scheduled class snapshot."""
+    success = delete_pending_class_snapshot(kindergarten_id, date)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete pending snapshot")
+    return {"status": "success"}
+
+@router.get("/admin/orders/{year}/{month}")
+def get_admin_orders(year: int, month: int):
+    """Get orders + classes for all kindergartens for a given month (admin view)."""
+    kindergartens = get_kindergarten_master()
+    result = []
+    for k in kindergartens:
+        orders = get_orders_for_month(k.kindergarten_id, year, month)
+        classes = get_classes_for_kindergarten(k.kindergarten_id)
+        result.append({
+            "kindergarten_id": k.kindergarten_id,
+            "name": k.name,
+            "classes": [c.model_dump() for c in classes],
+            "orders": [o.model_dump() for o in orders],
+        })
+    return {"data": result}
 
 @router.get("/admin/system-info")
 def get_system_info():

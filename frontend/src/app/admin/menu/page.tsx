@@ -1,9 +1,132 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon } from '@/lib/api';
-import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, ArrowLeft, Save, Trash2, Building2, Search, Filter } from 'lucide-react';
+import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon, getAdminOrdersForMonth } from '@/lib/api';
+import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, ArrowLeft, Save, Trash2, Building2, Search, Filter, Printer, Calendar } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
+
+// --- Order Print View Component ---
+function OrderPrintView({ data, year, month, onClose }: { data: any[], year: number, month: number, onClose: () => void }) {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    const DOW = ['日','月','火','水','木','金','土'];
+
+    const getOrder = (orders: any[], day: number, className: string) => {
+        const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        return orders.find((o: any) => o.date === dateStr && o.class_name === className);
+    };
+
+    const handlePrint = () => window.print();
+
+    return (
+        <div className="fixed inset-0 bg-white z-50 overflow-auto print:overflow-visible">
+            <style>{`
+                @media print {
+                    @page { size: A4 landscape; margin: 8mm; }
+                    .no-print { display: none !important; }
+                    .print-page { page-break-after: always; }
+                    body { font-size: 8px; }
+                }
+            `}</style>
+
+            {/* Screen controls */}
+            <div className="no-print sticky top-0 bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 z-10">
+                <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                    <ArrowLeft className="w-5 h-5 text-gray-500" />
+                </button>
+                <span className="font-black text-gray-700 text-sm">{year}年{month}月 注文一覧</span>
+                <div className="flex-1" />
+                <button
+                    onClick={handlePrint}
+                    className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-orange-600 transition-all"
+                >
+                    <Printer className="w-4 h-4" /> 全園一括印刷
+                </button>
+            </div>
+
+            <div className="p-4 space-y-8">
+                {data.map((k: any) => {
+                    const classNames: string[] = k.classes.map((c: any) => c.class_name);
+                    if (classNames.length === 0) return null;
+                    return (
+                        <div key={k.kindergarten_id} className="print-page">
+                            {/* Per-kindergarten print button (screen only) */}
+                            <div className="no-print flex items-center justify-between mb-2">
+                                <h2 className="text-base font-black text-gray-800">{k.name}</h2>
+                                <button
+                                    onClick={() => {
+                                        // Temporarily hide other kindergartens and print
+                                        const allPages = document.querySelectorAll<HTMLElement>('.print-page');
+                                        allPages.forEach(el => { if (!el.contains(el.querySelector(`[data-kid="${k.kindergarten_id}"]`))) el.style.display = 'none'; });
+                                        window.print();
+                                        allPages.forEach(el => { el.style.display = ''; });
+                                    }}
+                                    className="flex items-center gap-1.5 text-xs font-bold text-orange-500 hover:text-orange-700 border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-50 transition-all"
+                                >
+                                    <Printer className="w-3.5 h-3.5" /> この園のみ印刷
+                                </button>
+                            </div>
+
+                            {/* Print header */}
+                            <div className="hidden print:block mb-2">
+                                <span className="font-black text-sm">{k.name}</span>
+                                <span className="ml-4 text-xs">{year}年{month}月 注文一覧</span>
+                            </div>
+
+                            <div data-kid={k.kindergarten_id} className="overflow-x-auto">
+                                <table className="w-full border-collapse text-[10px] print:text-[7px]" style={{ minWidth: '800px' }}>
+                                    <thead>
+                                        <tr>
+                                            <th className="border border-gray-200 bg-gray-50 px-2 py-1 text-left font-black w-20 print:w-14">クラス</th>
+                                            {days.map(d => {
+                                                const dow = new Date(year, month - 1, d).getDay();
+                                                return (
+                                                    <th key={d} className={`border border-gray-200 px-0.5 py-1 text-center font-bold w-8 print:w-6
+                                                        ${dow === 0 ? 'bg-red-50 text-red-500' : dow === 6 ? 'bg-blue-50 text-blue-500' : 'bg-gray-50 text-gray-600'}`}>
+                                                        <div>{d}</div>
+                                                        <div className="text-[8px] print:text-[6px] opacity-70">{DOW[dow]}</div>
+                                                    </th>
+                                                );
+                                            })}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {classNames.map(className => (
+                                            <tr key={className}>
+                                                <td className="border border-gray-200 px-2 py-1 font-bold text-gray-700 bg-gray-50/50">{className}</td>
+                                                {days.map(d => {
+                                                    const order = getOrder(k.orders, d, className);
+                                                    const dow = new Date(year, month - 1, d).getDay();
+                                                    const isWeekend = dow === 0 || dow === 6;
+                                                    if (!order) return (
+                                                        <td key={d} className={`border border-gray-100 text-center ${isWeekend ? 'bg-gray-50' : ''}`}>
+                                                            <span className="text-gray-200">－</span>
+                                                        </td>
+                                                    );
+                                                    const isSpecial = order.meal_type !== '通常';
+                                                    return (
+                                                        <td key={d} className={`border border-gray-200 p-0.5 text-center ${isSpecial ? 'bg-orange-50' : ''}`}>
+                                                            <div className="leading-tight">
+                                                                {isSpecial && <div className="text-[7px] print:text-[6px] font-black text-orange-500 truncate">{order.meal_type}</div>}
+                                                                <div className="font-bold text-gray-700">園{order.student_count}</div>
+                                                                {order.allergy_count > 0 && <div className="text-red-500 font-bold">ア{order.allergy_count}</div>}
+                                                                <div className="text-gray-400">先{order.teacher_count}</div>
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
 
 // --- Kindergarten Editor Component ---
 function KindergartenEditor({ k, onClose, onSave, monthlyCommonItem, monthlyCommonYearMonth }: { k: any, onClose: () => void, onSave: () => void, monthlyCommonItem?: string, monthlyCommonYearMonth?: string }) {
@@ -457,7 +580,15 @@ export default function AdminConsole() {
     const [showSettings, setShowSettings] = useState(false);
 
     // Dashboard navigation
-    const [activeSection, setActiveSection] = useState<'menu' | 'kindergarten' | null>(null);
+    const [activeSection, setActiveSection] = useState<'menu' | 'kindergarten' | 'orders' | null>(null);
+
+    // Orders section
+    const [ordersYear, setOrdersYear] = useState<number>(new Date().getFullYear());
+    const [ordersMonth, setOrdersMonth] = useState<number>(new Date().getMonth() + 1);
+    const [ordersData, setOrdersData] = useState<any[] | null>(null);
+    const [ordersLoading, setOrdersLoading] = useState(false);
+    const [showPrintView, setShowPrintView] = useState(false);
+    const [printData, setPrintData] = useState<any[] | null>(null);
 
     // Monthly common item
     const [monthlyCommon, setMonthlyCommon] = useState({ item: '', year_month: '' });
@@ -590,6 +721,7 @@ export default function AdminConsole() {
                             </h1>
                             {activeSection === 'menu' && <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">献立作成</p>}
                             {activeSection === 'kindergarten' && <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">幼稚園マスター</p>}
+                            {activeSection === 'orders' && <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">注文確認・印刷</p>}
                         </div>
                     </div>
                     <button
@@ -614,6 +746,21 @@ export default function AdminConsole() {
                             </div>
                             <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
                         </div>
+
+                        {/* 注文確認・印刷 */}
+                        <button
+                            onClick={() => setActiveSection('orders')}
+                            className="bg-white rounded-2xl border border-orange-100 shadow-sm p-6 flex flex-col items-center gap-3 hover:bg-orange-50/50 hover:shadow-md hover:border-orange-200 transition-all group"
+                        >
+                            <div className="p-3 bg-green-50 rounded-xl group-hover:bg-green-100 transition-colors">
+                                <Printer className="w-6 h-6 text-green-500" />
+                            </div>
+                            <div className="text-center">
+                                <p className="font-black text-gray-800 text-sm">注文確認・印刷</p>
+                                <p className="text-[10px] text-gray-400 mt-0.5">月別注文カレンダー</p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-500 transition-colors" />
+                        </button>
 
                         {/* 幼稚園マスター */}
                         <button
@@ -751,6 +898,85 @@ export default function AdminConsole() {
                     </div>
                 )}
 
+                {/* 注文確認・印刷 Section */}
+                {activeSection === 'orders' && (
+                    <div className="space-y-4">
+                        <div className="bg-white rounded-2xl shadow-sm border border-orange-100 p-5">
+                            <h2 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-orange-500" /> 対象年月を選択
+                            </h2>
+                            <div className="flex flex-wrap gap-3 items-end">
+                                <div className="w-36">
+                                    <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">年月</label>
+                                    <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-xl border border-gray-100 focus-within:ring-2 ring-orange-100">
+                                        <input type="number" value={ordersYear} onChange={e => setOrdersYear(parseInt(e.target.value))} className="bg-transparent w-full font-bold text-gray-700 outline-none text-center text-sm" />
+                                        <span className="text-gray-300">/</span>
+                                        <input type="number" min={1} max={12} value={ordersMonth} onChange={e => setOrdersMonth(parseInt(e.target.value))} className="bg-transparent w-16 font-bold text-gray-700 outline-none text-center text-sm" />
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        setOrdersLoading(true);
+                                        setOrdersData(null);
+                                        try {
+                                            const res = await getAdminOrdersForMonth(ordersYear, ordersMonth);
+                                            setOrdersData(res.data);
+                                        } catch {
+                                            alert('データの取得に失敗しました');
+                                        } finally {
+                                            setOrdersLoading(false);
+                                        }
+                                    }}
+                                    disabled={ordersLoading}
+                                    className="px-5 py-3 bg-orange-500 text-white text-sm font-black rounded-xl hover:bg-orange-600 transition-all flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    {ordersLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : '読み込む'}
+                                </button>
+                                {ordersData && (
+                                    <button
+                                        onClick={() => { setPrintData(ordersData); setShowPrintView(true); }}
+                                        className="px-5 py-3 bg-green-500 text-white text-sm font-black rounded-xl hover:bg-green-600 transition-all flex items-center gap-2"
+                                    >
+                                        <Printer className="w-4 h-4" /> 全園一括印刷
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {ordersData && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {ordersData.filter((k: any) => k.classes.length > 0).map((k: any) => {
+                                    const totalOrders = k.orders.length;
+                                    const orderedDays = new Set(k.orders.map((o: any) => o.date)).size;
+                                    return (
+                                        <div key={k.kindergarten_id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="font-black text-gray-800 text-sm">{k.name}</p>
+                                                    <p className="text-[10px] text-gray-400 mt-0.5">
+                                                        {orderedDays}日分 / {totalOrders}件の注文
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { setPrintData([k]); setShowPrintView(true); }}
+                                                    className="flex items-center gap-1.5 text-xs font-bold text-orange-500 hover:text-orange-700 border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-50 transition-all"
+                                                >
+                                                    <Printer className="w-3.5 h-3.5" /> 印刷
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                {ordersData.filter((k: any) => k.classes.length === 0).length > 0 && (
+                                    <p className="col-span-2 text-xs text-gray-400 text-center py-2">
+                                        ※ クラス未設定の施設は表示されません
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* 幼稚園マスター Section */}
                 {activeSection === 'kindergarten' && (
                     <div className="space-y-3">
@@ -883,6 +1109,15 @@ export default function AdminConsole() {
                         }}
                         monthlyCommonItem={monthlyCommon.item}
                         monthlyCommonYearMonth={monthlyCommon.year_month}
+                    />
+                )}
+
+                {showPrintView && printData && (
+                    <OrderPrintView
+                        data={printData}
+                        year={ordersYear}
+                        month={ordersMonth}
+                        onClose={() => setShowPrintView(false)}
                     />
                 )}
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Send, Minus, Plus, Calendar, Loader2 } from 'lucide-react';
-import { updateKindergartenClasses, getPendingClassSnapshots } from '@/lib/api';
+import { Send, Minus, Plus, Calendar, Loader2, X } from 'lucide-react';
+import { updateKindergartenClasses, getPendingClassSnapshots, deletePendingClassSnapshot } from '@/lib/api';
 import { ClassMaster, LoginUser } from '@/types';
 
 interface ClassReportPanelProps {
@@ -16,6 +16,7 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
     const [saving, setSaving] = useState(false);
     const [effectiveDate, setEffectiveDate] = useState<string>('');
     const [pendingSnapshots, setPendingSnapshots] = useState<{ date: string, classes: any[] }[]>([]);
+    const [deletingDate, setDeletingDate] = useState<string | null>(null);
 
     useEffect(() => {
         if (classes.length > 0) {
@@ -41,6 +42,19 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
             const newVal = Math.max(0, (cls[field] as number) + delta);
             return { ...prev, [className]: { ...cls, [field]: newVal } };
         });
+    };
+
+    const handleDeletePending = async (date: string) => {
+        if (!confirm(`${date} からの予定変更をキャンセルしますか？`)) return;
+        setDeletingDate(date);
+        try {
+            await deletePendingClassSnapshot(user.kindergarten_id, date);
+            setPendingSnapshots(prev => prev.filter(s => s.date !== date));
+        } catch {
+            alert('キャンセルに失敗しました');
+        } finally {
+            setDeletingDate(null);
+        }
     };
 
     const handleSave = async () => {
@@ -118,11 +132,23 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
                     <div className="mt-4 space-y-2">
                         {pendingSnapshots.map(snap => (
                             <div key={snap.date} className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Calendar className="w-3.5 h-3.5 text-blue-500" />
-                                    <span className="text-xs font-black text-blue-600">
-                                        📅 {snap.date} から新設定が適用されます
-                                    </span>
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                                        <span className="text-xs font-black text-blue-600">
+                                            📅 {snap.date} から新設定が適用されます
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDeletePending(snap.date)}
+                                        disabled={deletingDate === snap.date}
+                                        title="この予定変更をキャンセル"
+                                        className="p-1 hover:bg-blue-200 rounded-lg transition-colors text-blue-400 hover:text-red-500 disabled:opacity-50"
+                                    >
+                                        {deletingDate === snap.date
+                                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            : <X className="w-3.5 h-3.5" />}
+                                    </button>
                                 </div>
                                 <div className="space-y-1">
                                     {snap.classes.map((c: any, i: number) => (

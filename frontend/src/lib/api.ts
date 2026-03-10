@@ -144,3 +144,13 @@ export const updateMonthlyCommon = async (data: { item: string; year_month: stri
     const res = await api.post('/admin/monthly-common', data);
     return res.data;
 };
+
+export const deletePendingClassSnapshot = async (kindergartenId: string, date: string) => {
+    const res = await api.delete(`/masters/classes/${kindergartenId}/pending/${encodeURIComponent(date)}`);
+    return res.data;
+};
+
+export const getAdminOrdersForMonth = async (year: number, month: number) => {
+    const res = await api.get(`/admin/orders/${year}/${month}`);
+    return res.data;
+};

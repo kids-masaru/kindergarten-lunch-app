@@ -173,6 +173,36 @@ def get_pending_class_snapshots(kindergarten_id: str) -> List[Dict]:
         print(f"Error in get_pending_class_snapshots: {e}")
         return []
 
+def delete_pending_class_snapshot(kindergarten_id: str, date: str) -> bool:
+    """Delete a specific future-dated class snapshot for a kindergarten."""
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        ws = wb.worksheet("classes")
+        all_rows = ws.get_all_values()
+        headers = all_rows[0]
+
+        kid_idx = headers.index("kindergarten_id")
+        ef_idx = headers.index("effective_from") if "effective_from" in headers else -1
+
+        new_rows = [headers]
+        for i, row in enumerate(all_rows):
+            if i == 0: continue
+            while len(row) < len(headers):
+                row.append("")
+            is_same_kid = str(row[kid_idx]) == str(kindergarten_id)
+            is_same_date = ef_idx >= 0 and str(row[ef_idx]) == date
+            if is_same_kid and is_same_date:
+                continue  # Remove this row
+            new_rows.append(row)
+
+        ws.clear()
+        ws.update("A1", new_rows)
+        return True
+    except Exception as e:
+        print(f"Error in delete_pending_class_snapshot: {e}")
+        return False
+
 def get_orders_for_month(kindergarten_id: str, year: int, month: int) -> List[OrderData]:
     """Fetch orders for a specific kindergarten and month from the flat 'orders' sheet."""
     try:
