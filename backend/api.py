@@ -698,7 +698,26 @@ def get_system_info():
         "email_template_admin_body": settings.get("email_template_admin_body", DEFAULT_ADMIN_TEMPLATE_BODY),
         "email_template_customer_subject": settings.get("email_template_customer_subject", DEFAULT_CUSTOMER_TEMPLATE_SUBJECT),
         "email_template_customer_body": settings.get("email_template_customer_body", DEFAULT_CUSTOMER_TEMPLATE_BODY),
+        "monthly_common_item": settings.get("monthly_common_item", ""),
+        "monthly_common_year_month": settings.get("monthly_common_year_month", ""),
     }
+
+@router.get("/admin/monthly-common")
+def get_monthly_common():
+    """Get the monthly common special item for all kindergartens."""
+    from backend.sheets import get_monthly_common_item
+    return get_monthly_common_item()
+
+@router.post("/admin/monthly-common")
+def update_monthly_common(data: Dict):
+    """Update the monthly common special item."""
+    from backend.sheets import update_monthly_common_item
+    item = data.get("item", "")
+    year_month = data.get("year_month", "")
+    success = update_monthly_common_item(item, year_month)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update monthly common item")
+    return {"status": "success"}
 
 @router.post("/admin/system-settings")
 def update_admin_settings(data: Dict):

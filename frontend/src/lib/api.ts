@@ -134,3 +134,13 @@ export const updateOrderDefaults = async (data: {
     const res = await api.put('/orders/update-defaults', data);
     return res.data;
 };
+
+export const getMonthlyCommon = async () => {
+    const res = await api.get('/admin/monthly-common');
+    return res.data;
+};
+
+export const updateMonthlyCommon = async (data: { item: string; year_month: string }) => {
+    const res = await api.post('/admin/monthly-common', data);
+    return res.data;
+};

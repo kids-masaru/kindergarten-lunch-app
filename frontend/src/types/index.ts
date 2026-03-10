@@ -2,6 +2,7 @@ export interface LoginUser {
     kindergarten_id: string;
     name: string;
     services: string[];
+    has_no_rice?: boolean;
     settings: {
         service_mon?: boolean;
         service_tue?: boolean;

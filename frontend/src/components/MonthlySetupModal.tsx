@@ -82,7 +82,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
 
     const mealTypeOptions = user.services && user.services.length > 0
         ? user.services
-        : ['通常', 'カレー', 'パン', '誕生日会'];
+        : ['通常'];
 
     const handleMealTypeChange = (dateStr: string, newType: string) => {
         setDays(prev => prev.map(d => d.dateStr === dateStr ? { ...d, mealType: newType } : d));
@@ -351,7 +351,6 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                             }`}
                                                     >
                                                         {mealTypeOptions.map(o => <option key={o} value={o}>{o}</option>)}
-                                                        <option value="飯なし">飯なし</option>
                                                     </select>
                                                 </div>
                                                 <div className="flex items-center gap-0.5">
@@ -399,13 +398,10 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     className={`w-full text-[9px] font-black rounded border outline-none px-1 py-1 text-center cursor-pointer
                                                         ${dayInfo.mealType === '通常'
                                                             ? 'border-gray-200 text-gray-400 bg-white'
-                                                            : dayInfo.mealType === '飯なし'
-                                                                ? 'border-gray-300 bg-gray-50 text-gray-400'
-                                                                : 'border-orange-400 bg-orange-50 text-orange-600'
+                                                            : 'border-orange-400 bg-orange-50 text-orange-600'
                                                         }`}
                                                 >
                                                     {mealTypeOptions.map(o => <option key={o} value={o}>{o}</option>)}
-                                                    <option value="飯なし">飯なし</option>
                                                 </select>
                                             </div>
                                         </div>

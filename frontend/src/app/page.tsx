@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCalendar, getMasters, generateMenu, saveOrder, updateOrderDefaults } from '@/lib/api';
+import { getCalendar, getMasters, saveOrder, updateOrderDefaults } from '@/lib/api';
 import { LoginUser, Order, ClassMaster } from '@/types';
-import OrderModal from '@/components/OrderModal';
 import ClassReportPanel from '@/components/ClassReportPanel';
 import MonthlySetupModal from '@/components/MonthlySetupModal';
 import { CalendarIcon, ChevronLeft, ChevronRight, LogOut, Loader2, Send, Settings as SettingsIcon, X, Save, Users, Minus, Plus, Calendar } from 'lucide-react';
 import CalendarCellClassless from '@/components/CalendarCellClassless';
+import CalendarCellWithClasses from '@/components/CalendarCellWithClasses';
 
 // Version: UI Layout V3 (Split & Tabs)
 
@@ -179,8 +179,6 @@ export default function CalendarPage() {
   const [classes, setClasses] = useState<ClassMaster[]>([]);
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'calendar' | 'report'>('calendar');
   const [loading, setLoading] = useState(true);
   const [isMonthlySetupOpen, setIsMonthlySetupOpen] = useState(false);
@@ -261,26 +259,9 @@ export default function CalendarPage() {
   };
 
 
-  const handleDateClick = (date: number) => {
-    if (!user) return;
-    const d = new Date(year, month - 1, date);
-    setSelectedDate(d);
-    setIsModalOpen(true);
-  };
-
   const getOrdersForDay = (day: number) => {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return orders.filter(o => o.date === dateStr);
-  };
-
-  const getDayIcon = (dayOrders: Order[]) => {
-    if (dayOrders.length === 0) return null;
-    const type = dayOrders[0].meal_type;
-    // Special case for "No Meal" explicitly
-    if (type === '飯なし') return '❌';
-
-    // For ALL other types (Curry, Bread, Rice, Birthday, etc.), show generic Circle
-    return '⭕️';
   };
 
   const daysInMonth = new Date(year, month, 0).getDate();
@@ -453,64 +434,25 @@ export default function CalendarPage() {
                       }
 
                       // --- Standard Mode (Classes Exist) ---
-                      let displayLabel = null;
-                      if (!isServiceDay) {
-                        displayLabel = <span className="text-xs text-gray-300">－</span>;
-                      } else if (dayOrders.length > 0) {
-                        const type = dayOrders[0].meal_type;
-                        displayLabel = (
-                          <div className={`px-2 py-1.5 rounded-xl border-2 text-[10px] sm:text-[11px] font-black leading-none transition-all
-                          ${type === '通常'
-                              ? 'border-gray-100 text-gray-400'
-                              : type === '飯なし'
-                                ? 'border-gray-200 bg-gray-50 text-gray-400'
-                                : 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
-                            }`}>
-                            {type}
-                          </div>
-                        );
-                      }
-
                       return (
-                        <button
-                          key={day}
-                          onClick={() => {
-                            if (!isServiceDay) return;
-                            if (isStrictLocked) {
-                              alert("前日15:00を過ぎたため、システムからは変更できません。お電話にてご連絡ください。");
-                              return;
-                            }
-                            if (isGraceLocked) {
-                              if (confirm("3日前を過ぎた変更や緊急の場合は、お電話（0120-XXX-XXX）にて直接ご連絡いただく必要があります。このまま入力を続けますか？")) {
-                                handleDateClick(day);
-                              }
-                              return;
-                            }
-                            handleDateClick(day);
-                          }}
-                          disabled={!isServiceDay}
-                          className={`h-full w-full rounded-xl sm:rounded-[1rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all
-                          ${!isServiceDay
-                              ? 'bg-gray-50/50 border-transparent text-gray-300 cursor-not-allowed opacity-50'
-                              : isStrictLocked
-                                ? 'bg-gray-100 border-gray-200 opacity-40 grayscale cursor-not-allowed'
-                                : isGraceLocked
-                                  ? 'bg-gray-50 border-gray-200 opacity-80'
-                                  : isToday
-                                    ? 'bg-orange-50 border-orange-300 active:scale-95 shadow-sm hover:border-orange-200'
-                                    : 'bg-white border-gray-100 active:scale-95 shadow-sm hover:border-orange-200'
-                            }`}
-                        >
-                          <span className={`text-[10px] font-black leading-none mb-1 ${!isServiceDay ? 'text-gray-300' : isToday ? 'text-orange-600' : 'text-gray-400'}`}>{day}</span>
-                          <div className="flex-1 flex items-center justify-center w-full p-1">
-                            {displayLabel}
-                          </div>
-                          {isStrictLocked && isServiceDay && (
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <div className="w-1/2 h-[2px] bg-gray-300 rotate-45"></div>
-                            </div>
-                          )}
-                        </button>
+                        <div key={day} className="h-[5rem]">
+                          <CalendarCellWithClasses
+                            day={day}
+                            year={year}
+                            month={month}
+                            kindergartenId={user?.kindergarten_id || ''}
+                            classes={classes}
+                            existingOrders={dayOrders}
+                            isServiceDay={isServiceDay}
+                            isLocked={isStrictLocked}
+                            isGraceLocked={isGraceLocked}
+                            mealOptions={user?.services || []}
+                            onSave={async (orders) => {
+                              await Promise.all(orders.map(o => saveOrder(o)));
+                              fetchOrders(user!.kindergarten_id, year, month);
+                            }}
+                          />
+                        </div>
                       );
                     })}
                   </div>
@@ -555,21 +497,6 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
-
-      {/* Modal */}
-      {
-        selectedDate && (
-          <OrderModal
-            date={selectedDate}
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            user={user}
-            classes={classes}
-            existingOrders={getOrdersForDay(selectedDate.getDate())}
-            onSave={() => fetchOrders(user.kindergarten_id, year, month)}
-          />
-        )
-      }
 
       <MonthlySetupModal
         isOpen={isMonthlySetupOpen}

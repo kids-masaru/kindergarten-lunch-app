@@ -37,6 +37,7 @@ class KindergartenMaster(BaseModel):
 
     # New separate fields
     has_soup: bool = False
+    has_no_rice: bool = False
     curry_trigger: str = ""
 
     @field_validator('*', mode='before')

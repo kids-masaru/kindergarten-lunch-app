@@ -76,6 +76,7 @@ def get_kindergartens() -> List[KindergartenMaster]:
                 "service_sun": bool(r.get("sun", 0)),
                 "services": [s.strip() for s in str(r.get("services", "")).split(",") if s.strip()],
                 "has_soup": bool(r.get("has_soup", False)),
+                "has_no_rice": bool(r.get("has_no_rice", False)),
                 "curry_trigger": str(r.get("curry_trigger", "")),
                 "contact_name": str(r.get("contact_name", "")),
                 "contact_email": str(r.get("contact_email", "")),
@@ -409,7 +410,7 @@ def update_kindergarten_master(data: Dict) -> bool:
         mapping = {
             "service_mon": "mon", "service_tue": "tue", "service_wed": "wed",
             "service_thu": "thu", "service_fri": "fri", "service_sat": "sat", "service_sun": "sun",
-            "has_soup": "has_soup", "curry_trigger": "curry_trigger",
+            "has_soup": "has_soup", "has_no_rice": "has_no_rice", "curry_trigger": "curry_trigger",
             "contact_name": "contact_name", "contact_email": "contact_email",
             "icon_url": "icon_url"
         }
@@ -441,7 +442,7 @@ def update_kindergarten_master(data: Dict) -> bool:
 
         # --- Auto-create missing columns ---
         missing_cols = []
-        for key in ["contact_name", "contact_email", "icon_url"]:
+        for key in ["contact_name", "contact_email", "icon_url", "has_no_rice"]:
             if key not in headers and key in mapping.values():
                 missing_cols.append(key)
         
@@ -498,6 +499,40 @@ def get_system_settings() -> Dict:
     except Exception as e:
         print(f"Error in get_system_settings: {e}")
         return {}
+
+def get_monthly_common_item() -> Dict:
+    """Fetch the monthly common special item (applies to all kindergartens for the month)."""
+    settings = get_system_settings()
+    return {
+        "item": settings.get("monthly_common_item", ""),
+        "year_month": settings.get("monthly_common_year_month", "")
+    }
+
+def update_monthly_common_item(item: str, year_month: str) -> bool:
+    """Update just the monthly common special item, preserving all other settings."""
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        try:
+            ws = wb.worksheet("admin_settings")
+        except:
+            ws = wb.add_worksheet(title="admin_settings", rows=20, cols=2)
+            ws.update("A1", [["key", "value"]])
+
+        records = ws.get_all_records()
+        settings = {r["key"]: r["value"] for r in records if r.get("key")}
+        settings["monthly_common_item"] = item
+        settings["monthly_common_year_month"] = year_month
+
+        all_rows = [["key", "value"]]
+        for k, v in settings.items():
+            all_rows.append([k, str(v)])
+        ws.clear()
+        ws.update("A1", all_rows)
+        return True
+    except Exception as e:
+        print(f"Error in update_monthly_common_item: {e}")
+        return False
 
 def update_system_settings(data: Dict) -> bool:
     """Update system-wide settings."""

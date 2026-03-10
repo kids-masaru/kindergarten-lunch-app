@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses } from '@/lib/api';
+import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon } from '@/lib/api';
 import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, ArrowLeft, Save, Trash2, Building2, Search, Filter } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
 
 // --- Kindergarten Editor Component ---
-function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => void, onSave: () => void }) {
+function KindergartenEditor({ k, onClose, onSave, monthlyCommonItem, monthlyCommonYearMonth }: { k: any, onClose: () => void, onSave: () => void, monthlyCommonItem?: string, monthlyCommonYearMonth?: string }) {
     const [formData, setFormData] = useState({ ...k });
     const [classes, setClasses] = useState<any[]>([]);
     const [isSaving, setIsSaving] = useState(false);
@@ -149,8 +149,8 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                 })}
                             </div>
 
-                            {/* スープ & カレー inline */}
-                            <div className="flex items-center gap-4 py-1">
+                            {/* スープ & 飯なし toggles (管理側のみ) */}
+                            <div className="flex items-center gap-4 py-1 flex-wrap">
                                 <label className="flex items-center gap-2 cursor-pointer">
                                     <div className={`w-9 h-5 rounded-full relative transition-all ${formData.has_soup ? 'bg-orange-500' : 'bg-gray-200'}`}>
                                         <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${formData.has_soup ? 'left-4' : 'left-0.5'}`} />
@@ -158,14 +158,34 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                     <input type="checkbox" className="hidden" checked={formData.has_soup || false} onChange={e => setFormData({ ...formData, has_soup: e.target.checked })} />
                                     <span className="text-xs font-bold text-gray-600">スープあり</span>
                                 </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <div className={`w-9 h-5 rounded-full relative transition-all ${formData.has_no_rice ? 'bg-gray-600' : 'bg-gray-200'}`}>
+                                        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${formData.has_no_rice ? 'left-4' : 'left-0.5'}`} />
+                                    </div>
+                                    <input type="checkbox" className="hidden" checked={formData.has_no_rice || false} onChange={e => setFormData({ ...formData, has_no_rice: e.target.checked })} />
+                                    <span className="text-xs font-bold text-gray-600">飯なし</span>
+                                </label>
+                                <p className="text-[9px] text-gray-400 w-full">※ スープあり・飯なしは管理用設定です（先生側には表示されません）</p>
                             </div>
 
                             {formData.services?.includes('カレー') && (
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block">カレー個別項目</label>
+                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block">カレー個別項目（この園専用）</label>
                                     <input type="text" placeholder="例: チキンカレー" value={formData.curry_trigger || ''}
                                         onChange={e => setFormData({ ...formData, curry_trigger: e.target.value })}
                                         className="w-full bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:ring-2 ring-orange-200" />
+                                </div>
+                            )}
+                            {monthlyCommonItem !== undefined && (
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block">
+                                        月別カレー共通項目
+                                        {monthlyCommonYearMonth && <span className="ml-1 text-orange-400">（{monthlyCommonYearMonth}）</span>}
+                                    </label>
+                                    <div className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-gray-400">
+                                        {monthlyCommonItem || '未設定'}
+                                    </div>
+                                    <p className="text-[9px] text-gray-400 ml-1">※ 全園共通。変更は園一覧ページ上部から行えます。</p>
                                 </div>
                             )}
 
@@ -439,6 +459,10 @@ export default function AdminConsole() {
     // Dashboard navigation
     const [activeSection, setActiveSection] = useState<'menu' | 'kindergarten' | null>(null);
 
+    // Monthly common item
+    const [monthlyCommon, setMonthlyCommon] = useState({ item: '', year_month: '' });
+    const [monthlyCommonSaving, setMonthlyCommonSaving] = useState(false);
+
     // Kindergarten search & filter
     const [kSearch, setKSearch] = useState('');
     const [kFilterDay, setKFilterDay] = useState('');
@@ -475,8 +499,8 @@ export default function AdminConsole() {
 
     useEffect(() => {
         fetchKindergartens();
-        // Fetch System Info
         fetchSystemInfo();
+        getMonthlyCommon().then(setMonthlyCommon).catch(console.error);
     }, []);
 
     const copyToClipboard = (text: string) => {
@@ -730,6 +754,56 @@ export default function AdminConsole() {
                 {/* 幼稚園マスター Section */}
                 {activeSection === 'kindergarten' && (
                     <div className="space-y-3">
+                        {/* Monthly Common Item Panel */}
+                        <div className="bg-white rounded-2xl border border-orange-100 shadow-sm p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <h3 className="text-xs font-black text-gray-700 uppercase tracking-wide">月別カレー共通項目</h3>
+                                <span className="text-[10px] text-orange-500 font-bold bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">全園共通</span>
+                            </div>
+                            <p className="text-[10px] text-gray-400 mb-3">毎月変わる全園共通のカレー項目を設定します。各園の個別項目とは別に、全園に適用されます。</p>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <div className="w-full sm:w-32">
+                                    <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">対象年月</label>
+                                    <input
+                                        type="month"
+                                        value={monthlyCommon.year_month}
+                                        onChange={e => setMonthlyCommon(prev => ({ ...prev, year_month: e.target.value }))}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">共通カレー項目名</label>
+                                    <input
+                                        type="text"
+                                        placeholder="例: スパイシービーフカレー"
+                                        value={monthlyCommon.item}
+                                        onChange={e => setMonthlyCommon(prev => ({ ...prev, item: e.target.value }))}
+                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100"
+                                    />
+                                </div>
+                                <div className="flex items-end">
+                                    <button
+                                        onClick={async () => {
+                                            setMonthlyCommonSaving(true);
+                                            try {
+                                                await updateMonthlyCommon(monthlyCommon);
+                                                alert('保存しました');
+                                            } catch {
+                                                alert('保存に失敗しました');
+                                            } finally {
+                                                setMonthlyCommonSaving(false);
+                                            }
+                                        }}
+                                        disabled={monthlyCommonSaving}
+                                        className="px-4 py-2 bg-orange-500 text-white text-xs font-black rounded-xl hover:bg-orange-600 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                                    >
+                                        {monthlyCommonSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                                        保存
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Search & Filter bar */}
                         <div className="flex flex-wrap gap-2">
                             <div className="relative flex-1 min-w-40">
@@ -807,6 +881,8 @@ export default function AdminConsole() {
                             setEditingK(null);
                             fetchKindergartens();
                         }}
+                        monthlyCommonItem={monthlyCommon.item}
+                        monthlyCommonYearMonth={monthlyCommon.year_month}
                     />
                 )}
 

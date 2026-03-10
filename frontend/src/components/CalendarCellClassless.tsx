@@ -36,7 +36,9 @@ export default function CalendarCellClassless({
     const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
     const buttonRef = useRef<HTMLButtonElement>(null);
 
-    const [mealType, setMealType] = useState(existingOrder?.meal_type || '通常');
+    const [mealType, setMealType] = useState(
+        existingOrder?.meal_type === '飯なし' ? '通常' : (existingOrder?.meal_type || '通常')
+    );
     const [studentCount, setStudentCount] = useState(existingOrder?.student_count || 0);
     const [allergyCount, setAllergyCount] = useState(existingOrder?.allergy_count || 0);
     const [teacherCount, setTeacherCount] = useState(existingOrder?.teacher_count || 0);
@@ -45,7 +47,7 @@ export default function CalendarCellClassless({
 
     useEffect(() => {
         if (existingOrder) {
-            setMealType(existingOrder.meal_type);
+            setMealType(existingOrder.meal_type === '飯なし' ? '通常' : existingOrder.meal_type);
             setStudentCount(existingOrder.student_count);
             setAllergyCount(existingOrder.allergy_count);
             setTeacherCount(existingOrder.teacher_count);
@@ -191,7 +193,7 @@ export default function CalendarCellClassless({
                             <div>
                                 <p className="text-[10px] font-black text-gray-400 mb-1.5 uppercase">給食タイプ</p>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {[...displayOptions, '飯なし'].map(opt => (
+                                    {displayOptions.map(opt => (
                                         <button
                                             key={opt}
                                             onClick={() => setMealType(opt)}
@@ -200,7 +202,7 @@ export default function CalendarCellClassless({
                                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-orange-50'
                                             }`}
                                         >
-                                            {opt === '飯なし' ? 'なし' : opt}
+                                            {opt}
                                         </button>
                                     ))}
                                 </div>
