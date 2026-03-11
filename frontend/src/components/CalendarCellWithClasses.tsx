@@ -60,6 +60,7 @@ export default function CalendarCellWithClasses({
     const [submittedBy, setSubmittedBy] = useState(() =>
         typeof window !== 'undefined' ? localStorage.getItem('submitted_by_name') || '' : ''
     );
+    const [sharedMemo, setSharedMemo] = useState(existingOrders[0]?.memo || '');
 
     const displayOptions = mealOptions.length > 0 ? mealOptions : ['通常'];
     const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
@@ -160,7 +161,7 @@ export default function CalendarCellWithClasses({
                     student_count: data?.student || 0,
                     allergy_count: data?.allergy || 0,
                     teacher_count: data?.teacher || 0,
-                    memo: data?.memo || '',
+                    memo: sharedMemo,
                     submitted_by: submittedBy,
                     ...(prev ? {
                         prev_student_count: prev.student,
@@ -186,10 +187,9 @@ export default function CalendarCellWithClasses({
         );
     }
 
-    const firstOrder = existingOrders[0];
     const hasOrder = existingOrders.length > 0;
-    const displayType = firstOrder?.meal_type;
-    const isSpecialMeal = displayType && displayType !== '通常' && displayType !== '飯なし';
+    const displayType = existingOrders[0]?.meal_type;
+    const specialTypes = [...new Set(existingOrders.map(o => o.meal_type).filter(t => t && t !== '通常' && t !== '飯なし'))];
 
     return (
         <>
@@ -215,8 +215,12 @@ export default function CalendarCellWithClasses({
                 </div>
                 <div className="flex-1 flex flex-col items-center justify-center w-full px-0.5 gap-0.5">
                     {hasOrder ? (
-                        isSpecialMeal ? (
-                            <span className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 py-0.5 rounded leading-none">{displayType}</span>
+                        specialTypes.length > 0 ? (
+                            <div className="flex flex-col gap-0.5 items-center w-full">
+                                {specialTypes.map(t => (
+                                    <span key={t} className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 py-0.5 rounded leading-none">{t}</span>
+                                ))}
+                            </div>
                         ) : (
                             <span className="text-sm font-black text-gray-500 leading-none">{displayType === '飯なし' ? '通常' : (displayType || '通常')}</span>
                         )
@@ -310,6 +314,13 @@ export default function CalendarCellWithClasses({
                                 placeholder="担当者名（任意）"
                                 value={submittedBy}
                                 onChange={e => setSubmittedBy(e.target.value)}
+                                className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-100"
+                            />
+                            <input
+                                type="text"
+                                placeholder="備考（任意）"
+                                value={sharedMemo}
+                                onChange={e => setSharedMemo(e.target.value)}
                                 className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-100"
                             />
                             <button

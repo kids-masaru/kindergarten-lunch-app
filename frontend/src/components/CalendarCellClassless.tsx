@@ -163,10 +163,11 @@ export default function CalendarCellClassless({
                         </span>
                         {/* 区切り線 */}
                         <div className="w-full border-t border-gray-200 my-0.5" />
-                        {/* 先生ラベル */}
-                        <span className="text-xs font-bold text-gray-500 leading-tight">先生</span>
-                        {/* 先生数 */}
-                        <span className="text-2xl font-black text-gray-600 leading-tight">{teacherCount}</span>
+                        {/* 先生：左ラベル・右数値・同じ行 */}
+                        <div className="flex justify-between items-baseline w-full">
+                            <span className="text-xs font-bold text-gray-500 leading-tight">先生</span>
+                            <span className="text-2xl font-black text-gray-600 leading-tight">{teacherCount}</span>
+                        </div>
                     </div>
                 ) : (
                     <div className="flex-1 flex items-center justify-center w-full">
@@ -229,6 +230,13 @@ export default function CalendarCellClassless({
                                 placeholder="担当者名（任意）"
                                 value={submittedBy}
                                 onChange={e => setSubmittedBy(e.target.value)}
+                                className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-100"
+                            />
+                            <input
+                                type="text"
+                                placeholder="備考（任意）"
+                                value={memo}
+                                onChange={e => setMemo(e.target.value)}
                                 className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-100"
                             />
                         </div>

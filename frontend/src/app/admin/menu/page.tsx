@@ -335,23 +335,18 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                             {/* 食事タイプ設定 */}
                             <div className="flex items-center gap-3 flex-wrap py-1">
                                 {/* 赤 / キャラ */}
-                                <div className="flex gap-1">
-                                    {['赤', 'キャラ'].map(type => (
-                                        <button key={type} onClick={() => setFormData({ ...formData, plan_type: formData.plan_type === type ? '' : type })}
-                                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${formData.plan_type === type ? 'bg-orange-500 text-white border-orange-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-orange-50'}`}>
-                                            {type}
-                                        </button>
-                                    ))}
-                                </div>
+                                <select value={formData.plan_type || ''} onChange={e => setFormData({ ...formData, plan_type: e.target.value })}
+                                    className="px-3 py-1.5 rounded-xl text-xs font-bold border border-gray-200 bg-white text-gray-600 outline-none">
+                                    <option value="">タイプ未設定</option>
+                                    <option value="赤">赤</option>
+                                    <option value="キャラ">キャラ</option>
+                                </select>
                                 {/* 飯あり / 飯なし */}
-                                <div className="flex gap-1">
-                                    {['飯あり', '飯なし'].map(r => (
-                                        <button key={r} onClick={() => setFormData({ ...formData, has_no_rice: r === '飯なし' })}
-                                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${(r === '飯なし') === (formData.has_no_rice || false) ? 'bg-gray-700 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
-                                            {r}
-                                        </button>
-                                    ))}
-                                </div>
+                                <select value={formData.has_no_rice ? '飯なし' : '飯あり'} onChange={e => setFormData({ ...formData, has_no_rice: e.target.value === '飯なし' })}
+                                    className="px-3 py-1.5 rounded-xl text-xs font-bold border border-gray-200 bg-white text-gray-600 outline-none">
+                                    <option value="飯あり">飯あり</option>
+                                    <option value="飯なし">飯なし</option>
+                                </select>
                                 {/* スープ有 */}
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" checked={formData.has_soup || false} onChange={e => setFormData({ ...formData, has_soup: e.target.checked })}
@@ -359,6 +354,28 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                     <span className="text-xs font-bold text-gray-600">スープ有</span>
                                 </label>
                                 <p className="text-[9px] text-gray-400 w-full">※ 管理用設定です（先生側には表示されません）</p>
+                            </div>
+
+                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 pt-1">個別献立 <div className="h-px flex-1 bg-gray-100"></div></h3>
+                            <div className="space-y-2">
+                                {/* 登録済みタグ（上に表示） */}
+                                <div className="flex flex-wrap gap-1.5 min-h-[24px]">
+                                    {(formData.services || []).filter((s: string) => s !== 'スープ付き').map((s: string) => (
+                                        <div key={s} className="bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full text-xs font-bold border border-orange-100 flex items-center gap-1">
+                                            {s}
+                                            <button onClick={() => removeService(s)} className="hover:bg-orange-200 rounded-full p-0.5"><X className="w-2.5 h-2.5" /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* 入力フォーム */}
+                                <div className="flex gap-2">
+                                    <input type="text" placeholder="例: お誕生日会" value={newService} onChange={e => setNewService(e.target.value)}
+                                        onKeyPress={e => e.key === 'Enter' && addService()}
+                                        className="flex-1 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm font-bold outline-none" />
+                                    <button onClick={addService} className="p-2 bg-orange-100 text-orange-600 rounded-xl hover:bg-orange-200 transition-colors">
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
 
                             {formData.services?.includes('カレー') && (
@@ -369,26 +386,6 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                         className="w-full bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:ring-2 ring-orange-200" />
                                 </div>
                             )}
-
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 pt-1">個別献立 <div className="h-px flex-1 bg-gray-100"></div></h3>
-                            <div className="space-y-2">
-                                <div className="flex gap-2">
-                                    <input type="text" placeholder="例: お誕生日会" value={newService} onChange={e => setNewService(e.target.value)}
-                                        onKeyPress={e => e.key === 'Enter' && addService()}
-                                        className="flex-1 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm font-bold outline-none" />
-                                    <button onClick={addService} className="p-2 bg-orange-100 text-orange-600 rounded-xl hover:bg-orange-200 transition-colors">
-                                        <Plus className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {(formData.services || []).filter((s: string) => s !== 'スープ付き').map((s: string) => (
-                                        <div key={s} className="bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full text-xs font-bold border border-orange-100 flex items-center gap-1">
-                                            {s}
-                                            <button onClick={() => removeService(s)} className="hover:bg-orange-200 rounded-full p-0.5"><X className="w-2.5 h-2.5" /></button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
                     </div>
 
