@@ -636,26 +636,31 @@ def update_kindergarten_master(data: Dict) -> bool:
                     "classless_student_count", "classless_allergy_count", "classless_teacher_count"]:
             if key not in headers and key in mapping.values():
                 missing_cols.append(key)
-        
+
         if missing_cols:
-            # 1. Update headers row
             print(f"[INFO] Auto-creating missing columns: {missing_cols}")
-            new_headers = headers + missing_cols
-            ws.update("A1", [new_headers])
-            # 2. Re-fetch headers to get new indices
-            headers = new_headers
-            
-            # 3. Add the data for these new columns
-            for col_name in missing_cols:
-                # Find the api_key for this col_name
+            # batch_update でヘッダーとデータを一括書き込み（gspread 5/6 両対応）
+            new_col_updates = []
+            for i, col_name in enumerate(missing_cols):
+                col_idx = len(headers) + i + 1
+                # ヘッダー行に列名を追加
+                new_col_updates.append({
+                    'range': gspread.utils.rowcol_to_a1(1, col_idx),
+                    'values': [[col_name]]
+                })
+                # データ行に値を追加
                 api_key = next((k for k, v in mapping.items() if v == col_name), None)
                 if api_key and api_key in data:
-                     col_idx = headers.index(col_name) + 1
-                     val = data[api_key]
-                     updates.append({
+                    val = data[api_key]
+                    if isinstance(val, bool):
+                        val = 1 if val else 0
+                    new_col_updates.append({
                         'range': gspread.utils.rowcol_to_a1(row_idx, col_idx),
                         'values': [[val]]
                     })
+            if new_col_updates:
+                ws.batch_update(new_col_updates)
+            headers = headers + missing_cols
 
         if updates:
             ws.batch_update(updates)
