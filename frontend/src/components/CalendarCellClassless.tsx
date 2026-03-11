@@ -156,17 +156,17 @@ export default function CalendarCellClassless({
                             <span className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-none self-start mb-0.5">{mealType}</span>
                         )}
                         {/* 園児ラベル */}
-                        <span className="text-xs font-bold text-gray-500 leading-tight text-left">園児</span>
-                        {/* 数値：studentCount + ア（赤小）+ allergyCount＝total */}
-                        <span className="text-2xl font-black text-gray-800 leading-tight text-right">
-                            {studentCount}<span className="text-sm font-black text-red-500">+ア{allergyCount}</span>＝{total}
+                        <span className="text-xs font-bold text-gray-500 leading-tight">園児</span>
+                        {/* 数値：左揃え・改行なし */}
+                        <span className="font-black text-gray-800 leading-tight whitespace-nowrap">
+                            <span className="text-2xl">{studentCount}</span><span className="text-sm text-red-500">+ア{allergyCount}＝</span><span className="text-2xl">{total}</span>
                         </span>
                         {/* 区切り線 */}
                         <div className="w-full border-t border-gray-200 my-0.5" />
                         {/* 先生ラベル */}
-                        <span className="text-xs font-bold text-gray-500 leading-tight text-left">先生</span>
+                        <span className="text-xs font-bold text-gray-500 leading-tight">先生</span>
                         {/* 先生数 */}
-                        <span className="text-2xl font-black text-gray-600 leading-tight text-right">{teacherCount}</span>
+                        <span className="text-2xl font-black text-gray-600 leading-tight">{teacherCount}</span>
                     </div>
                 ) : (
                     <div className="flex-1 flex items-center justify-center w-full">
