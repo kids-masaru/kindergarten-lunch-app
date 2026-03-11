@@ -467,7 +467,7 @@ def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict], sched
         # Ensure effective_from header exists if missing (migration)
         if "effective_from" not in headers:
             headers.append("effective_from")
-            ws.update("A1", [headers])
+            ws.batch_update([{'range': 'A1', 'values': [headers]}])
             all_rows = ws.get_all_values()
             headers = all_rows[0]
 
@@ -517,7 +517,8 @@ def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict], sched
             
         # Overwrite the sheet
         ws.clear()
-        ws.update("A1", new_all_rows)
+        if new_all_rows:
+            ws.batch_update([{'range': 'A1', 'values': new_all_rows}])
         return True
     except Exception as e:
         print(f"Error in update_kindergarten_classes: {e}")
