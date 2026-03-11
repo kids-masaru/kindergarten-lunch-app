@@ -1062,7 +1062,7 @@ export default function AdminConsole() {
 
                         {ordersData && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {ordersData.filter((k: any) => k.classes.length > 0).map((k: any) => {
+                                {ordersData.filter((k: any) => k.orders.length > 0).map((k: any) => {
                                     const totalOrders = k.orders.length;
                                     const orderedDays = new Set(k.orders.map((o: any) => o.date)).size;
                                     return (
@@ -1072,6 +1072,7 @@ export default function AdminConsole() {
                                                     <p className="font-black text-gray-800 text-sm">{k.name}</p>
                                                     <p className="text-[10px] text-gray-400 mt-0.5">
                                                         {orderedDays}日分 / {totalOrders}件の注文
+                                                        {k.classes.length === 0 && <span className="ml-2 text-blue-400">（クラスなし）</span>}
                                                     </p>
                                                 </div>
                                                 <button
@@ -1084,11 +1085,6 @@ export default function AdminConsole() {
                                         </div>
                                     );
                                 })}
-                                {ordersData.filter((k: any) => k.classes.length === 0).length > 0 && (
-                                    <p className="col-span-2 text-xs text-gray-400 text-center py-2">
-                                        ※ クラス未設定の施設は表示されません
-                                    </p>
-                                )}
                             </div>
                         )}
                     </div>
