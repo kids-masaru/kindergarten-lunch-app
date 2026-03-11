@@ -27,6 +27,7 @@ export interface Order {
     allergy_count: number;
     teacher_count: number;
     memo?: string;
+    submitted_by?: string;
     updated_at?: string;
     prev_student_count?: number;
     prev_allergy_count?: number;
