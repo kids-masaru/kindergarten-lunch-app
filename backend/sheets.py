@@ -87,7 +87,10 @@ def get_kindergartens() -> List[KindergartenMaster]:
                     "curry_trigger": str(r.get("curry_trigger", "")),
                     "contact_name": str(r.get("contact_name", "")),
                     "contact_email": str(r.get("contact_email", "")),
-                    "icon_url": str(r.get("icon_url", ""))
+                    "icon_url": str(r.get("icon_url", "")),
+                    "classless_student_count": r.get("classless_student_count", 0),
+                    "classless_allergy_count": r.get("classless_allergy_count", 0),
+                    "classless_teacher_count": r.get("classless_teacher_count", 0)
                 }
                 results.append(KindergartenMaster(**data))
             except Exception as row_err:
@@ -596,7 +599,10 @@ def update_kindergarten_master(data: Dict) -> bool:
             "service_thu": "thu", "service_fri": "fri", "service_sat": "sat", "service_sun": "sun",
             "has_soup": "has_soup", "has_no_rice": "has_no_rice", "curry_trigger": "curry_trigger",
             "contact_name": "contact_name", "contact_email": "contact_email",
-            "icon_url": "icon_url"
+            "icon_url": "icon_url",
+            "classless_student_count": "classless_student_count",
+            "classless_allergy_count": "classless_allergy_count",
+            "classless_teacher_count": "classless_teacher_count",
         }
         
         updates = []
@@ -626,7 +632,8 @@ def update_kindergarten_master(data: Dict) -> bool:
 
         # --- Auto-create missing columns ---
         missing_cols = []
-        for key in ["contact_name", "contact_email", "icon_url", "has_no_rice"]:
+        for key in ["contact_name", "contact_email", "icon_url", "has_no_rice",
+                    "classless_student_count", "classless_allergy_count", "classless_teacher_count"]:
             if key not in headers and key in mapping.values():
                 missing_cols.append(key)
         

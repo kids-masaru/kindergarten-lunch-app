@@ -129,10 +129,10 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
     const [isLoadingClasses, setIsLoadingClasses] = useState(true);
     const [newService, setNewService] = useState('');
 
-    // クラスなしモード用：基本人数
-    const [classlessStudent, setClasslessStudent] = useState(0);
-    const [classlessAllergy, setClasslessAllergy] = useState(0);
-    const [classlessTeacher, setClasslessTeacher] = useState(0);
+    // クラスなしモード用：基本人数（kindergartenデータから初期値を読む）
+    const [classlessStudent, setClasslessStudent] = useState<number>(k.classless_student_count ?? 0);
+    const [classlessAllergy, setClasslessAllergy] = useState<number>(k.classless_allergy_count ?? 0);
+    const [classlessTeacher, setClasslessTeacher] = useState<number>(k.classless_teacher_count ?? 0);
     const today = new Date().toISOString().slice(0, 10);
     const [classlessFromDate, setClasslessFromDate] = useState(today);
     const [isSavingDefaults, setIsSavingDefaults] = useState(false);
@@ -143,18 +143,6 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
         getAdminClasses(k.kindergarten_id).then(res => {
             setClasses(res.classes);
             setIsLoadingClasses(false);
-            // クラスなし園の場合、現在の基本人数を注文から取得して表示
-            if (res.classes.length === 0) {
-                const now = new Date();
-                getCalendar(k.kindergarten_id, now.getFullYear(), now.getMonth() + 1).then(calRes => {
-                    const firstOrder = (calRes.orders || []).find((o: any) => o.class_name === '共通');
-                    if (firstOrder) {
-                        setClasslessStudent(firstOrder.student_count ?? 0);
-                        setClasslessAllergy(firstOrder.allergy_count ?? 0);
-                        setClasslessTeacher(firstOrder.teacher_count ?? 0);
-                    }
-                }).catch(() => {});
-            }
         }).catch(err => {
             console.error(err);
             setIsLoadingClasses(false);
@@ -166,14 +154,23 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
         setIsSavingDefaults(true);
         setDefaultsSaveSuccess(false);
         try {
+            // 1. kindergartenシートに永続保存
+            await updateAdminKindergarten(k.kindergarten_id, {
+                ...formData,
+                classless_student_count: classlessStudent,
+                classless_allergy_count: classlessAllergy,
+                classless_teacher_count: classlessTeacher,
+            });
+            // 2. 既存の注文にも適用（注文がなくてもエラーにならない）
             await updateOrderDefaults({
                 kindergarten_id: k.kindergarten_id,
                 from_date: classlessFromDate,
                 student_count: classlessStudent,
                 allergy_count: classlessAllergy,
                 teacher_count: classlessTeacher,
-            });
+            }).catch(() => {}); // 注文がなくても無視
             setDefaultsSaveSuccess(true);
+            onSave(); // 一覧を更新してk.classless_*を最新化
             setTimeout(() => setDefaultsSaveSuccess(false), 3000);
         } catch (err) {
             console.error(err);

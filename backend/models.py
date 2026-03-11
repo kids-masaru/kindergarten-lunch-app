@@ -40,6 +40,19 @@ class KindergartenMaster(BaseModel):
     has_no_rice: bool = False
     curry_trigger: str = ""
 
+    # Classless mode defaults (stored in kindergartens sheet)
+    classless_student_count: int = 0
+    classless_allergy_count: int = 0
+    classless_teacher_count: int = 0
+
+    @field_validator('classless_student_count', 'classless_allergy_count', 'classless_teacher_count', mode='before')
+    def parse_classless_int(cls, v):
+        if v == "" or v is None: return 0
+        try:
+            return int(v)
+        except:
+            return 0
+
     @field_validator('*', mode='before')
     def handle_sheet_values(cls, v):
         # Handle the specialized JSON list for services
