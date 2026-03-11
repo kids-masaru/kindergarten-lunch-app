@@ -305,24 +305,24 @@ export default function CalendarPage() {
         <div className="max-w-6xl mx-auto px-3 py-2 flex items-center gap-2">
           {/* ロゴ */}
           <img src="/icon-mamamire.png" className="w-9 h-9 shrink-0 pointer-events-none" alt="" />
-          {/* 園名 + 年月 */}
-          <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
-            <span className="font-bold text-gray-800 text-base leading-tight truncate min-w-0">{user.name}</span>
-            <span className="text-base font-black text-gray-700 whitespace-nowrap shrink-0">{year}年{month}月</span>
+          {/* 園名 */}
+          <span className="font-bold text-gray-800 text-base leading-tight truncate flex-1 min-w-0">{user.name}</span>
+          {/* ＜ 年月 ＞ まとめて */}
+          <div className="flex items-center gap-0.5 shrink-0">
+            <button
+              onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 1) { setYear(y => y - 1); return 12; } return m - 1; }); }}
+              className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <span className="text-base font-black text-gray-700 whitespace-nowrap px-1">{year}年{month}月</span>
+            <button
+              onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 12) { setYear(y => y + 1); return 1; } return m + 1; }); }}
+              className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
-          {/* 月ナビ */}
-          <button
-            onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 1) { setYear(y => y - 1); return 12; } return m - 1; }); }}
-            className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors shrink-0"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 12) { setYear(y => y + 1); return 1; } return m + 1; }); }}
-            className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors shrink-0"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
           {/* 申請済みバッジ */}
           {isSubmitted && (
             <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-full border border-green-100 shrink-0">

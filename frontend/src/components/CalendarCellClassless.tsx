@@ -150,7 +150,7 @@ export default function CalendarCellClassless({
                 </div>
 
                 {hasOrder ? (
-                    <div className="flex-1 flex flex-col justify-center w-full gap-0">
+                    <div className="flex-1 flex flex-col justify-center items-start w-full gap-0">
                         {/* 特別メニュー */}
                         {isSpecialMeal && (
                             <span className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-none self-start mb-0.5">{mealType}</span>
@@ -264,9 +264,9 @@ function BigCounter({ label, value, onChange, color = "text-gray-900" }: { label
         <div className="flex flex-col items-center gap-1">
             <span className="text-xs font-black text-gray-500">{label}</span>
             <div className="flex items-center gap-1 bg-white rounded-xl border-2 border-gray-200 p-1">
-                <button onClick={() => onChange(-1)} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg text-lg font-black"><Minus className="w-4 h-4" /></button>
-                <span className={`font-black text-xl w-8 text-center ${color}`}>{value}</span>
-                <button onClick={() => onChange(1)} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg text-lg font-black"><Plus className="w-4 h-4" /></button>
+                <button onClick={() => onChange(-1)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg font-black shrink-0"><Minus className="w-3.5 h-3.5" /></button>
+                <span className={`font-black text-base min-w-[2rem] text-center ${color}`}>{value}</span>
+                <button onClick={() => onChange(1)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg font-black shrink-0"><Plus className="w-3.5 h-3.5" /></button>
             </div>
         </div>
     );

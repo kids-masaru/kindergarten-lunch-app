@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Check, Loader2, Calendar as CalendarIcon, ArrowRight, ArrowLeft, Users, ClipboardList, Plus, Trash2 } from 'lucide-react';
 import { LoginUser, ClassMaster, Order } from '@/types';
-import { createOrdersBulk, updateKindergartenClasses } from '@/lib/api';
+import { createOrdersBulk, updateKindergartenClasses, updateAdminKindergarten } from '@/lib/api';
 
 interface MonthlySetupModalProps {
     isOpen: boolean;
@@ -125,6 +125,13 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
             // （空配列を渡すとクラスシートの全行が削除されてしまうため）
             if (editableClasses.length > 0) {
                 await updateKindergartenClasses(user.kindergarten_id, editableClasses, true);
+            } else {
+                // クラスなしの場合、基本人数をkindergartens masterシートにも保存して管理側と同期
+                await updateAdminKindergarten(user.kindergarten_id, {
+                    classless_student_count: classlessDefaults.student,
+                    classless_allergy_count: classlessDefaults.allergy,
+                    classless_teacher_count: classlessDefaults.teacher,
+                });
             }
 
             const allOrders: Order[] = [];
