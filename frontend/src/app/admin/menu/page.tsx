@@ -114,7 +114,7 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                             </div>
 
                             {/* 右：クラス別 基本人数表 */}
-                            <div className="w-52 shrink-0">
+                            <div className="w-96 shrink-0">
                                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                                     <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
                                         <span className="text-xs font-black text-gray-600">クラス別 基本人数</span>
