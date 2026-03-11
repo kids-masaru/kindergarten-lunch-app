@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Send, Loader2, Minus, Plus } from 'lucide-react';
+import { X, Save, Loader2, Minus, Plus } from 'lucide-react';
 import { ClassMaster, Order } from '@/types';
 
 interface OrderData {
@@ -32,6 +32,7 @@ interface Props {
     isLocked: boolean;
     isGraceLocked: boolean;
     mealOptions: string[];
+    isPending?: boolean;
     onSave: (orders: OrderData[]) => Promise<void>;
 }
 
@@ -46,7 +47,7 @@ type ClassOrderState = {
 
 export default function CalendarCellWithClasses({
     day, year, month, kindergartenId, classes, existingOrders,
-    isServiceDay, isLocked, isGraceLocked, mealOptions, onSave
+    isServiceDay, isLocked, isGraceLocked, mealOptions, isPending, onSave
 }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
@@ -196,26 +197,31 @@ export default function CalendarCellWithClasses({
                 ref={buttonRef}
                 onClick={handleOpen}
                 disabled={isLocked}
-                className={`h-full w-full rounded-xl sm:rounded-[1rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all
-                    ${isLocked
-                        ? 'bg-gray-100 border-gray-200 opacity-40 grayscale cursor-not-allowed'
-                        : isGraceLocked
-                            ? 'bg-amber-50/50 border-amber-100 hover:border-amber-200 shadow-sm active:scale-95'
-                            : isToday
-                                ? 'bg-orange-50 border-orange-300 hover:border-orange-400 shadow-sm active:scale-95'
-                                : 'bg-white border-gray-100 hover:border-orange-200 shadow-sm active:scale-95'
+                className={`h-full w-full rounded-xl flex flex-col items-start justify-start p-1.5 relative border transition-all shadow-sm active:scale-95
+                    ${isPending
+                        ? 'bg-blue-50 border-blue-400 border-2'
+                        : isLocked
+                            ? 'bg-gray-100 border-gray-200 opacity-40 grayscale cursor-not-allowed'
+                            : isGraceLocked
+                                ? 'bg-amber-50 border-amber-200'
+                                : isToday
+                                    ? 'bg-orange-50 border-orange-300'
+                                    : 'bg-white border-gray-200'
                     }`}
             >
-                <span className={`text-[10px] font-black leading-none mb-1 ${isToday ? 'text-orange-600' : 'text-gray-400'}`}>{day}</span>
+                <div className="flex items-center justify-between w-full mb-0.5">
+                    <span className={`text-sm font-black leading-none ${isToday ? 'text-orange-600' : 'text-gray-600'}`}>{day}</span>
+                    {isPending && <span className="text-[9px] font-black text-blue-500 bg-blue-100 px-1 rounded">未送信</span>}
+                </div>
                 <div className="flex-1 flex flex-col items-center justify-center w-full px-0.5 gap-0.5">
                     {hasOrder ? (
                         isSpecialMeal ? (
-                            <span className="text-[9px] font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 py-0.5 rounded leading-none">{displayType}</span>
+                            <span className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 py-0.5 rounded leading-none">{displayType}</span>
                         ) : (
-                            <span className="text-[9px] font-black text-gray-400 leading-none">{displayType === '飯なし' ? '通常' : (displayType || '通常')}</span>
+                            <span className="text-sm font-black text-gray-500 leading-none">{displayType === '飯なし' ? '通常' : (displayType || '通常')}</span>
                         )
                     ) : (
-                        <span className="text-[8px] text-gray-300 font-bold">未入力</span>
+                        <span className="text-sm text-gray-300 font-bold">未入力</span>
                     )}
                 </div>
                 {isLocked && (
@@ -298,24 +304,25 @@ export default function CalendarCellWithClasses({
                         </div>
 
                         {/* Save button */}
-                        <div className="px-3 pb-3 pt-2 flex-shrink-0 border-t border-gray-50 space-y-2">
+                        <div className="px-3 pb-3 pt-2 flex-shrink-0 border-t border-gray-100 space-y-2">
                             <input
                                 type="text"
                                 placeholder="担当者名（任意）"
                                 value={submittedBy}
                                 onChange={e => setSubmittedBy(e.target.value)}
-                                className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-orange-100"
+                                className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-100"
                             />
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSaving}
-                                className="w-full bg-orange-500 text-white py-3 rounded-xl font-bold text-sm hover:bg-orange-600 flex items-center justify-center gap-2 shadow-md ring-4 ring-orange-100 active:scale-95 transition-all"
+                                className="w-full bg-gray-700 text-white py-3.5 rounded-xl font-black text-base hover:bg-gray-800 flex items-center justify-center gap-2 active:scale-95 transition-all"
                             >
                                 {isSaving
                                     ? <Loader2 className="w-4 h-4 animate-spin" />
-                                    : <><Send className="w-3.5 h-3.5" /> 変更を申請する</>
+                                    : <><Save className="w-4 h-4" /> 保存</>
                                 }
                             </button>
+                            <p className="text-xs text-gray-400 text-center">※ カレンダー上の「申請」ボタンで送信</p>
                         </div>
                     </div>
                 </>,

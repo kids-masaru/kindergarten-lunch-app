@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCalendar, getMasters, saveOrder, updateOrderDefaults } from '@/lib/api';
+import { getCalendar, getMasters, saveOrder, updateOrderDefaults, createOrdersBulk } from '@/lib/api';
 import { LoginUser, Order, ClassMaster } from '@/types';
 import ClassReportPanel from '@/components/ClassReportPanel';
 import MonthlySetupModal from '@/components/MonthlySetupModal';
@@ -183,10 +183,28 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [isMonthlySetupOpen, setIsMonthlySetupOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [pendingChanges, setPendingChanges] = useState<Map<string, any[]>>(new Map());
+  const [isSubmittingPending, setIsSubmittingPending] = useState(false);
 
   const handleMonthlySetupComplete = () => {
     setIsSubmitted(true);
+    setPendingChanges(new Map());
     fetchOrders(user!.kindergarten_id, year, month);
+  };
+
+  const submitPendingChanges = async () => {
+    if (pendingChanges.size === 0) return;
+    setIsSubmittingPending(true);
+    try {
+      const allOrders = Array.from(pendingChanges.values()).flat();
+      await createOrdersBulk(allOrders);
+      setPendingChanges(new Map());
+      await fetchOrders(user!.kindergarten_id, year, month);
+    } catch (e) {
+      alert('送信に失敗しました');
+    } finally {
+      setIsSubmittingPending(false);
+    }
   };
 
   const [showSettings, setShowSettings] = useState(false);
@@ -269,11 +287,24 @@ export default function CalendarPage() {
 
   const getOrdersForDay = (day: number) => {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return orders.filter(o => o.date === dateStr);
+    return pendingChanges.get(dateStr) ?? orders.filter(o => o.date === dateStr);
+  };
+
+  const isDayPending = (day: number) => {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return pendingChanges.has(dateStr);
   };
 
   const daysInMonth = new Date(year, month, 0).getDate();
-  const firstDay = new Date(year, month - 1, 1).getDay(); // 0 is Sunday
+  // 月〜金のみ表示（土日除外）
+  const weekdays: number[] = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = new Date(year, month - 1, d).getDay();
+    if (dow !== 0 && dow !== 6) weekdays.push(d);
+  }
+  // 月〜金グリッドの先頭オフセット（月=0, 火=1, ...金=4）
+  const firstWeekdayDow = weekdays.length > 0 ? new Date(year, month - 1, weekdays[0]).getDay() : 1;
+  const weekdayOffset = firstWeekdayDow - 1;
 
   if (loading || !user) return <div className="flex h-screen items-center justify-center text-orange-500"><Loader2 className="animate-spin w-10 h-10" /></div>;
 
@@ -320,20 +351,14 @@ export default function CalendarPage() {
           <div className="max-w-6xl mx-auto px-4 py-2 flex justify-between items-center">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setMonth(m => {
-                  if (m === 1) { setYear(y => y - 1); return 12; }
-                  return m - 1;
-                })}
+                onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 1) { setYear(y => y - 1); return 12; } return m - 1; }); }}
                 className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <h2 className="text-xl font-black text-gray-800 tracking-tight">{year}年 {month}月</h2>
               <button
-                onClick={() => setMonth(m => {
-                  if (m === 12) { setYear(y => y + 1); return 1; }
-                  return m + 1;
-                })}
+                onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 12) { setYear(y => y + 1); return 1; } return m + 1; }); }}
                 className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors"
               >
                 <ChevronRight className="w-6 h-6" />
@@ -376,23 +401,36 @@ export default function CalendarPage() {
 
             {/* Calendar Section */}
             <div className="flex-1">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 sm:p-4 overflow-x-auto">
-                {/* Calendar Grid */}
-                <div className="min-w-[850px] sm:min-w-0">
-                  <div className="grid grid-cols-7 gap-1 mb-2">
-                    {['日', '月', '火', '水', '木', '金', '土'].map((d, i) => (
-                      <div key={d} className={`text-center text-xs font-bold ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-400'}`}>
-                        {d}
-                      </div>
+              {/* 未送信の変更がある場合の申請ボタン */}
+              {pendingChanges.size > 0 && (
+                <div className="mb-3">
+                  <button
+                    onClick={submitPendingChanges}
+                    disabled={isSubmittingPending}
+                    className="w-full bg-orange-500 text-white py-4 rounded-xl font-black text-lg hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+                  >
+                    {isSubmittingPending
+                      ? <Loader2 className="w-5 h-5 animate-spin" />
+                      : <><Send className="w-5 h-5" />{pendingChanges.size}日分の変更を申請する</>
+                    }
+                  </button>
+                  <p className="text-center text-sm text-orange-600 font-bold mt-1">※ 上のボタンを押すまで変更は送信されません</p>
+                </div>
+              )}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 overflow-x-auto">
+                {/* Calendar Grid（月〜金の5列） */}
+                <div className="min-w-[600px]">
+                  <div className="grid grid-cols-5 gap-1 mb-2">
+                    {['月', '火', '水', '木', '金'].map(d => (
+                      <div key={d} className="text-center text-base font-black text-gray-500">{d}</div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-7 gap-1 auto-rows-[5rem]">
-                    {Array(firstDay).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
-                    {Array(daysInMonth).fill(null).map((_, i) => {
-                      const day = i + 1;
+                  <div className="grid grid-cols-5 gap-1 auto-rows-[6rem]">
+                    {Array(weekdayOffset).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
+                    {weekdays.map(day => {
                       const dayOrders = getOrdersForDay(day);
                       const dObj = new Date(year, month - 1, day);
-                      const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
+                      const pending = isDayPending(day);
 
                       // Service Day Check
                       let isServiceDay = true;
@@ -405,23 +443,17 @@ export default function CalendarPage() {
 
                       // Deadline Logic
                       const now = new Date();
-
-                      // 1. Strict Lock (Day before 15:00)
                       const lockDeadline = new Date(year, month - 1, day - 1, 15, 0, 0);
                       const isStrictLocked = now > lockDeadline;
-
-                      // 2. Grace Period Lock (3 days before 18:00)
                       const graceDeadline = new Date(year, month - 1, day - 3, 18, 0, 0);
                       const isGraceLocked = now > graceDeadline;
 
-                      // --- Class-less Mode Logic ---
                       const isClasslessMode = classes.length === 0;
 
                       if (isClasslessMode) {
                         const existingOrder = dayOrders.find(o => o.class_name === '共通');
-
                         return (
-                          <div key={day} className="h-[5rem]">
+                          <div key={day} className="h-[6rem]">
                             <CalendarCellClassless
                               day={day}
                               year={year}
@@ -432,18 +464,17 @@ export default function CalendarPage() {
                               isLocked={isStrictLocked}
                               isGraceLocked={isGraceLocked}
                               mealOptions={user?.services || []}
+                              isPending={pending}
                               onSave={async (order) => {
-                                await saveOrder(order);
-                                fetchOrders(user!.kindergarten_id, year, month);
+                                setPendingChanges(prev => new Map(prev).set(order.date, [order]));
                               }}
                             />
                           </div>
                         );
                       }
 
-                      // --- Standard Mode (Classes Exist) ---
                       return (
-                        <div key={day} className="h-[5rem]">
+                        <div key={day} className="h-[6rem]">
                           <CalendarCellWithClasses
                             day={day}
                             year={year}
@@ -455,9 +486,11 @@ export default function CalendarPage() {
                             isLocked={isStrictLocked}
                             isGraceLocked={isGraceLocked}
                             mealOptions={user?.services || []}
+                            isPending={pending}
                             onSave={async (orders) => {
-                              await Promise.all(orders.map(o => saveOrder(o)));
-                              fetchOrders(user!.kindergarten_id, year, month);
+                              if (orders[0]?.date) {
+                                setPendingChanges(prev => new Map(prev).set(orders[0].date, orders));
+                              }
                             }}
                           />
                         </div>

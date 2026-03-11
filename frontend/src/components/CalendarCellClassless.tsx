@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Send, Loader2, Minus, Plus } from 'lucide-react';
+import { X, Save, Loader2, Minus, Plus } from 'lucide-react';
 
 interface OrderData {
     order_id?: string;
@@ -27,11 +27,12 @@ interface CalendarCellClasslessProps {
     isLocked: boolean;
     isGraceLocked: boolean;
     mealOptions?: string[];
+    isPending?: boolean;
     onSave: (order: OrderData) => Promise<void>;
 }
 
 export default function CalendarCellClassless({
-    day, year, month, kindergartenId, existingOrder, isServiceDay, isLocked, isGraceLocked, mealOptions = [], onSave
+    day, year, month, kindergartenId, existingOrder, isServiceDay, isLocked, isGraceLocked, mealOptions = [], isPending, onSave
 }: CalendarCellClasslessProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
@@ -70,15 +71,11 @@ export default function CalendarCellClassless({
         }
         if (buttonRef.current) {
             const rect = buttonRef.current.getBoundingClientRect();
-            const popoverWidth = 280;
-            const popoverHeight = 360;
+            const popoverWidth = 300;
+            const popoverHeight = 400;
             const margin = 8;
-
-            // Horizontal: center on cell, clamp to viewport
             let left = rect.left + rect.width / 2 - popoverWidth / 2;
             left = Math.max(margin, Math.min(left, window.innerWidth - popoverWidth - margin));
-
-            // Vertical: prefer below, flip to above if not enough space
             let top: number;
             if (rect.bottom + popoverHeight + margin < window.innerHeight) {
                 top = rect.bottom + margin;
@@ -86,7 +83,6 @@ export default function CalendarCellClassless({
                 top = rect.top - popoverHeight - margin;
             }
             top = Math.max(margin, top);
-
             setPopoverStyle({ position: 'fixed', top, left, width: popoverWidth, zIndex: 50 });
         }
         setIsOpen(true);
@@ -119,13 +115,25 @@ export default function CalendarCellClassless({
     if (!isServiceDay) {
         return (
             <div className="h-full rounded-xl bg-gray-50/50 border border-transparent flex items-center justify-center text-gray-300 opacity-40">
-                <span className="text-sm font-black">{day}</span>
+                <span className="text-base font-black">{day}</span>
             </div>
         );
     }
 
     const hasOrder = !!existingOrder;
     const isSpecialMeal = mealType !== '通常' && mealType !== '飯なし';
+    const total = studentCount + allergyCount;
+
+    // セルの境界線スタイル
+    const borderStyle = isPending
+        ? 'bg-blue-50 border-blue-400 border-2'
+        : isLocked
+            ? 'bg-gray-100 border-gray-200 opacity-40 grayscale cursor-not-allowed'
+            : isGraceLocked
+                ? 'bg-amber-50 border-amber-200'
+                : isToday
+                    ? 'bg-orange-50 border-orange-300'
+                    : 'bg-white border-gray-200';
 
     return (
         <>
@@ -133,39 +141,40 @@ export default function CalendarCellClassless({
                 ref={buttonRef}
                 onClick={handleOpen}
                 disabled={isLocked}
-                className={`h-full w-full rounded-xl sm:rounded-[1rem] flex flex-col items-center justify-start pt-1.5 relative border transition-all
-                    ${isLocked
-                        ? 'bg-gray-100 border-gray-200 opacity-40 grayscale cursor-not-allowed'
-                        : isGraceLocked
-                            ? 'bg-amber-50/50 border-amber-100 hover:border-amber-200 shadow-sm active:scale-95'
-                            : isToday
-                                ? 'bg-orange-50 border-orange-300 hover:border-orange-400 shadow-sm active:scale-95'
-                                : 'bg-white border-gray-100 hover:border-orange-200 shadow-sm active:scale-95'
-                    }`}
+                className={`h-full w-full rounded-xl flex flex-col items-start justify-start p-1.5 relative border transition-all shadow-sm active:scale-95 ${borderStyle}`}
             >
-                <span className={`text-[10px] font-black leading-none mb-1 ${isToday ? 'text-orange-600' : 'text-gray-400'}`}>{day}</span>
-                <div className="flex-1 flex flex-col items-center justify-center w-full px-0.5 gap-0.5">
-                    {hasOrder ? (
-                        <>
-                            {mealType === '飯なし' ? (
-                                <span className="text-[9px] font-black text-gray-400">飯なし</span>
-                            ) : (
-                                <>
-                                    {isSpecialMeal && (
-                                        <span className="text-[9px] font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 py-0.5 rounded leading-none">{mealType}</span>
-                                    )}
-                                    <span className="text-[10px] font-black text-gray-600 leading-none">児{studentCount}</span>
-                                    {allergyCount > 0 && (
-                                        <span className="text-[9px] font-bold text-red-400 leading-none">ア{allergyCount}</span>
-                                    )}
-                                    <span className="text-[9px] font-bold text-gray-400 leading-none">先{teacherCount}</span>
-                                </>
-                            )}
-                        </>
-                    ) : (
-                        <span className="text-[8px] text-gray-300 font-bold">未入力</span>
-                    )}
+                {/* 日付 */}
+                <div className="flex items-center justify-between w-full mb-0.5">
+                    <span className={`text-sm font-black leading-none ${isToday ? 'text-orange-600' : 'text-gray-600'}`}>{day}</span>
+                    {isPending && <span className="text-[9px] font-black text-blue-500 bg-blue-100 px-1 rounded">未送信</span>}
                 </div>
+
+                {hasOrder ? (
+                    <div className="flex-1 flex flex-col justify-center w-full gap-0.5">
+                        {/* 特別メニュー */}
+                        {isSpecialMeal && (
+                            <span className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-none self-start">{mealType}</span>
+                        )}
+                        {/* 園児 + アレルギー */}
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-base font-black text-gray-800 leading-none">児{studentCount}</span>
+                            {allergyCount > 0 && (
+                                <span className="text-sm font-black text-red-500 leading-none">ア{allergyCount}</span>
+                            )}
+                        </div>
+                        {/* 合計 */}
+                        <span className="text-xs font-bold text-gray-500 leading-none">計{total}</span>
+                        {/* 区切り線 */}
+                        <div className="w-full border-t border-gray-300 my-0.5" />
+                        {/* 先生 */}
+                        <span className="text-sm font-bold text-gray-600 leading-none">先{teacherCount}</span>
+                    </div>
+                ) : (
+                    <div className="flex-1 flex items-center justify-center w-full">
+                        <span className="text-sm text-gray-300 font-bold">未入力</span>
+                    </div>
+                )}
+
                 {isLocked && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="w-1/2 h-[2px] bg-gray-300 rotate-45"></div>
@@ -175,35 +184,30 @@ export default function CalendarCellClassless({
 
             {isOpen && typeof window !== 'undefined' && createPortal(
                 <>
-                    {/* Transparent backdrop — click to close */}
-                    <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setIsOpen(false)}
-                    />
-                    {/* Popover card */}
+                    <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
                     <div
                         style={popoverStyle}
                         onClick={e => e.stopPropagation()}
-                        className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+                        className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden"
                     >
-                        {/* Header */}
-                        <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-orange-50">
-                            <h2 className="font-bold text-gray-800 text-sm">{month}月{day}日 の注文</h2>
+                        {/* ヘッダー */}
+                        <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h2 className="font-black text-gray-800 text-base">{month}月{day}日</h2>
                             <button onClick={() => setIsOpen(false)} className="p-1.5 bg-white rounded-full text-gray-400 hover:bg-gray-100">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
 
-                        <div className="p-3 space-y-3">
-                            {/* Meal type */}
+                        <div className="p-4 space-y-4">
+                            {/* 給食タイプ */}
                             <div>
-                                <p className="text-[10px] font-black text-gray-400 mb-1.5 uppercase">給食タイプ</p>
-                                <div className="flex flex-wrap gap-1.5">
+                                <p className="text-xs font-black text-gray-500 mb-2">給食タイプ</p>
+                                <div className="flex flex-wrap gap-2">
                                     {displayOptions.map(opt => (
                                         <button
                                             key={opt}
                                             onClick={() => setMealType(opt)}
-                                            className={`py-1 px-2.5 text-xs rounded-full border font-medium transition-colors ${mealType === opt
+                                            className={`py-2 px-3 text-sm rounded-xl border font-bold transition-colors ${mealType === opt
                                                 ? 'bg-orange-500 text-white border-orange-600'
                                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-orange-50'
                                             }`}
@@ -214,40 +218,31 @@ export default function CalendarCellClassless({
                                 </div>
                             </div>
 
-                            {/* Counters */}
-                            <div className="grid grid-cols-3 gap-2">
-                                <MiniCounter label="園児" value={studentCount} onChange={d => setStudentCount(v => Math.max(0, v + d))} />
-                                <MiniCounter label="アレルギー" value={allergyCount} onChange={d => setAllergyCount(v => Math.max(0, v + d))} color="text-red-600" />
-                                <MiniCounter label="先生" value={teacherCount} onChange={d => setTeacherCount(v => Math.max(0, v + d))} />
+                            {/* カウンター */}
+                            <div className="grid grid-cols-3 gap-3">
+                                <BigCounter label="園児" value={studentCount} onChange={d => setStudentCount(v => Math.max(0, v + d))} />
+                                <BigCounter label="アレルギー" value={allergyCount} onChange={d => setAllergyCount(v => Math.max(0, v + d))} color="text-red-600" />
+                                <BigCounter label="先生" value={teacherCount} onChange={d => setTeacherCount(v => Math.max(0, v + d))} />
                             </div>
 
-                            <input
-                                type="text"
-                                placeholder="備考"
-                                value={memo}
-                                onChange={e => setMemo(e.target.value)}
-                                className="w-full text-xs border border-gray-200 rounded-lg p-2 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-orange-100"
-                            />
                             <input
                                 type="text"
                                 placeholder="担当者名（任意）"
                                 value={submittedBy}
                                 onChange={e => setSubmittedBy(e.target.value)}
-                                className="w-full text-xs border border-gray-200 rounded-lg p-2 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-orange-100"
+                                className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-blue-100"
                             />
                         </div>
 
-                        <div className="px-3 pb-3">
+                        <div className="px-4 pb-4">
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSaving}
-                                className="w-full bg-orange-500 text-white py-3 rounded-xl font-bold text-sm hover:bg-orange-600 flex items-center justify-center gap-2 shadow-md ring-4 ring-orange-100 active:scale-95 transition-all"
+                                className="w-full bg-gray-700 text-white py-3.5 rounded-xl font-black text-base hover:bg-gray-800 flex items-center justify-center gap-2 active:scale-95 transition-all"
                             >
-                                {isSaving
-                                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                                    : <><Send className="w-3.5 h-3.5" /> 変更を申請する</>
-                                }
+                                {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-4 h-4" /> 保存</>}
                             </button>
+                            <p className="text-xs text-gray-400 text-center mt-2">※ 保存後、上部の「申請」ボタンで送信</p>
                         </div>
                     </div>
                 </>,
@@ -257,14 +252,14 @@ export default function CalendarCellClassless({
     );
 }
 
-function MiniCounter({ label, value, onChange, color = "text-gray-900" }: { label: string, value: number, onChange: (d: number) => void, color?: string }) {
+function BigCounter({ label, value, onChange, color = "text-gray-900" }: { label: string, value: number, onChange: (d: number) => void, color?: string }) {
     return (
-        <div className="flex flex-col items-center">
-            <span className="text-[10px] text-gray-500 mb-1">{label}</span>
-            <div className="flex items-center gap-0.5 bg-white rounded-lg border border-gray-200 p-0.5">
-                <button onClick={() => onChange(-1)} className="p-1 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Minus className="w-3 h-3" /></button>
-                <span className={`font-bold text-base w-7 text-center ${color}`}>{value}</span>
-                <button onClick={() => onChange(1)} className="p-1 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Plus className="w-3 h-3" /></button>
+        <div className="flex flex-col items-center gap-1">
+            <span className="text-xs font-black text-gray-500">{label}</span>
+            <div className="flex items-center gap-1 bg-white rounded-xl border-2 border-gray-200 p-1">
+                <button onClick={() => onChange(-1)} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg text-lg font-black"><Minus className="w-4 h-4" /></button>
+                <span className={`font-black text-xl w-8 text-center ${color}`}>{value}</span>
+                <button onClick={() => onChange(1)} className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg text-lg font-black"><Plus className="w-4 h-4" /></button>
             </div>
         </div>
     );
