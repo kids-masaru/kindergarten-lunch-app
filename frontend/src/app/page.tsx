@@ -310,67 +310,43 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <div className="bg-white shadow-sm sticky top-0 z-10 z-[30]">
-        {/* Top Bar */}
-        <div className="flex justify-between items-center p-3 border-b border-gray-100 max-w-6xl mx-auto w-full">
-          <div className="flex items-center gap-4">
-            <img src="/icon-mamamire.png" className="w-12 h-12 pointer-events-none" alt="" />
-            <div className="flex flex-col">
-              <h1 className="font-bold text-gray-800 text-lg leading-tight">
-                {user.name} <span className="text-gray-400 font-medium ml-1">{user.contact_name ? `${user.contact_name} 様` : ''}</span>
-              </h1>
-              {user.settings && (
-                <div className="flex gap-1 mt-0.5">
-                  {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((day, idx) => {
-                    const labels: any = { mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土', sun: '日' };
-                    const isActive = (user.settings as any)?.[`service_${day}`];
-                    if (!isActive) return null;
-                    return (
-                      <span key={day} className="text-[9px] font-black bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded border border-orange-100 uppercase leading-none">
-                        {labels[day]}
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
+      {/* Header：1行にまとめてコンパクトに */}
+      <div className="bg-white shadow-sm sticky top-0 z-[30] border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-3 py-2 flex items-center gap-2">
+          {/* ロゴ */}
+          <img src="/icon-mamamire.png" className="w-9 h-9 shrink-0 pointer-events-none" alt="" />
+          {/* 園名 */}
+          <span className="font-bold text-gray-800 text-base leading-tight truncate flex-1 min-w-0">
+            {user.name}
+          </span>
+          {/* 月ナビ */}
+          <button
+            onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 1) { setYear(y => y - 1); return 12; } return m - 1; }); }}
+            className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors shrink-0"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h2 className="text-lg font-black text-gray-800 whitespace-nowrap">{year}年 {month}月</h2>
+          <button
+            onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 12) { setYear(y => y + 1); return 1; } return m + 1; }); }}
+            className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors shrink-0"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+          {/* 申請済みバッジ */}
+          {isSubmitted && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-green-50 rounded-full border border-green-100 shrink-0">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+              <span className="text-[10px] font-black text-green-600">申請済み</span>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => setShowSettings(true)} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-full transition-colors" title="設定">
-              <SettingsIcon className="w-5 h-5" />
-            </button>
-            <button onClick={() => { localStorage.removeItem('user'); router.push('/login'); }} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Global Month Navigation */}
-        <div className="bg-white/50 backdrop-blur-sm border-b border-gray-100">
-          <div className="max-w-6xl mx-auto px-4 py-2 flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 1) { setYear(y => y - 1); return 12; } return m - 1; }); }}
-                className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <h2 className="text-xl font-black text-gray-800 tracking-tight">{year}年 {month}月</h2>
-              <button
-                onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 12) { setYear(y => y + 1); return 1; } return m + 1; }); }}
-                className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </div>
-            {isSubmitted && (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full border border-green-100">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-[10px] font-black text-green-600 uppercase">申請済み</span>
-              </div>
-            )}
-          </div>
+          )}
+          {/* 設定・ログアウト */}
+          <button onClick={() => setShowSettings(true)} className="p-1.5 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors shrink-0">
+            <SettingsIcon className="w-4 h-4" />
+          </button>
+          <button onClick={() => { localStorage.removeItem('user'); router.push('/login'); }} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg shrink-0">
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
