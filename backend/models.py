@@ -39,6 +39,7 @@ class KindergartenMaster(BaseModel):
     has_soup: bool = False
     has_no_rice: bool = False
     curry_trigger: str = ""
+    plan_type: str = ""  # "赤" or "キャラ"
 
     # Classless mode defaults (stored in kindergartens sheet)
     classless_student_count: int = 0

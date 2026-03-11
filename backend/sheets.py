@@ -599,6 +599,7 @@ def update_kindergarten_master(data: Dict) -> bool:
             "service_mon": "mon", "service_tue": "tue", "service_wed": "wed",
             "service_thu": "thu", "service_fri": "fri", "service_sat": "sat", "service_sun": "sun",
             "has_soup": "has_soup", "has_no_rice": "has_no_rice", "curry_trigger": "curry_trigger",
+            "plan_type": "plan_type",
             "contact_name": "contact_name", "contact_email": "contact_email",
             "icon_url": "icon_url",
             "classless_student_count": "classless_student_count",
@@ -633,7 +634,7 @@ def update_kindergarten_master(data: Dict) -> bool:
 
         # --- Auto-create missing columns ---
         missing_cols = []
-        for key in ["contact_name", "contact_email", "icon_url", "has_no_rice",
+        for key in ["contact_name", "contact_email", "icon_url", "has_no_rice", "plan_type",
                     "classless_student_count", "classless_allergy_count", "classless_teacher_count"]:
             if key not in headers and key in mapping.values():
                 missing_cols.append(key)

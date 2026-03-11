@@ -332,23 +332,33 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                 })}
                             </div>
 
-                            {/* スープ & 飯なし toggles (管理側のみ) */}
-                            <div className="flex items-center gap-4 py-1 flex-wrap">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <div className={`w-9 h-5 rounded-full relative transition-all ${formData.has_soup ? 'bg-orange-500' : 'bg-gray-200'}`}>
-                                        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${formData.has_soup ? 'left-4' : 'left-0.5'}`} />
-                                    </div>
-                                    <input type="checkbox" className="hidden" checked={formData.has_soup || false} onChange={e => setFormData({ ...formData, has_soup: e.target.checked })} />
-                                    <span className="text-xs font-bold text-gray-600">スープあり</span>
+                            {/* 食事タイプ設定 */}
+                            <div className="flex items-center gap-3 flex-wrap py-1">
+                                {/* 赤 / キャラ */}
+                                <div className="flex gap-1">
+                                    {['赤', 'キャラ'].map(type => (
+                                        <button key={type} onClick={() => setFormData({ ...formData, plan_type: formData.plan_type === type ? '' : type })}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${formData.plan_type === type ? 'bg-orange-500 text-white border-orange-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-orange-50'}`}>
+                                            {type}
+                                        </button>
+                                    ))}
+                                </div>
+                                {/* 飯あり / 飯なし */}
+                                <div className="flex gap-1">
+                                    {['飯あり', '飯なし'].map(r => (
+                                        <button key={r} onClick={() => setFormData({ ...formData, has_no_rice: r === '飯なし' })}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${(r === '飯なし') === (formData.has_no_rice || false) ? 'bg-gray-700 text-white border-gray-800' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
+                                            {r}
+                                        </button>
+                                    ))}
+                                </div>
+                                {/* スープ有 */}
+                                <label className="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="checkbox" checked={formData.has_soup || false} onChange={e => setFormData({ ...formData, has_soup: e.target.checked })}
+                                        className="w-4 h-4 rounded accent-orange-500" />
+                                    <span className="text-xs font-bold text-gray-600">スープ有</span>
                                 </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <div className={`w-9 h-5 rounded-full relative transition-all ${formData.has_no_rice ? 'bg-gray-600' : 'bg-gray-200'}`}>
-                                        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${formData.has_no_rice ? 'left-4' : 'left-0.5'}`} />
-                                    </div>
-                                    <input type="checkbox" className="hidden" checked={formData.has_no_rice || false} onChange={e => setFormData({ ...formData, has_no_rice: e.target.checked })} />
-                                    <span className="text-xs font-bold text-gray-600">飯なし</span>
-                                </label>
-                                <p className="text-[9px] text-gray-400 w-full">※ スープあり・飯なしは管理用設定です（先生側には表示されません）</p>
+                                <p className="text-[9px] text-gray-400 w-full">※ 管理用設定です（先生側には表示されません）</p>
                             </div>
 
                             {formData.services?.includes('カレー') && (
