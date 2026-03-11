@@ -137,6 +137,9 @@ def login(creds: LoginRequest):
                 "services": user.services,
                 "contact_name": user.contact_name,
                 "contact_email": user.contact_email,
+                "classless_student_count": user.classless_student_count,
+                "classless_allergy_count": user.classless_allergy_count,
+                "classless_teacher_count": user.classless_teacher_count,
                 "settings": {
                     # Service Days
                     "service_mon": user.service_mon,

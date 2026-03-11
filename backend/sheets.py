@@ -212,7 +212,7 @@ def delete_pending_class_snapshot(kindergarten_id: str, date: str) -> bool:
             new_rows.append(row)
 
         ws.clear()
-        ws.update("A1", new_rows)
+        ws.batch_update([{'range': 'A1', 'values': new_rows}])
         return True
     except Exception as e:
         print(f"Error in delete_pending_class_snapshot: {e}")
@@ -239,7 +239,7 @@ def backup_orders_for_class_change(
             ws = wb.worksheet(ORDERS_BACKUP_SHEET)
         except:
             ws = wb.add_worksheet(title=ORDERS_BACKUP_SHEET, rows=2000, cols=len(BACKUP_HEADERS))
-            ws.update("A1", [BACKUP_HEADERS])
+            ws.batch_update([{'range': 'A1', 'values': [BACKUP_HEADERS]}])
 
         new_rows = []
         for order in orders_before:
@@ -350,7 +350,7 @@ def delete_orders_backup(kindergarten_id: str, snapshot_date: str) -> bool:
             if not (str(row[kid_idx]) == str(kindergarten_id) and str(row[snap_idx]) == str(snapshot_date))
         ]
         ws.clear()
-        ws.update("A1", new_rows)
+        ws.batch_update([{'range': 'A1', 'values': new_rows}])
         return True
     except Exception as e:
         print(f"Error in delete_orders_backup: {e}")
@@ -689,7 +689,7 @@ def get_system_settings() -> Dict:
         except:
             # Create if missing
             ws = wb.add_worksheet(title="admin_settings", rows=10, cols=2)
-            ws.update("A1", [["key", "value"], ["admin_emails", "admin@example.com"], ["reminder_days", "5,3"]])
+            ws.batch_update([{'range': 'A1', 'values': [["key", "value"], ["admin_emails", "admin@example.com"], ["reminder_days", "5,3"]]}])
             
         records = ws.get_all_records()
         return {r["key"]: r["value"] for r in records}
@@ -720,7 +720,7 @@ def update_monthly_common_item(item: str, year_month: str) -> bool:
             ws = wb.worksheet("admin_settings")
         except:
             ws = wb.add_worksheet(title="admin_settings", rows=20, cols=2)
-            ws.update("A1", [["key", "value"]])
+            ws.batch_update([{'range': 'A1', 'values': [["key", "value"]]}])
 
         records = ws.get_all_records()
         settings = {r["key"]: r["value"] for r in records if r.get("key")}
@@ -728,7 +728,7 @@ def update_monthly_common_item(item: str, year_month: str) -> bool:
 
         all_rows = [["key", "value"]] + [[k, str(v)] for k, v in settings.items()]
         ws.clear()
-        ws.update("A1", all_rows)
+        ws.batch_update([{'range': 'A1', 'values': all_rows}])
         return True
     except Exception as e:
         print(f"Error in update_monthly_common_item: {e}")
@@ -748,7 +748,7 @@ def delete_monthly_common_item(year_month: str) -> bool:
         settings.pop(f"{MONTHLY_COMMON_PREFIX}{year_month}", None)
         all_rows = [["key", "value"]] + [[k, str(v)] for k, v in settings.items()]
         ws.clear()
-        ws.update("A1", all_rows)
+        ws.batch_update([{'range': 'A1', 'values': all_rows}])
         return True
     except Exception as e:
         print(f"Error in delete_monthly_common_item: {e}")
@@ -766,7 +766,7 @@ def update_system_settings(data: Dict) -> bool:
             all_rows.append([k, str(v)])
             
         ws.clear()
-        ws.update("A1", all_rows)
+        ws.batch_update([{'range': 'A1', 'values': all_rows}])
         return True
     except Exception as e:
         print(f"Error in update_system_settings: {e}")

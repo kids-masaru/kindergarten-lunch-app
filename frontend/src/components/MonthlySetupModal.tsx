@@ -24,16 +24,25 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
     const [submittedBy, setSubmittedBy] = useState(() =>
         typeof window !== 'undefined' ? localStorage.getItem('submitted_by_name') || '' : ''
     );
-    const [classlessDefaults, setClasslessDefaults] = useState({ student: 0, allergy: 0, teacher: 0 });
+    const [classlessDefaults, setClasslessDefaults] = useState({
+        student: user.classless_student_count ?? 0,
+        allergy: user.classless_allergy_count ?? 0,
+        teacher: user.classless_teacher_count ?? 0,
+    });
 
     useEffect(() => {
         if (isOpen) {
             setEditableClasses(initialClasses.map(c => ({ ...c })));
+            setClasslessDefaults({
+                student: user.classless_student_count ?? 0,
+                allergy: user.classless_allergy_count ?? 0,
+                teacher: user.classless_teacher_count ?? 0,
+            });
         } else {
             setStep(1);
             setMemo('');
         }
-    }, [isOpen, initialClasses]);
+    }, [isOpen, initialClasses, user]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -112,7 +121,11 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
         localStorage.setItem('submitted_by_name', submittedBy);
         setSubmitting(true);
         try {
-            await updateKindergartenClasses(user.kindergarten_id, editableClasses, true);
+            // クラスなし園（editableClasses=[]）の場合はクラス情報を更新しない
+            // （空配列を渡すとクラスシートの全行が削除されてしまうため）
+            if (editableClasses.length > 0) {
+                await updateKindergartenClasses(user.kindergarten_id, editableClasses, true);
+            }
 
             const allOrders: Order[] = [];
 

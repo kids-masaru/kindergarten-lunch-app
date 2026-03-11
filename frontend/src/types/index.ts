@@ -3,6 +3,9 @@ export interface LoginUser {
     name: string;
     services: string[];
     has_no_rice?: boolean;
+    classless_student_count?: number;
+    classless_allergy_count?: number;
+    classless_teacher_count?: number;
     settings: {
         service_mon?: boolean;
         service_tue?: boolean;
