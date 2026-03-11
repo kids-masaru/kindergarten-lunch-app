@@ -194,24 +194,20 @@ export default function ClassReportPanel({ user, classes, onSaved, pendingCount,
                             : <><Send className="w-4 h-4" /> 保存</>
                         }
                     </button>
+                    {pendingCount > 0 && (
+                        <button
+                            onClick={onSubmitPending}
+                            disabled={isSubmittingPending}
+                            className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-bold text-base hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg ring-4 ring-orange-100 active:scale-95 transition-all"
+                        >
+                            {isSubmittingPending
+                                ? <Loader2 className="w-5 h-5 animate-spin" />
+                                : <><Send className="w-4 h-4" /> 変更を申請する</>
+                            }
+                        </button>
+                    )}
                 </div>
             </div>
-
-            {/* Footer: 申請ボタンのみ（pendingがある場合） */}
-            {pendingCount > 0 && (
-                <div className="p-4 border-t border-gray-100">
-                    <button
-                        onClick={onSubmitPending}
-                        disabled={isSubmittingPending}
-                        className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-bold text-base hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg ring-4 ring-orange-100 active:scale-95 transition-all"
-                    >
-                        {isSubmittingPending
-                            ? <Loader2 className="w-5 h-5 animate-spin" />
-                            : <><Send className="w-4 h-4" /> 変更を申請する</>
-                        }
-                    </button>
-                </div>
-            )}
         </div>
     );
 }
