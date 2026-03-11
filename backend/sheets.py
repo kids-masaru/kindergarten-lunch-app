@@ -3,6 +3,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import os
 import json
 import time
+import threading
 from datetime import datetime
 from dotenv import load_dotenv
 from typing import List, Dict, Optional, Any
@@ -10,44 +11,98 @@ from backend.models import KindergartenMaster, ClassMaster, OrderData, normalize
 
 load_dotenv(override=True)
 
+# ---------------------------------------------------------------------------
+# In-memory TTL cache
+# ---------------------------------------------------------------------------
+_cache: dict = {}
+_cache_lock = threading.Lock()
+_DATA_TTL = 300  # 5 minutes
+
+_wb_instance = None
+_wb_ts: float = 0.0
+_wb_lock = threading.Lock()
+_WB_TTL = 1800  # 30 minutes
+
+
+def _dcache_get(key: str):
+    with _cache_lock:
+        entry = _cache.get(key)
+        if entry and (time.time() - entry[1]) < _DATA_TTL:
+            return entry[0]
+        _cache.pop(key, None)
+    return None
+
+
+def _dcache_set(key: str, data):
+    with _cache_lock:
+        _cache[key] = (data, time.time())
+
+
+def _dcache_bust(*prefixes: str):
+    with _cache_lock:
+        to_del = [k for k in list(_cache) if any(k.startswith(p) for p in prefixes)]
+        for k in to_del:
+            del _cache[k]
+
+
+def _get_sheet_records(wb, sheet_name: str, cache_key: str) -> list:
+    cached = _dcache_get(cache_key)
+    if cached is not None:
+        return cached
+    ws = wb.worksheet(sheet_name)
+    records = ws.get_all_records()
+    _dcache_set(cache_key, records)
+    return records
+
+# ---------------------------------------------------------------------------
+
+
 def get_db_connection():
-    """Connect to Google Sheets and return the workbook object."""
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = None
-    
-    # Reload env just in case
-    load_dotenv()
-    spreadsheet_id = os.getenv("SPREADSHEET_ID")
-    print(f"DEBUG: Using spreadsheet_id=[{spreadsheet_id}]")
-    credentials_file = "lunch-order-app-484107-7b748f233fe2.json"
+    """Connect to Google Sheets and return the workbook object (cached 30 min)."""
+    global _wb_instance, _wb_ts
+    with _wb_lock:
+        if _wb_instance is not None and (time.time() - _wb_ts) < _WB_TTL:
+            return _wb_instance
 
-    # 1. Try environment variable (for Railway/Cloud)
-    json_creds = os.getenv("GOOGLE_CREDENTIALS_JSON")
-    if json_creds:
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        creds = None
+
+        # Reload env just in case
+        load_dotenv()
+        spreadsheet_id = os.getenv("SPREADSHEET_ID")
+        print(f"DEBUG: Using spreadsheet_id=[{spreadsheet_id}]")
+        credentials_file = "lunch-order-app-484107-7b748f233fe2.json"
+
+        # 1. Try environment variable (for Railway/Cloud)
+        json_creds = os.getenv("GOOGLE_CREDENTIALS_JSON")
+        if json_creds:
+            try:
+                creds_dict = json.loads(json_creds)
+                creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+            except Exception as e:
+                print(f"Error loading credentials from env: {e}")
+
+        # 2. Try local file (for development)
+        if not creds and os.path.exists(credentials_file):
+            creds = ServiceAccountCredentials.from_json_keyfile_name(credentials_file, scope)
+
+        if not creds:
+            print("Warning: No Google Credentials found.")
+            return None
+
+        client = gspread.authorize(creds)
+        if not spreadsheet_id:
+            print("Warning: SPREADSHEET_ID not set in .env")
+            return None
+
         try:
-            creds_dict = json.loads(json_creds)
-            creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+            wb = client.open_by_key(spreadsheet_id)
+            _wb_instance = wb
+            _wb_ts = time.time()
+            return wb
         except Exception as e:
-            print(f"Error loading credentials from env: {e}")
-
-    # 2. Try local file (for development)
-    if not creds and os.path.exists(credentials_file):
-        creds = ServiceAccountCredentials.from_json_keyfile_name(credentials_file, scope)
-    
-    if not creds:
-        print("Warning: No Google Credentials found.")
-        return None
-
-    client = gspread.authorize(creds)
-    if not spreadsheet_id:
-        print("Warning: SPREADSHEET_ID not set in .env")
-        return None
-        
-    try:
-        return client.open_by_key(spreadsheet_id)
-    except Exception as e:
-        print(f"Error connecting to spreadsheet {spreadsheet_id}: {e}")
-        return None
+            print(f"Error connecting to spreadsheet {spreadsheet_id}: {e}")
+            return None
 
 # --- New Optimized Data Access ---
 
@@ -56,8 +111,7 @@ def get_kindergartens() -> List[KindergartenMaster]:
     try:
         wb = get_db_connection()
         if not wb: return []
-        ws = wb.worksheet("kindergartens")
-        records = ws.get_all_records()
+        records = _get_sheet_records(wb, "kindergartens", "kg")
         print(f"[DEBUG] get_kindergartens: {len(records)} raw records from sheet")
 
         results = []
@@ -108,9 +162,8 @@ def get_classes_for_kindergarten(kindergarten_id: str, base_date: Optional[str] 
     try:
         wb = get_db_connection()
         if not wb: return []
-        ws = wb.worksheet("classes")
-        records = ws.get_all_records()
-        
+        records = _get_sheet_records(wb, "classes", "cls_raw")
+
         # Filter by kindergarten_id
         results = []
         for r in records:
@@ -159,9 +212,8 @@ def get_pending_class_snapshots(kindergarten_id: str) -> List[Dict]:
     try:
         wb = get_db_connection()
         if not wb: return []
-        ws = wb.worksheet("classes")
-        records = ws.get_all_records()
-        
+        records = _get_sheet_records(wb, "classes", "cls_raw")
+
         today = datetime.now().strftime("%Y-%m-%d")
         
         # Find all classes for this kindergarten with effective_from > today
@@ -213,6 +265,7 @@ def delete_pending_class_snapshot(kindergarten_id: str, date: str) -> bool:
 
         ws.clear()
         ws.batch_update([{'range': 'A1', 'values': new_rows}])
+        _dcache_bust("cls_raw")
         return True
     except Exception as e:
         print(f"Error in delete_pending_class_snapshot: {e}")
@@ -360,11 +413,15 @@ def delete_orders_backup(kindergarten_id: str, snapshot_date: str) -> bool:
 def get_orders_for_month(kindergarten_id: str, year: int, month: int) -> List[OrderData]:
     """Fetch orders for a specific kindergarten and month from the flat 'orders' sheet."""
     try:
+        cache_key = f"ord_{kindergarten_id}_{year}_{month}"
+        cached = _dcache_get(cache_key)
+        if cached is not None:
+            return cached
+
         wb = get_db_connection()
         if not wb: return []
-        ws = wb.worksheet("orders")
-        records = ws.get_all_records()
-        
+        records = _get_sheet_records(wb, "orders", "ord_raw")
+
         # Filter by kindergarten_id and month
         month_prefix = f"{year}-{month:02d}"
         results = []
@@ -373,6 +430,8 @@ def get_orders_for_month(kindergarten_id: str, year: int, month: int) -> List[Or
                 order_date = str(r.get("date", ""))
                 if order_date.startswith(month_prefix):
                     results.append(OrderData(**r))
+
+        _dcache_set(cache_key, results)
         return results
     except Exception as e:
         print(f"Error in get_orders_for_month: {e}")
@@ -419,11 +478,17 @@ def batch_save_orders(orders: List[Dict]) -> bool:
         # Perform updates in batch
         if updates:
             ws.batch_update(updates)
-            
+
         # Append new rows in one go
         if new_rows:
             ws.append_rows(new_rows)
-            
+
+        # Bust order cache
+        kid_id = orders[0]['kindergarten_id'] if orders else None
+        _dcache_bust("ord_raw")
+        if kid_id:
+            _dcache_bust(f"ord_{kid_id}_")
+
         # Notification trigger
         try:
             from backend.notifications import send_admin_notification
@@ -519,6 +584,7 @@ def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict], sched
         ws.clear()
         if new_all_rows:
             ws.batch_update([{'range': 'A1', 'values': new_all_rows}])
+        _dcache_bust("cls_raw")
         return True
     except Exception as e:
         print(f"Error in update_kindergarten_classes: {e}")
@@ -555,7 +621,8 @@ def update_class_counts(kindergarten_id: str, class_name: str, counts: Dict) -> 
         
         if updates:
             ws.batch_update(updates)
-        
+        _dcache_bust("cls_raw")
+
         # Notification trigger
         try:
             from backend.notifications import send_admin_notification
@@ -666,6 +733,7 @@ def update_kindergarten_master(data: Dict) -> bool:
 
         if updates:
             ws.batch_update(updates)
+        _dcache_bust("kg")
 
         try:
             from backend.notifications import send_admin_notification

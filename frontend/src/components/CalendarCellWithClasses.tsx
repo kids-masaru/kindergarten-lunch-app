@@ -188,12 +188,7 @@ export default function CalendarCellWithClasses({
     }
 
     const hasOrder = existingOrders.length > 0;
-    const displayType = existingOrders[0]?.meal_type;
     const specialTypes = [...new Set(existingOrders.map(o => o.meal_type).filter(t => t && t !== '通常' && t !== '飯なし'))];
-    const totalStudent = existingOrders.reduce((s, o) => s + o.student_count, 0);
-    const totalAllergy = existingOrders.reduce((s, o) => s + o.allergy_count, 0);
-    const totalTeacher = existingOrders.reduce((s, o) => s + o.teacher_count, 0);
-    const grandTotal = totalStudent + totalAllergy;
 
     return (
         <>
@@ -218,23 +213,16 @@ export default function CalendarCellWithClasses({
                     {isPending && <span className="text-[9px] font-black text-blue-500 bg-blue-100 px-1 rounded">未送信</span>}
                 </div>
                 {hasOrder ? (
-                    <div className="flex-1 flex flex-col justify-center items-start w-full gap-0">
-                        {specialTypes.length > 0 && (
-                            <div className="flex flex-wrap gap-0.5 mb-0.5">
+                    <div className="flex-1 flex flex-col justify-start items-start w-full gap-0.5">
+                        {specialTypes.length > 0 ? (
+                            <div className="flex flex-wrap gap-0.5">
                                 {specialTypes.map(t => (
                                     <span key={t} className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-none">{t}</span>
                                 ))}
                             </div>
+                        ) : (
+                            <span className="text-xs font-bold text-gray-400 leading-none">通常</span>
                         )}
-                        <span className="text-xs font-bold text-gray-500 leading-tight">園児</span>
-                        <span className="font-black text-gray-800 leading-tight whitespace-nowrap">
-                            <span className="text-2xl">{totalStudent}</span><span className="text-sm text-red-500">+ア{totalAllergy}＝</span><span className="text-2xl">{grandTotal}</span>
-                        </span>
-                        <div className="w-full border-t border-gray-200 my-0.5" />
-                        <div className="flex justify-between items-baseline w-full">
-                            <span className="text-xs font-bold text-gray-500 leading-tight">先生</span>
-                            <span className="text-2xl font-black text-gray-600 leading-tight">{totalTeacher}</span>
-                        </div>
                     </div>
                 ) : (
                     <div className="flex-1 flex items-center justify-center w-full">
