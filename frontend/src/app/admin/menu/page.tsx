@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon, deleteMonthlyCommon, getAdminOrdersForMonth } from '@/lib/api';
+import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon, deleteMonthlyCommon, getAdminOrdersForMonth, getCalendar, updateOrderDefaults } from '@/lib/api';
 import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, ArrowLeft, Save, Trash2, Building2, Search, Filter, Printer, Calendar } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
 
@@ -129,16 +129,59 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
     const [isLoadingClasses, setIsLoadingClasses] = useState(true);
     const [newService, setNewService] = useState('');
 
+    // クラスなしモード用：基本人数
+    const [classlessStudent, setClasslessStudent] = useState(0);
+    const [classlessAllergy, setClasslessAllergy] = useState(0);
+    const [classlessTeacher, setClasslessTeacher] = useState(0);
+    const today = new Date().toISOString().slice(0, 10);
+    const [classlessFromDate, setClasslessFromDate] = useState(today);
+    const [isSavingDefaults, setIsSavingDefaults] = useState(false);
+    const [defaultsSaveSuccess, setDefaultsSaveSuccess] = useState(false);
+
     useEffect(() => {
         setIsLoadingClasses(true);
         getAdminClasses(k.kindergarten_id).then(res => {
             setClasses(res.classes);
             setIsLoadingClasses(false);
+            // クラスなし園の場合、現在の基本人数を注文から取得して表示
+            if (res.classes.length === 0) {
+                const now = new Date();
+                getCalendar(k.kindergarten_id, now.getFullYear(), now.getMonth() + 1).then(calRes => {
+                    const firstOrder = (calRes.orders || []).find((o: any) => o.class_name === '共通');
+                    if (firstOrder) {
+                        setClasslessStudent(firstOrder.student_count ?? 0);
+                        setClasslessAllergy(firstOrder.allergy_count ?? 0);
+                        setClasslessTeacher(firstOrder.teacher_count ?? 0);
+                    }
+                }).catch(() => {});
+            }
         }).catch(err => {
             console.error(err);
             setIsLoadingClasses(false);
         });
     }, [k.kindergarten_id]);
+
+    const handleSaveDefaults = async () => {
+        if (!classlessFromDate) { alert('適用開始日を選択してください'); return; }
+        setIsSavingDefaults(true);
+        setDefaultsSaveSuccess(false);
+        try {
+            await updateOrderDefaults({
+                kindergarten_id: k.kindergarten_id,
+                from_date: classlessFromDate,
+                student_count: classlessStudent,
+                allergy_count: classlessAllergy,
+                teacher_count: classlessTeacher,
+            });
+            setDefaultsSaveSuccess(true);
+            setTimeout(() => setDefaultsSaveSuccess(false), 3000);
+        } catch (err) {
+            console.error(err);
+            alert('基本人数の保存に失敗しました');
+        } finally {
+            setIsSavingDefaults(false);
+        }
+    };
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -335,9 +378,55 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                         ) : (
                             <>
                             {classes.length === 0 && (
-                                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700 space-y-1">
-                                    <p className="font-black">クラスなしモード（現在の設定）</p>
-                                    <p className="font-medium text-blue-500">クラスが未設定の場合、園側のスタッフが月次申請時にSTEP1で基本人数を入力します。クラスを追加するとクラス別モードになります。</p>
+                                <div className="space-y-3">
+                                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700 space-y-1">
+                                        <p className="font-black">クラスなしモード（現在の設定）</p>
+                                        <p className="font-medium text-blue-500">クラスを追加するとクラス別モードになります。クラスなしの場合、以下で基本人数を設定してください。</p>
+                                    </div>
+                                    {/* 基本人数設定パネル */}
+                                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-3">
+                                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                            基本人数設定 <div className="h-px flex-1 bg-gray-200"></div>
+                                        </h4>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {[
+                                                { label: '園児数', value: classlessStudent, setter: setClasslessStudent },
+                                                { label: 'アレルギー', value: classlessAllergy, setter: setClasslessAllergy },
+                                                { label: '先生', value: classlessTeacher, setter: setClasslessTeacher },
+                                            ].map(({ label, value, setter }) => (
+                                                <div key={label}>
+                                                    <label className="text-[9px] font-bold text-gray-500 block mb-1">{label}</label>
+                                                    <input
+                                                        type="number" min={0} value={value}
+                                                        onChange={e => setter(Math.max(0, parseInt(e.target.value) || 0))}
+                                                        className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-orange-100"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="flex items-end gap-3">
+                                            <div className="flex-1">
+                                                <label className="text-[9px] font-bold text-gray-500 block mb-1">適用開始日（この日以降の注文を一括更新）</label>
+                                                <input
+                                                    type="date" value={classlessFromDate}
+                                                    onChange={e => setClasslessFromDate(e.target.value)}
+                                                    className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100"
+                                                />
+                                            </div>
+                                            <button
+                                                onClick={handleSaveDefaults}
+                                                disabled={isSavingDefaults}
+                                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-black text-white transition-all ${isSavingDefaults ? 'bg-gray-300 cursor-not-allowed' : defaultsSaveSuccess ? 'bg-green-500' : 'bg-orange-500 hover:bg-orange-600'}`}
+                                            >
+                                                {isSavingDefaults ? <Loader2 className="w-4 h-4 animate-spin" /> : defaultsSaveSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                                                {defaultsSaveSuccess ? '保存済み' : '適用'}
+                                            </button>
+                                        </div>
+                                        {defaultsSaveSuccess && (
+                                            <p className="text-xs font-bold text-green-600">{classlessFromDate} 以降の注文を更新しました</p>
+                                        )}
+                                        <p className="text-[9px] text-gray-400">※ 適用開始日以降にすでに入っている注文の人数を上書きします。未来の日付から適用することをお勧めします。</p>
+                                    </div>
                                 </div>
                             )}
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
