@@ -170,8 +170,8 @@ export default function ClassReportPanel({ user, classes, onSaved, pendingCount,
                         ))}
                     </div>
                 )}
-                {/* 変更の適用開始日（クラス一覧の下） */}
-                <div className="mt-8">
+                {/* 変更の適用開始日 + 保存ボタン */}
+                <div className="mt-8 space-y-3">
                     <label className="text-[10px] font-black text-gray-400 uppercase block mb-1 flex items-center gap-1">
                         <Calendar className="w-3 h-3" /> 変更の適用開始日（任意）
                     </label>
@@ -181,25 +181,25 @@ export default function ClassReportPanel({ user, classes, onSaved, pendingCount,
                         onChange={e => setEffectiveDate(e.target.value)}
                         className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-200 text-sm font-bold focus:ring-2 focus:ring-orange-100 outline-none"
                     />
-                    <p className="text-[9px] text-gray-400 mt-1">
+                    <p className="text-[9px] text-gray-400 -mt-2">
                         {effectiveDate ? `${effectiveDate} 以降の注文に反映されます` : '空白の場合は申請後すぐに反映されます'}
                     </p>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="w-full bg-gray-700 text-white py-3.5 rounded-xl font-bold text-base hover:bg-gray-800 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    >
+                        {saving
+                            ? <Loader2 className="w-5 h-5 animate-spin" />
+                            : <><Send className="w-4 h-4" /> 保存</>
+                        }
+                    </button>
                 </div>
             </div>
 
-            {/* Footer: ボタンのみ */}
-            <div className="p-4 border-t border-gray-100 space-y-2">
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="w-full bg-gray-700 text-white py-3.5 rounded-xl font-bold text-base hover:bg-gray-800 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                >
-                    {saving
-                        ? <Loader2 className="w-5 h-5 animate-spin" />
-                        : <><Send className="w-4 h-4" /> 保存</>
-                    }
-                </button>
-                {pendingCount > 0 && (
+            {/* Footer: 申請ボタンのみ（pendingがある場合） */}
+            {pendingCount > 0 && (
+                <div className="p-4 border-t border-gray-100">
                     <button
                         onClick={onSubmitPending}
                         disabled={isSubmittingPending}
@@ -210,8 +210,8 @@ export default function ClassReportPanel({ user, classes, onSaved, pendingCount,
                             : <><Send className="w-4 h-4" /> 変更を申請する</>
                         }
                     </button>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

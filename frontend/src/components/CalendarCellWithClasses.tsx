@@ -67,6 +67,9 @@ export default function CalendarCellWithClasses({
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
     useEffect(() => {
+        // ポップオーバーが開いている間は親の再レンダーで状態をリセットしない
+        if (isOpen) return;
+
         const initial: Record<string, ClassOrderState> = {};
         const prevInit: Record<string, { student: number; allergy: number; teacher: number } | null> = {};
         const firstOrder = existingOrders[0];
@@ -93,7 +96,7 @@ export default function CalendarCellWithClasses({
         });
         setClassOrders(initial);
         setPrevOrders(prevInit);
-    }, [existingOrders, classes]);
+    }, [existingOrders, classes, isOpen]);
 
     const handleOpen = () => {
         if (!isServiceDay || isLocked) return;
@@ -213,15 +216,15 @@ export default function CalendarCellWithClasses({
                     {isPending && <span className="text-[9px] font-black text-blue-500 bg-blue-100 px-1 rounded">未送信</span>}
                 </div>
                 {hasOrder ? (
-                    <div className="flex-1 flex flex-col justify-start items-start w-full gap-0.5">
+                    <div className="flex-1 flex flex-col justify-center items-start w-full gap-0.5">
                         {specialTypes.length > 0 ? (
                             <div className="flex flex-wrap gap-0.5">
                                 {specialTypes.map(t => (
-                                    <span key={t} className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-none">{t}</span>
+                                    <span key={t} className="text-xl font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-tight">{t}</span>
                                 ))}
                             </div>
                         ) : (
-                            <span className="text-xs font-bold text-gray-400 leading-none">通常</span>
+                            <span className="text-xl font-bold text-gray-400 leading-tight">通常</span>
                         )}
                     </div>
                 ) : (
