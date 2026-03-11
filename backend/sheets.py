@@ -58,34 +58,46 @@ def get_kindergartens() -> List[KindergartenMaster]:
         if not wb: return []
         ws = wb.worksheet("kindergartens")
         records = ws.get_all_records()
-        
+        print(f"[DEBUG] get_kindergartens: {len(records)} raw records from sheet")
+
         results = []
-        for r in records:
-            # Map common variants if needed
-            data = {
-                "kindergarten_id": r.get("kindergarten_id"),
-                "name": r.get("name"),
-                "login_id": r.get("login_id"),
-                "password": r.get("password"),
-                "service_mon": bool(r.get("mon", 1)),
-                "service_tue": bool(r.get("tue", 1)),
-                "service_wed": bool(r.get("wed", 1)),
-                "service_thu": bool(r.get("thu", 1)),
-                "service_fri": bool(r.get("fri", 1)),
-                "service_sat": bool(r.get("sat", 0)),
-                "service_sun": bool(r.get("sun", 0)),
-                "services": [s.strip() for s in str(r.get("services", "")).split(",") if s.strip()],
-                "has_soup": bool(r.get("has_soup", False)),
-                "has_no_rice": bool(r.get("has_no_rice", False)),
-                "curry_trigger": str(r.get("curry_trigger", "")),
-                "contact_name": str(r.get("contact_name", "")),
-                "contact_email": str(r.get("contact_email", "")),
-                "icon_url": str(r.get("icon_url", ""))
-            }
-            results.append(KindergartenMaster(**data))
+        for i, r in enumerate(records):
+            kid_id = str(r.get("kindergarten_id", "")).strip()
+            name = str(r.get("name", "")).strip()
+            # Skip blank rows
+            if not kid_id or not name:
+                print(f"[DEBUG] Skipping row {i+2}: kindergarten_id={kid_id!r} name={name!r}")
+                continue
+            try:
+                data = {
+                    "kindergarten_id": kid_id,
+                    "name": name,
+                    "login_id": str(r.get("login_id", "")).strip(),
+                    "password": str(r.get("password", "")).strip(),
+                    "service_mon": bool(r.get("mon", 1)),
+                    "service_tue": bool(r.get("tue", 1)),
+                    "service_wed": bool(r.get("wed", 1)),
+                    "service_thu": bool(r.get("thu", 1)),
+                    "service_fri": bool(r.get("fri", 1)),
+                    "service_sat": bool(r.get("sat", 0)),
+                    "service_sun": bool(r.get("sun", 0)),
+                    "services": [s.strip() for s in str(r.get("services", "")).split(",") if s.strip()],
+                    "has_soup": bool(r.get("has_soup", False)),
+                    "has_no_rice": bool(r.get("has_no_rice", False)),
+                    "curry_trigger": str(r.get("curry_trigger", "")),
+                    "contact_name": str(r.get("contact_name", "")),
+                    "contact_email": str(r.get("contact_email", "")),
+                    "icon_url": str(r.get("icon_url", ""))
+                }
+                results.append(KindergartenMaster(**data))
+            except Exception as row_err:
+                print(f"[WARNING] Skipping row {i+2} (kindergarten_id={kid_id!r}): {row_err}")
+        print(f"[DEBUG] get_kindergartens: returning {len(results)} valid records")
         return results
     except Exception as e:
         print(f"Error in get_kindergartens: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 def get_classes_for_kindergarten(kindergarten_id: str, base_date: Optional[str] = None) -> List[ClassMaster]:

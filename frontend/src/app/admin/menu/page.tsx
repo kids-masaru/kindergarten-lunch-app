@@ -613,9 +613,11 @@ export default function AdminConsole() {
 
     const fetchKindergartens = () => {
         getKindergartens().then(res => {
-            setKindergartens(res.kindergartens);
+            const list = res.kindergartens ?? [];
+            console.log('[Admin] fetchKindergartens:', list.length, '件');
+            setKindergartens(list);
         }).catch(err => {
-            console.error(err);
+            console.error('[Admin] fetchKindergartens error:', err);
         });
     };
 
