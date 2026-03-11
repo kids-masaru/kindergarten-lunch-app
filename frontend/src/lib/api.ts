@@ -137,11 +137,16 @@ export const updateOrderDefaults = async (data: {
 
 export const getMonthlyCommon = async () => {
     const res = await api.get('/admin/monthly-common');
-    return res.data;
+    return res.data; // { items: [{year_month, item}] }
 };
 
 export const updateMonthlyCommon = async (data: { item: string; year_month: string }) => {
     const res = await api.post('/admin/monthly-common', data);
+    return res.data;
+};
+
+export const deleteMonthlyCommon = async (yearMonth: string) => {
+    const res = await api.delete(`/admin/monthly-common/${encodeURIComponent(yearMonth)}`);
     return res.data;
 };
 

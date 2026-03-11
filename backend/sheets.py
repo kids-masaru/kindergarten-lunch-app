@@ -669,16 +669,22 @@ def get_system_settings() -> Dict:
         print(f"Error in get_system_settings: {e}")
         return {}
 
-def get_monthly_common_item() -> Dict:
-    """Fetch the monthly common special item (applies to all kindergartens for the month)."""
+MONTHLY_COMMON_PREFIX = "monthly_common_"
+
+def get_monthly_common_items() -> List[Dict]:
+    """Return all stored monthly common items as a list sorted by year_month desc."""
     settings = get_system_settings()
-    return {
-        "item": settings.get("monthly_common_item", ""),
-        "year_month": settings.get("monthly_common_year_month", "")
-    }
+    items = []
+    for key, val in settings.items():
+        if key.startswith(MONTHLY_COMMON_PREFIX):
+            ym = key[len(MONTHLY_COMMON_PREFIX):]
+            if val:
+                items.append({"year_month": ym, "item": str(val)})
+    items.sort(key=lambda x: x["year_month"], reverse=True)
+    return items
 
 def update_monthly_common_item(item: str, year_month: str) -> bool:
-    """Update just the monthly common special item, preserving all other settings."""
+    """Upsert the monthly common item for a specific year_month."""
     try:
         wb = get_db_connection()
         if not wb: return False
@@ -690,17 +696,34 @@ def update_monthly_common_item(item: str, year_month: str) -> bool:
 
         records = ws.get_all_records()
         settings = {r["key"]: r["value"] for r in records if r.get("key")}
-        settings["monthly_common_item"] = item
-        settings["monthly_common_year_month"] = year_month
+        settings[f"{MONTHLY_COMMON_PREFIX}{year_month}"] = item
 
-        all_rows = [["key", "value"]]
-        for k, v in settings.items():
-            all_rows.append([k, str(v)])
+        all_rows = [["key", "value"]] + [[k, str(v)] for k, v in settings.items()]
         ws.clear()
         ws.update("A1", all_rows)
         return True
     except Exception as e:
         print(f"Error in update_monthly_common_item: {e}")
+        return False
+
+def delete_monthly_common_item(year_month: str) -> bool:
+    """Delete the monthly common item for a specific year_month."""
+    try:
+        wb = get_db_connection()
+        if not wb: return False
+        try:
+            ws = wb.worksheet("admin_settings")
+        except:
+            return True
+        records = ws.get_all_records()
+        settings = {r["key"]: r["value"] for r in records if r.get("key")}
+        settings.pop(f"{MONTHLY_COMMON_PREFIX}{year_month}", None)
+        all_rows = [["key", "value"]] + [[k, str(v)] for k, v in settings.items()]
+        ws.clear()
+        ws.update("A1", all_rows)
+        return True
+    except Exception as e:
+        print(f"Error in delete_monthly_common_item: {e}")
         return False
 
 def update_system_settings(data: Dict) -> bool:

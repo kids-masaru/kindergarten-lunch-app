@@ -163,7 +163,13 @@ def login(creds: LoginRequest):
 def get_masters(kindergarten_id: str, date: Optional[str] = None):
     my_classes = get_classes_for_kindergarten(kindergarten_id, date)
     print(f"[DEBUG] Found {len(my_classes)} classes for {kindergarten_id} on {date}")
-    return {"classes": [c.model_dump() for c in my_classes]}
+    # Also return fresh services so client always has the latest meal type options
+    kindergartens = get_kindergartens()
+    kg = next((k for k in kindergartens if k.kindergarten_id == kindergarten_id), None)
+    return {
+        "classes": [c.model_dump() for c in my_classes],
+        "services": kg.services if kg else [],
+    }
 
 @router.post("/masters/class")
 def update_class(req: ClassUpdateRequest):
@@ -773,19 +779,28 @@ def get_system_info():
 
 @router.get("/admin/monthly-common")
 def get_monthly_common():
-    """Get the monthly common special item for all kindergartens."""
-    from backend.sheets import get_monthly_common_item
-    return get_monthly_common_item()
+    """Get all monthly common items as a list."""
+    from backend.sheets import get_monthly_common_items
+    return {"items": get_monthly_common_items()}
 
 @router.post("/admin/monthly-common")
 def update_monthly_common(data: Dict):
-    """Update the monthly common special item."""
+    """Upsert monthly common item for a specific year_month."""
     from backend.sheets import update_monthly_common_item
     item = data.get("item", "")
     year_month = data.get("year_month", "")
     success = update_monthly_common_item(item, year_month)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to update monthly common item")
+    return {"status": "success"}
+
+@router.delete("/admin/monthly-common/{year_month}")
+def delete_monthly_common(year_month: str):
+    """Delete monthly common item for a specific year_month."""
+    from backend.sheets import delete_monthly_common_item
+    success = delete_monthly_common_item(year_month)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete monthly common item")
     return {"status": "success"}
 
 @router.post("/admin/system-settings")

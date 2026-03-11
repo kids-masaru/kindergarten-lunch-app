@@ -231,10 +231,18 @@ export default function CalendarPage() {
 
   const fetchMasters = useCallback(async (kid: string, y: number, m: number) => {
     try {
-      // Fetch masters for the specific month (effective as of 1st day)
       const dateStr = `${y}-${String(m).padStart(2, '0')}-01`;
       const data = await getMasters(kid, dateStr);
       setClasses(data.classes);
+      // Always refresh services from backend so meal type options are up to date
+      if (data.services && data.services.length > 0) {
+        setUser(prev => {
+          if (!prev) return prev;
+          const updated = { ...prev, services: data.services };
+          localStorage.setItem('user', JSON.stringify(updated));
+          return updated;
+        });
+      }
     } catch (e) {
       console.error('Failed to fetch masters:', e);
     }

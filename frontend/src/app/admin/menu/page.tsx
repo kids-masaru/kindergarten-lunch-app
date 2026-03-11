@@ -1,135 +1,127 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon, getAdminOrdersForMonth } from '@/lib/api';
+import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon, deleteMonthlyCommon, getAdminOrdersForMonth } from '@/lib/api';
 import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, ArrowLeft, Save, Trash2, Building2, Search, Filter, Printer, Calendar } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
 
-// --- Order Print View Component ---
+// --- Order Print View Component (Calendar style) ---
 function OrderPrintView({ data, year, month, onClose }: { data: any[], year: number, month: number, onClose: () => void }) {
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
     const DOW = ['日','月','火','水','木','金','土'];
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const firstDow = new Date(year, month - 1, 1).getDay();
 
-    const getOrder = (orders: any[], day: number, className: string) => {
+    // Build calendar grid cells: null = empty padding, number = day
+    const cells: (number | null)[] = [
+        ...Array(firstDow).fill(null),
+        ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+    ];
+    while (cells.length % 7 !== 0) cells.push(null);
+    const weeks: (number | null)[][] = [];
+    for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+    const getDayOrders = (orders: any[], day: number) => {
         const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        return orders.find((o: any) => o.date === dateStr && o.class_name === className);
+        return orders.filter((o: any) => o.date === dateStr);
     };
 
-    const handlePrint = () => window.print();
+    const printOnly = (kidId: string) => {
+        const allPages = document.querySelectorAll<HTMLElement>('.print-page');
+        allPages.forEach(el => { el.style.display = el.dataset.kid === kidId ? '' : 'none'; });
+        window.print();
+        allPages.forEach(el => { el.style.display = ''; });
+    };
 
     return (
-        <div className="fixed inset-0 bg-white z-50 overflow-auto print:overflow-visible">
+        <div className="fixed inset-0 bg-white z-50 overflow-auto">
             <style>{`
                 @media print {
-                    @page { size: A4 landscape; margin: 8mm; }
+                    @page { size: A4 landscape; margin: 6mm; }
                     .no-print { display: none !important; }
                     .print-page { page-break-after: always; }
-                    body { font-size: 8px; }
                 }
             `}</style>
 
             {/* Screen controls */}
-            <div className="no-print sticky top-0 bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 z-10">
-                <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+            <div className="no-print sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 z-10">
+                <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl">
                     <ArrowLeft className="w-5 h-5 text-gray-500" />
                 </button>
-                <span className="font-black text-gray-700 text-sm">{year}年{month}月 注文一覧</span>
+                <span className="font-black text-gray-700 text-sm">{year}年{month}月 注文カレンダー</span>
                 <div className="flex-1" />
-                <button
-                    onClick={handlePrint}
-                    className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-orange-600 transition-all"
-                >
+                <button onClick={() => window.print()} className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-orange-600">
                     <Printer className="w-4 h-4" /> 全園一括印刷
                 </button>
             </div>
 
-            <div className="p-4 space-y-8">
-                {data.map((k: any) => {
-                    const classNames: string[] = k.classes.map((c: any) => c.class_name);
-                    if (classNames.length === 0) return null;
-                    return (
-                        <div key={k.kindergarten_id} className="print-page">
-                            {/* Per-kindergarten print button (screen only) */}
-                            <div className="no-print flex items-center justify-between mb-2">
-                                <h2 className="text-base font-black text-gray-800">{k.name}</h2>
-                                <button
-                                    onClick={() => {
-                                        // Temporarily hide other kindergartens and print
-                                        const allPages = document.querySelectorAll<HTMLElement>('.print-page');
-                                        allPages.forEach(el => { if (!el.contains(el.querySelector(`[data-kid="${k.kindergarten_id}"]`))) el.style.display = 'none'; });
-                                        window.print();
-                                        allPages.forEach(el => { el.style.display = ''; });
-                                    }}
-                                    className="flex items-center gap-1.5 text-xs font-bold text-orange-500 hover:text-orange-700 border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-50 transition-all"
-                                >
-                                    <Printer className="w-3.5 h-3.5" /> この園のみ印刷
-                                </button>
+            <div className="p-4 space-y-10">
+                {data.filter((k: any) => k.classes.length > 0).map((k: any) => (
+                    <div key={k.kindergarten_id} className="print-page" data-kid={k.kindergarten_id}>
+                        {/* Header (both screen and print) */}
+                        <div className="flex items-center justify-between mb-2">
+                            <div>
+                                <span className="font-black text-gray-900 text-base">{k.name}</span>
+                                <span className="ml-3 text-sm text-gray-500">{year}年{month}月</span>
                             </div>
-
-                            {/* Print header */}
-                            <div className="hidden print:block mb-2">
-                                <span className="font-black text-sm">{k.name}</span>
-                                <span className="ml-4 text-xs">{year}年{month}月 注文一覧</span>
-                            </div>
-
-                            <div data-kid={k.kindergarten_id} className="overflow-x-auto">
-                                <table className="w-full border-collapse text-[10px] print:text-[7px]" style={{ minWidth: '800px' }}>
-                                    <thead>
-                                        <tr>
-                                            <th className="border border-gray-200 bg-gray-50 px-2 py-1 text-left font-black w-20 print:w-14">クラス</th>
-                                            {days.map(d => {
-                                                const dow = new Date(year, month - 1, d).getDay();
-                                                return (
-                                                    <th key={d} className={`border border-gray-200 px-0.5 py-1 text-center font-bold w-8 print:w-6
-                                                        ${dow === 0 ? 'bg-red-50 text-red-500' : dow === 6 ? 'bg-blue-50 text-blue-500' : 'bg-gray-50 text-gray-600'}`}>
-                                                        <div>{d}</div>
-                                                        <div className="text-[8px] print:text-[6px] opacity-70">{DOW[dow]}</div>
-                                                    </th>
-                                                );
-                                            })}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {classNames.map(className => (
-                                            <tr key={className}>
-                                                <td className="border border-gray-200 px-2 py-1 font-bold text-gray-700 bg-gray-50/50">{className}</td>
-                                                {days.map(d => {
-                                                    const order = getOrder(k.orders, d, className);
-                                                    const dow = new Date(year, month - 1, d).getDay();
-                                                    const isWeekend = dow === 0 || dow === 6;
-                                                    if (!order) return (
-                                                        <td key={d} className={`border border-gray-100 text-center ${isWeekend ? 'bg-gray-50' : ''}`}>
-                                                            <span className="text-gray-200">－</span>
-                                                        </td>
-                                                    );
-                                                    const isSpecial = order.meal_type !== '通常';
-                                                    return (
-                                                        <td key={d} className={`border border-gray-200 p-0.5 text-center ${isSpecial ? 'bg-orange-50' : ''}`}>
-                                                            <div className="leading-tight">
-                                                                {isSpecial && <div className="text-[7px] print:text-[6px] font-black text-orange-500 truncate">{order.meal_type}</div>}
-                                                                <div className="font-bold text-gray-700">園{order.student_count}</div>
-                                                                {order.allergy_count > 0 && <div className="text-red-500 font-bold">ア{order.allergy_count}</div>}
-                                                                <div className="text-gray-400">先{order.teacher_count}</div>
-                                                            </div>
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <button onClick={() => printOnly(k.kindergarten_id)}
+                                className="no-print flex items-center gap-1.5 text-xs font-bold text-orange-500 border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-50">
+                                <Printer className="w-3.5 h-3.5" /> この園のみ印刷
+                            </button>
                         </div>
-                    );
-                })}
+
+                        {/* Calendar grid */}
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                            {/* Day of week header */}
+                            <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+                                {DOW.map((d, i) => (
+                                    <div key={d} className={`text-center text-xs font-black py-1.5 border-r border-gray-100 last:border-0
+                                        ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-600'}`}>
+                                        {d}
+                                    </div>
+                                ))}
+                            </div>
+                            {/* Weeks */}
+                            {weeks.map((week, wi) => (
+                                <div key={wi} className="grid grid-cols-7 border-b border-gray-100 last:border-0" style={{ minHeight: '60px' }}>
+                                    {week.map((day, di) => {
+                                        if (!day) return <div key={di} className="border-r border-gray-100 last:border-0 bg-gray-50/50" />;
+                                        const dow = di;
+                                        const dayOrders = getDayOrders(k.orders, day);
+                                        const isWeekend = dow === 0 || dow === 6;
+                                        return (
+                                            <div key={di} className={`border-r border-gray-100 last:border-0 p-1 ${isWeekend ? 'bg-red-50/30' : ''}`} style={{ minHeight: '60px' }}>
+                                                <div className={`text-xs font-bold mb-1 ${dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700'}`}>{day}</div>
+                                                {dayOrders.length === 0 ? (
+                                                    <span className="text-[9px] text-gray-200">－</span>
+                                                ) : (
+                                                    <div className="space-y-0.5">
+                                                        {dayOrders.map((o: any, oi: number) => {
+                                                            const isSpecial = o.meal_type && o.meal_type !== '通常';
+                                                            return (
+                                                                <div key={oi} className={`text-[8px] leading-tight rounded px-0.5 ${isSpecial ? 'bg-orange-50 text-orange-700' : 'text-gray-600'}`}>
+                                                                    {k.classes.length > 1 && <div className="font-bold truncate text-[7px]">{o.class_name}</div>}
+                                                                    {isSpecial && <div className="font-black text-orange-500 text-[7px]">{o.meal_type}</div>}
+                                                                    <div>園{o.student_count} ア{o.allergy_count} 先{o.teacher_count}</div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );
 }
 
 // --- Kindergarten Editor Component ---
-function KindergartenEditor({ k, onClose, onSave, monthlyCommonItem, monthlyCommonYearMonth }: { k: any, onClose: () => void, onSave: () => void, monthlyCommonItem?: string, monthlyCommonYearMonth?: string }) {
+function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => void, onSave: () => void }) {
     const [formData, setFormData] = useState({ ...k });
     const [classes, setClasses] = useState<any[]>([]);
     const [isSaving, setIsSaving] = useState(false);
@@ -297,18 +289,6 @@ function KindergartenEditor({ k, onClose, onSave, monthlyCommonItem, monthlyComm
                                     <input type="text" placeholder="例: チキンカレー" value={formData.curry_trigger || ''}
                                         onChange={e => setFormData({ ...formData, curry_trigger: e.target.value })}
                                         className="w-full bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:ring-2 ring-orange-200" />
-                                </div>
-                            )}
-                            {monthlyCommonItem !== undefined && (
-                                <div className="space-y-1">
-                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block">
-                                        月別カレー共通項目
-                                        {monthlyCommonYearMonth && <span className="ml-1 text-orange-400">（{monthlyCommonYearMonth}）</span>}
-                                    </label>
-                                    <div className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-gray-400">
-                                        {monthlyCommonItem || '未設定'}
-                                    </div>
-                                    <p className="text-[9px] text-gray-400 ml-1">※ 全園共通。変更は園一覧ページ上部から行えます。</p>
                                 </div>
                             )}
 
@@ -590,8 +570,9 @@ export default function AdminConsole() {
     const [showPrintView, setShowPrintView] = useState(false);
     const [printData, setPrintData] = useState<any[] | null>(null);
 
-    // Monthly common item
-    const [monthlyCommon, setMonthlyCommon] = useState({ item: '', year_month: '' });
+    // Monthly common items (list + new entry form)
+    const [monthlyCommonItems, setMonthlyCommonItems] = useState<{ year_month: string, item: string }[]>([]);
+    const [newCommon, setNewCommon] = useState({ item: '', year_month: new Date().toISOString().slice(0, 7) });
     const [monthlyCommonSaving, setMonthlyCommonSaving] = useState(false);
 
     // Kindergarten search & filter
@@ -631,7 +612,7 @@ export default function AdminConsole() {
     useEffect(() => {
         fetchKindergartens();
         fetchSystemInfo();
-        getMonthlyCommon().then(setMonthlyCommon).catch(console.error);
+        getMonthlyCommon().then(res => setMonthlyCommonItems(res.items || [])).catch(console.error);
     }, []);
 
     const copyToClipboard = (text: string) => {
@@ -986,46 +967,63 @@ export default function AdminConsole() {
                                 <h3 className="text-xs font-black text-gray-700 uppercase tracking-wide">月別カレー共通項目</h3>
                                 <span className="text-[10px] text-orange-500 font-bold bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">全園共通</span>
                             </div>
-                            <p className="text-[10px] text-gray-400 mb-3">毎月変わる全園共通のカレー項目を設定します。各園の個別項目とは別に、全園に適用されます。</p>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                                <div className="w-full sm:w-32">
-                                    <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">対象年月</label>
-                                    <input
-                                        type="month"
-                                        value={monthlyCommon.year_month}
-                                        onChange={e => setMonthlyCommon(prev => ({ ...prev, year_month: e.target.value }))}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100"
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">共通カレー項目名</label>
-                                    <input
-                                        type="text"
-                                        placeholder="例: スパイシービーフカレー"
-                                        value={monthlyCommon.item}
-                                        onChange={e => setMonthlyCommon(prev => ({ ...prev, item: e.target.value }))}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100"
-                                    />
-                                </div>
-                                <div className="flex items-end">
+                            <div className="flex flex-col md:flex-row gap-4">
+                                {/* Input form (left) */}
+                                <div className="flex flex-col gap-2 md:w-64">
+                                    <div>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">対象年月</label>
+                                        <input type="month" value={newCommon.year_month}
+                                            onChange={e => setNewCommon(p => ({ ...p, year_month: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100" />
+                                    </div>
+                                    <div>
+                                        <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">共通項目名（ヤクルト・副菜漬け など）</label>
+                                        <input type="text" placeholder="例: ヤクルト"
+                                            value={newCommon.item}
+                                            onChange={e => setNewCommon(p => ({ ...p, item: e.target.value }))}
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100" />
+                                    </div>
                                     <button
                                         onClick={async () => {
+                                            if (!newCommon.year_month || !newCommon.item) return;
                                             setMonthlyCommonSaving(true);
                                             try {
-                                                await updateMonthlyCommon(monthlyCommon);
-                                                alert('保存しました');
-                                            } catch {
-                                                alert('保存に失敗しました');
-                                            } finally {
-                                                setMonthlyCommonSaving(false);
-                                            }
+                                                await updateMonthlyCommon(newCommon);
+                                                const res = await getMonthlyCommon();
+                                                setMonthlyCommonItems(res.items || []);
+                                                setNewCommon(p => ({ ...p, item: '' }));
+                                            } catch { alert('保存に失敗しました'); }
+                                            finally { setMonthlyCommonSaving(false); }
                                         }}
-                                        disabled={monthlyCommonSaving}
-                                        className="px-4 py-2 bg-orange-500 text-white text-xs font-black rounded-xl hover:bg-orange-600 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                                        disabled={monthlyCommonSaving || !newCommon.item || !newCommon.year_month}
+                                        className="px-4 py-2 bg-orange-500 text-white text-xs font-black rounded-xl hover:bg-orange-600 flex items-center justify-center gap-1.5 disabled:opacity-40"
                                     >
                                         {monthlyCommonSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                                        保存
+                                        保存（同月は上書き）
                                     </button>
+                                </div>
+                                {/* History list (right) */}
+                                <div className="flex-1">
+                                    <label className="text-[9px] font-bold text-gray-400 uppercase block mb-2">登録済み一覧</label>
+                                    {monthlyCommonItems.length === 0 ? (
+                                        <p className="text-xs text-gray-300 font-bold">まだ登録がありません</p>
+                                    ) : (
+                                        <div className="space-y-1.5">
+                                            {monthlyCommonItems.map(item => (
+                                                <div key={item.year_month} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
+                                                    <span className="text-[10px] font-black text-gray-500 w-20 shrink-0">{item.year_month}</span>
+                                                    <span className="text-xs font-bold text-gray-700 flex-1">{item.item}</span>
+                                                    <button onClick={() => setNewCommon({ year_month: item.year_month, item: item.item })}
+                                                        className="text-[10px] text-orange-500 font-bold hover:text-orange-700 shrink-0">編集</button>
+                                                    <button onClick={async () => {
+                                                        if (!confirm(`${item.year_month} の登録を削除しますか？`)) return;
+                                                        await deleteMonthlyCommon(item.year_month);
+                                                        setMonthlyCommonItems(p => p.filter(i => i.year_month !== item.year_month));
+                                                    }} className="text-[10px] text-gray-300 font-bold hover:text-red-500 shrink-0">削除</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1107,8 +1105,6 @@ export default function AdminConsole() {
                             setEditingK(null);
                             fetchKindergartens();
                         }}
-                        monthlyCommonItem={monthlyCommon.item}
-                        monthlyCommonYearMonth={monthlyCommon.year_month}
                     />
                 )}
 
