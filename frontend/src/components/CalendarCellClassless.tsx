@@ -155,19 +155,18 @@ export default function CalendarCellClassless({
                         {isSpecialMeal && (
                             <span className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-none self-start">{mealType}</span>
                         )}
-                        {/* 園児 + アレルギー */}
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-base font-black text-gray-800 leading-none">児{studentCount}</span>
-                            {allergyCount > 0 && (
-                                <span className="text-sm font-black text-red-500 leading-none">ア{allergyCount}</span>
-                            )}
+                        {/* 園児+アレ＝合計（左：ラベル、右：数値） */}
+                        <div className="flex justify-between items-baseline w-full">
+                            <span className="text-xs font-bold text-gray-500 leading-none">園児</span>
+                            <span className="text-sm font-black text-gray-800 leading-none">
+                                {studentCount}+ア{allergyCount}＝{total}
+                            </span>
                         </div>
-                        {/* 合計 */}
-                        <span className="text-xs font-bold text-gray-500 leading-none">計{total}</span>
-                        {/* 区切り線 */}
-                        <div className="w-full border-t border-gray-300 my-0.5" />
-                        {/* 先生 */}
-                        <span className="text-sm font-bold text-gray-600 leading-none">先{teacherCount}</span>
+                        {/* 先生（左：ラベル、右：数値） */}
+                        <div className="flex justify-between items-baseline w-full">
+                            <span className="text-xs font-bold text-gray-500 leading-none">先生</span>
+                            <span className="text-sm font-black text-gray-600 leading-none">{teacherCount}</span>
+                        </div>
                     </div>
                 ) : (
                     <div className="flex-1 flex items-center justify-center w-full">
