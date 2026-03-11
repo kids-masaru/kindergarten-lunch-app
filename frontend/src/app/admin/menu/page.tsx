@@ -289,7 +289,7 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                             {formData.services?.includes('カレー') && (
                                 <div className="space-y-1">
                                     <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block">カレー識別キーワード（この園のメニュー上の文字列）</label>
-                                    <input type="text" placeholder="例: カレー、壺漬けカレー" value={formData.curry_trigger || ''}
+                                    <input type="text" placeholder="例: 壺漬け" value={formData.curry_trigger || ''}
                                         onChange={e => setFormData({ ...formData, curry_trigger: e.target.value })}
                                         className="w-full bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:ring-2 ring-orange-200" />
                                 </div>
