@@ -158,15 +158,15 @@ export default function CalendarCellClassless({
                         {/* 園児ラベル */}
                         <span className="text-xs font-bold text-gray-500 leading-tight text-left">園児</span>
                         {/* 数値：studentCount + ア（赤小）+ allergyCount＝total */}
-                        <span className="text-sm font-black text-gray-800 leading-tight text-right">
-                            {studentCount}<span className="text-[10px] font-black text-red-500">+ア{allergyCount}</span>＝{total}
+                        <span className="text-2xl font-black text-gray-800 leading-tight text-right">
+                            {studentCount}<span className="text-sm font-black text-red-500">+ア{allergyCount}</span>＝{total}
                         </span>
                         {/* 区切り線 */}
                         <div className="w-full border-t border-gray-200 my-0.5" />
                         {/* 先生ラベル */}
                         <span className="text-xs font-bold text-gray-500 leading-tight text-left">先生</span>
                         {/* 先生数 */}
-                        <span className="text-sm font-black text-gray-600 leading-tight text-right">{teacherCount}</span>
+                        <span className="text-2xl font-black text-gray-600 leading-tight text-right">{teacherCount}</span>
                     </div>
                 ) : (
                     <div className="flex-1 flex items-center justify-center w-full">

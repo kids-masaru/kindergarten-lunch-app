@@ -296,17 +296,10 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                         className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm focus:ring-2 focus:ring-orange-100 outline-none"
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block mb-0.5">担当者名</label>
-                                        <input type="text" value={formData.contact_name || ''} onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
-                                            className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm focus:ring-2 focus:ring-orange-100 outline-none" placeholder="山田 太郎" />
-                                    </div>
-                                    <div>
-                                        <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block mb-0.5">連絡先メール</label>
-                                        <input type="email" value={formData.contact_email || ''} onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                                            className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm focus:ring-2 focus:ring-orange-100 outline-none" placeholder="example@mail.com" />
-                                    </div>
+                                <div>
+                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block mb-0.5">連絡先メール</label>
+                                    <input type="email" value={formData.contact_email || ''} onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                                        className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm focus:ring-2 focus:ring-orange-100 outline-none" placeholder="example@mail.com" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
@@ -1212,7 +1205,7 @@ export default function AdminConsole() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-black text-gray-800 text-sm truncate">{k.name || '---'}</p>
-                                        <p className="text-[10px] text-gray-400 font-medium">{k.contact_name ? `${k.contact_name} 様` : '担当者未登録'}</p>
+                                        <p className="text-[10px] text-gray-400 font-medium">{k.contact_email || ''}</p>
                                         <div className="flex gap-1 mt-1 flex-wrap">
                                             {k.has_soup && <span className="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[9px] font-bold">スープ</span>}
                                             {(k.services || []).map((s: string) => (

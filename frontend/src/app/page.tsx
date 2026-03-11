@@ -141,16 +141,6 @@ function SettingsModal({ kindergarten, onClose, onSave }: { kindergarten: any, o
         </div>
         <div className="p-8 space-y-6">
           <div>
-            <label className="text-xs font-black text-gray-400 uppercase block mb-2">担当者名</label>
-            <input
-              type="text"
-              value={formData.contact_name}
-              onChange={e => setFormData({ ...formData, contact_name: e.target.value })}
-              className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 font-bold focus:ring-4 focus:ring-orange-100 outline-none transition-all"
-              placeholder="例: 山田 太郎"
-            />
-          </div>
-          <div>
             <label className="text-xs font-black text-gray-400 uppercase block mb-2">連絡先メールアドレス</label>
             <input
               type="email"
@@ -315,10 +305,11 @@ export default function CalendarPage() {
         <div className="max-w-6xl mx-auto px-3 py-2 flex items-center gap-2">
           {/* ロゴ */}
           <img src="/icon-mamamire.png" className="w-9 h-9 shrink-0 pointer-events-none" alt="" />
-          {/* 園名 */}
-          <span className="font-bold text-gray-800 text-base leading-tight truncate flex-1 min-w-0">
-            {user.name}
-          </span>
+          {/* 園名 + 年月 */}
+          <div className="flex-1 min-w-0 flex items-center gap-2 overflow-hidden">
+            <span className="font-bold text-gray-800 text-base leading-tight truncate min-w-0">{user.name}</span>
+            <span className="text-base font-black text-gray-700 whitespace-nowrap shrink-0">{year}年{month}月</span>
+          </div>
           {/* 月ナビ */}
           <button
             onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 1) { setYear(y => y - 1); return 12; } return m - 1; }); }}
@@ -326,7 +317,6 @@ export default function CalendarPage() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className="text-lg font-black text-gray-800 whitespace-nowrap">{year}年 {month}月</h2>
           <button
             onClick={() => { setPendingChanges(new Map()); setMonth(m => { if (m === 12) { setYear(y => y + 1); return 1; } return m + 1; }); }}
             className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors shrink-0"
