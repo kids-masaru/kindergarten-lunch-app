@@ -359,7 +359,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     </select>
                                                 </div>
                                                 <div className="flex items-center gap-0.5">
-                                                    <span className="text-[8px] text-gray-300 font-bold w-3">園児</span>
+                                                    <span className="text-[8px] text-gray-300 font-bold shrink-0">児</span>
                                                     <input
                                                         type="number"
                                                         value={dayInfo.studentCount}
@@ -368,7 +368,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     />
                                                 </div>
                                                 <div className="flex items-center gap-0.5">
-                                                    <span className="text-[8px] text-gray-300 font-bold w-3">アレルギー</span>
+                                                    <span className="text-[8px] text-red-300 font-bold shrink-0">ア</span>
                                                     <input
                                                         type="number"
                                                         value={dayInfo.allergyCount}
@@ -377,7 +377,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                                     />
                                                 </div>
                                                 <div className="flex items-center gap-0.5">
-                                                    <span className="text-[8px] text-gray-300 font-bold w-3">先生</span>
+                                                    <span className="text-[8px] text-gray-300 font-bold shrink-0">師</span>
                                                     <input
                                                         type="number"
                                                         value={dayInfo.teacherCount}

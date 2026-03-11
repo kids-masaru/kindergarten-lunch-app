@@ -125,6 +125,7 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
     const [formData, setFormData] = useState({ ...k });
     const [classes, setClasses] = useState<any[]>([]);
     const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
     const [isLoadingClasses, setIsLoadingClasses] = useState(true);
     const [newService, setNewService] = useState('');
 
@@ -141,13 +142,15 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
 
     const handleSave = async () => {
         setIsSaving(true);
+        setSaveSuccess(false);
         try {
             // 1. Update Basic & Service Days & Triggers
             await updateAdminKindergarten(k.kindergarten_id, formData);
             // 2. Update Classes
             await updateAdminClasses(k.kindergarten_id, classes);
             setIsSaving(false);
-            onSave();
+            setSaveSuccess(true);
+            onSave(); // refreshes list in background without closing editor
         } catch (err) {
             console.error(err);
             alert("保存に失敗しました");
@@ -285,8 +288,8 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
 
                             {formData.services?.includes('カレー') && (
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block">カレー個別項目（この園専用）</label>
-                                    <input type="text" placeholder="例: チキンカレー" value={formData.curry_trigger || ''}
+                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block">カレー識別キーワード（この園のメニュー上の文字列）</label>
+                                    <input type="text" placeholder="例: カレー、壺漬けカレー" value={formData.curry_trigger || ''}
                                         onChange={e => setFormData({ ...formData, curry_trigger: e.target.value })}
                                         className="w-full bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:ring-2 ring-orange-200" />
                                 </div>
@@ -330,6 +333,13 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                 <Loader2 className="animate-spin w-5 h-5 mx-auto text-gray-200" />
                             </div>
                         ) : (
+                            <>
+                            {classes.length === 0 && (
+                                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700 space-y-1">
+                                    <p className="font-black">クラスなしモード（現在の設定）</p>
+                                    <p className="font-medium text-blue-500">クラスが未設定の場合、園側のスタッフが月次申請時にSTEP1で基本人数を入力します。クラスを追加するとクラス別モードになります。</p>
+                                </div>
+                            )}
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                                 {classes.map((cls, idx) => (
                                     <div key={idx} className="bg-gray-50 border border-gray-100 p-3 rounded-xl space-y-2 relative group/card">
@@ -365,6 +375,7 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                     </div>
                                 ))}
                             </div>
+                            </>
                         )}
                     </div>
                 </div>
@@ -372,13 +383,18 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                 {/* Footer */}
                 <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/20 flex items-center justify-between">
                     <p className="text-[10px] text-gray-400">※ Googleスプレッドシートに同期されます</p>
-                    <div className="flex gap-3">
-                        <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors">キャンセル</button>
+                    <div className="flex gap-3 items-center">
+                        {saveSuccess && (
+                            <span className="text-xs font-bold text-green-600 flex items-center gap-1">
+                                <Check className="w-3.5 h-3.5" /> 保存しました
+                            </span>
+                        )}
+                        <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors">閉じる</button>
                         <button onClick={handleSave} disabled={isSaving}
                             className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-black text-white shadow-md transition-all active:scale-[0.98]
-                                ${isSaving ? 'bg-gray-300 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-orange-200'}`}>
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            変更を保存
+                                ${isSaving ? 'bg-gray-300 cursor-not-allowed shadow-none' : saveSuccess ? 'bg-green-500 hover:bg-green-600' : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-orange-200'}`}>
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : saveSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                            {saveSuccess ? '保存済み' : '変更を保存'}
                         </button>
                     </div>
                 </div>
@@ -1101,9 +1117,7 @@ export default function AdminConsole() {
                         k={editingK}
                         onClose={() => { setShowEditor(false); setEditingK(null); }}
                         onSave={() => {
-                            setShowEditor(false);
-                            setEditingK(null);
-                            fetchKindergartens();
+                            fetchKindergartens(); // refresh list in background, editor stays open
                         }}
                     />
                 )}

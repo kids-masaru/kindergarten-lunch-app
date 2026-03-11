@@ -478,8 +478,9 @@ def update_kindergarten_classes(kindergarten_id: str, classes: List[Dict], sched
                 new_all_rows.append(row)
         else:
             # === IMMEDIATE MODE (existing behavior) ===
-            # Remove ALL rows for this kindergarten, use today's date.
-            target_effective_date = datetime.now().strftime("%Y-%m-%d")
+            # Remove ALL rows for this kindergarten, use first of current month.
+            # Using month-start so the frontend (which queries with month-01) can always find these classes.
+            target_effective_date = datetime.now().strftime("%Y-%m-01")
             new_all_rows = [headers]
             
             for i, row in enumerate(all_rows):
@@ -577,6 +578,8 @@ def update_kindergarten_master(data: Dict) -> bool:
         if row_idx == -1: return False
         
         mapping = {
+            "name": "name",
+            "login_id": "login_id", "password": "password",
             "service_mon": "mon", "service_tue": "tue", "service_wed": "wed",
             "service_thu": "thu", "service_fri": "fri", "service_sat": "sat", "service_sun": "sun",
             "has_soup": "has_soup", "has_no_rice": "has_no_rice", "curry_trigger": "curry_trigger",
