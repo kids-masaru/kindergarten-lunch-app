@@ -11,7 +11,6 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDow = new Date(year, month - 1, 1).getDay();
 
-    // Build calendar grid cells: null = empty padding, number = day
     const cells: (number | null)[] = [
         ...Array(firstDow).fill(null),
         ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
@@ -23,6 +22,12 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
     const getDayOrders = (orders: any[], day: number) => {
         const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         return orders.filter((o: any) => o.date === dateStr);
+    };
+
+    // 特別メニューの種別を取得（通常以外）
+    const getSpecialMealType = (orders: any[]) => {
+        const special = orders.find((o: any) => o.meal_type && o.meal_type !== '通常');
+        return special ? special.meal_type : null;
     };
 
     const printOnly = (kidId: string) => {
@@ -55,10 +60,10 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
             </div>
 
             <div className="p-4 space-y-10">
-                {data.filter((k: any) => k.classes.length > 0).map((k: any) => (
+                {data.filter((k: any) => k.orders && k.orders.length > 0).map((k: any) => (
                     <div key={k.kindergarten_id} className="print-page" data-kid={k.kindergarten_id}>
-                        {/* Header (both screen and print) */}
-                        <div className="flex items-center justify-between mb-2">
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-3">
                             <div>
                                 <span className="font-black text-gray-900 text-base">{k.name}</span>
                                 <span className="ml-3 text-sm text-gray-500">{year}年{month}月</span>
@@ -69,49 +74,77 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                             </button>
                         </div>
 
-                        {/* Calendar grid */}
-                        <div className="border border-gray-200 rounded-lg overflow-hidden">
-                            {/* Day of week header */}
-                            <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
-                                {DOW.map((d, i) => (
-                                    <div key={d} className={`text-center text-xs font-black py-1.5 border-r border-gray-100 last:border-0
-                                        ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-600'}`}>
-                                        {d}
+                        {/* 2カラムレイアウト：左=カレンダー、右=クラス人数表 */}
+                        <div className="flex gap-5 items-start">
+                            {/* 左：カレンダー（メニュー種別のみ表示） */}
+                            <div className="flex-1 border border-gray-200 rounded-lg overflow-hidden">
+                                <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+                                    {DOW.map((d, i) => (
+                                        <div key={d} className={`text-center text-xs font-black py-1.5 border-r border-gray-100 last:border-0
+                                            ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-600'}`}>
+                                            {d}
+                                        </div>
+                                    ))}
+                                </div>
+                                {weeks.map((week, wi) => (
+                                    <div key={wi} className="grid grid-cols-7 border-b border-gray-100 last:border-0" style={{ minHeight: '52px' }}>
+                                        {week.map((day, di) => {
+                                            if (!day) return <div key={di} className="border-r border-gray-100 last:border-0 bg-gray-50/50" />;
+                                            const dow = di;
+                                            const dayOrders = getDayOrders(k.orders, day);
+                                            const specialType = getSpecialMealType(dayOrders);
+                                            const isWeekend = dow === 0 || dow === 6;
+                                            const isServiceDay = dayOrders.length > 0;
+                                            return (
+                                                <div key={di} className={`border-r border-gray-100 last:border-0 p-1.5
+                                                    ${isWeekend ? 'bg-red-50/30' : ''}
+                                                    ${!isServiceDay ? 'bg-gray-50/50' : ''}`}
+                                                    style={{ minHeight: '52px' }}>
+                                                    <div className={`text-xs font-bold ${dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700'}`}>{day}</div>
+                                                    {specialType && (
+                                                        <div className="mt-0.5 text-[9px] font-black text-orange-600 bg-orange-50 border border-orange-100 rounded px-1 py-0.5 leading-tight">
+                                                            {specialType}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 ))}
                             </div>
-                            {/* Weeks */}
-                            {weeks.map((week, wi) => (
-                                <div key={wi} className="grid grid-cols-7 border-b border-gray-100 last:border-0" style={{ minHeight: '60px' }}>
-                                    {week.map((day, di) => {
-                                        if (!day) return <div key={di} className="border-r border-gray-100 last:border-0 bg-gray-50/50" />;
-                                        const dow = di;
-                                        const dayOrders = getDayOrders(k.orders, day);
-                                        const isWeekend = dow === 0 || dow === 6;
-                                        return (
-                                            <div key={di} className={`border-r border-gray-100 last:border-0 p-1 ${isWeekend ? 'bg-red-50/30' : ''}`} style={{ minHeight: '60px' }}>
-                                                <div className={`text-xs font-bold mb-1 ${dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700'}`}>{day}</div>
-                                                {dayOrders.length === 0 ? (
-                                                    <span className="text-[9px] text-gray-200">－</span>
-                                                ) : (
-                                                    <div className="space-y-0.5">
-                                                        {dayOrders.map((o: any, oi: number) => {
-                                                            const isSpecial = o.meal_type && o.meal_type !== '通常';
-                                                            return (
-                                                                <div key={oi} className={`text-[8px] leading-tight rounded px-0.5 ${isSpecial ? 'bg-orange-50 text-orange-700' : 'text-gray-600'}`}>
-                                                                    {k.classes.length > 1 && <div className="font-bold truncate text-[7px]">{o.class_name}</div>}
-                                                                    {isSpecial && <div className="font-black text-orange-500 text-[7px]">{o.meal_type}</div>}
-                                                                    <div>園{o.student_count} ア{o.allergy_count} 先{o.teacher_count}</div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+
+                            {/* 右：クラス別 基本人数表 */}
+                            <div className="w-52 shrink-0">
+                                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                    <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                                        <span className="text-xs font-black text-gray-600">クラス別 基本人数</span>
+                                    </div>
+                                    {k.classes && k.classes.length > 0 ? (
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-gray-100 bg-gray-50/50">
+                                                    <th className="text-left px-3 py-1.5 text-[10px] font-black text-gray-500">クラス</th>
+                                                    <th className="text-center px-2 py-1.5 text-[10px] font-black text-gray-500">園児</th>
+                                                    <th className="text-center px-2 py-1.5 text-[10px] font-black text-red-400">アレ</th>
+                                                    <th className="text-center px-2 py-1.5 text-[10px] font-black text-gray-500">先生</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {k.classes.map((cls: any, idx: number) => (
+                                                    <tr key={idx} className="border-b border-gray-50 last:border-0">
+                                                        <td className="px-3 py-2 font-bold text-gray-800 text-xs">{cls.class_name}</td>
+                                                        <td className="px-2 py-2 text-center font-bold text-gray-700 text-sm">{cls.default_student_count}</td>
+                                                        <td className="px-2 py-2 text-center font-bold text-red-500 text-sm">{cls.default_allergy_count ?? 0}</td>
+                                                        <td className="px-2 py-2 text-center font-bold text-gray-700 text-sm">{cls.default_teacher_count}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    ) : (
+                                        <div className="px-3 py-4 text-xs text-gray-400 text-center">クラスなし</div>
+                                    )}
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -154,9 +187,8 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
         setIsSavingDefaults(true);
         setDefaultsSaveSuccess(false);
         try {
-            // 1. kindergartenシートに永続保存
+            // 1. kindergartenシートに永続保存（classlessフィールドのみ送信）
             await updateAdminKindergarten(k.kindergarten_id, {
-                ...formData,
                 classless_student_count: classlessStudent,
                 classless_allergy_count: classlessAllergy,
                 classless_teacher_count: classlessTeacher,
