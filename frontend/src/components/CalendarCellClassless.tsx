@@ -150,23 +150,21 @@ export default function CalendarCellClassless({
                 </div>
 
                 {hasOrder ? (
-                    <div className="flex-1 flex flex-col justify-center w-full gap-0.5">
+                    <div className="flex-1 flex flex-col justify-center w-full gap-0">
                         {/* 特別メニュー */}
                         {isSpecialMeal && (
-                            <span className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-none self-start">{mealType}</span>
+                            <span className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-none self-start mb-0.5">{mealType}</span>
                         )}
-                        {/* 園児+アレ＝合計（左：ラベル、右：数値） */}
-                        <div className="flex justify-between items-baseline w-full">
-                            <span className="text-xs font-bold text-gray-500 leading-none">園児</span>
-                            <span className="text-sm font-black text-gray-800 leading-none">
-                                {studentCount}+ア{allergyCount}＝{total}
-                            </span>
-                        </div>
-                        {/* 先生（左：ラベル、右：数値） */}
-                        <div className="flex justify-between items-baseline w-full">
-                            <span className="text-xs font-bold text-gray-500 leading-none">先生</span>
-                            <span className="text-sm font-black text-gray-600 leading-none">{teacherCount}</span>
-                        </div>
+                        {/* 園児ラベル */}
+                        <span className="text-xs font-bold text-gray-500 leading-tight">園児</span>
+                        {/* 数値：studentCount + ア（赤小）+ allergyCount＝total */}
+                        <span className="text-sm font-black text-gray-800 leading-tight">
+                            {studentCount}<span className="text-[10px] font-black text-red-500">+ア{allergyCount}</span>＝{total}
+                        </span>
+                        {/* 先生ラベル */}
+                        <span className="text-xs font-bold text-gray-500 leading-tight">先生</span>
+                        {/* 先生数 */}
+                        <span className="text-sm font-black text-gray-600 leading-tight">{teacherCount}</span>
                     </div>
                 ) : (
                     <div className="flex-1 flex items-center justify-center w-full">

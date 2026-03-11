@@ -401,7 +401,7 @@ export default function CalendarPage() {
                       <div key={d} className="text-center text-base font-black text-gray-500">{d}</div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-5 gap-1 auto-rows-[6rem]">
+                  <div className="grid grid-cols-5 gap-1 auto-rows-[8rem]">
                     {Array(weekdayOffset).fill(null).map((_, i) => <div key={`empty-${i}`} />)}
                     {weekdays.map(day => {
                       const dayOrders = getOrdersForDay(day);
@@ -429,7 +429,7 @@ export default function CalendarPage() {
                       if (isClasslessMode) {
                         const existingOrder = dayOrders.find(o => o.class_name === '共通');
                         return (
-                          <div key={day} className="h-[6rem]">
+                          <div key={day} className="h-[8rem]">
                             <CalendarCellClassless
                               day={day}
                               year={year}
@@ -450,7 +450,7 @@ export default function CalendarPage() {
                       }
 
                       return (
-                        <div key={day} className="h-[6rem]">
+                        <div key={day} className="h-[8rem]">
                           <CalendarCellWithClasses
                             day={day}
                             year={year}
