@@ -102,8 +102,8 @@ export default function CalendarCellWithClasses({
         }
         if (buttonRef.current) {
             const rect = buttonRef.current.getBoundingClientRect();
-            const popoverWidth = 360;
-            const estimatedHeight = Math.min(520, 160 + classes.length * 120);
+            const popoverWidth = 420;
+            const estimatedHeight = Math.min(560, 180 + classes.length * 130);
             const margin = 8;
 
             let left = rect.left + rect.width / 2 - popoverWidth / 2;
@@ -190,6 +190,10 @@ export default function CalendarCellWithClasses({
     const hasOrder = existingOrders.length > 0;
     const displayType = existingOrders[0]?.meal_type;
     const specialTypes = [...new Set(existingOrders.map(o => o.meal_type).filter(t => t && t !== '通常' && t !== '飯なし'))];
+    const totalStudent = existingOrders.reduce((s, o) => s + o.student_count, 0);
+    const totalAllergy = existingOrders.reduce((s, o) => s + o.allergy_count, 0);
+    const totalTeacher = existingOrders.reduce((s, o) => s + o.teacher_count, 0);
+    const grandTotal = totalStudent + totalAllergy;
 
     return (
         <>
@@ -213,21 +217,30 @@ export default function CalendarCellWithClasses({
                     <span className={`text-sm font-black leading-none ${isToday ? 'text-orange-600' : 'text-gray-600'}`}>{day}</span>
                     {isPending && <span className="text-[9px] font-black text-blue-500 bg-blue-100 px-1 rounded">未送信</span>}
                 </div>
-                <div className="flex-1 flex flex-col items-center justify-center w-full px-0.5 gap-0.5">
-                    {hasOrder ? (
-                        specialTypes.length > 0 ? (
-                            <div className="flex flex-col gap-0.5 items-center w-full">
+                {hasOrder ? (
+                    <div className="flex-1 flex flex-col justify-center items-start w-full gap-0">
+                        {specialTypes.length > 0 && (
+                            <div className="flex flex-wrap gap-0.5 mb-0.5">
                                 {specialTypes.map(t => (
-                                    <span key={t} className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 py-0.5 rounded leading-none">{t}</span>
+                                    <span key={t} className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1 rounded leading-none">{t}</span>
                                 ))}
                             </div>
-                        ) : (
-                            <span className="text-sm font-black text-gray-500 leading-none">{displayType === '飯なし' ? '通常' : (displayType || '通常')}</span>
-                        )
-                    ) : (
+                        )}
+                        <span className="text-xs font-bold text-gray-500 leading-tight">園児</span>
+                        <span className="font-black text-gray-800 leading-tight whitespace-nowrap">
+                            <span className="text-2xl">{totalStudent}</span><span className="text-sm text-red-500">+ア{totalAllergy}＝</span><span className="text-2xl">{grandTotal}</span>
+                        </span>
+                        <div className="w-full border-t border-gray-200 my-0.5" />
+                        <div className="flex justify-between items-baseline w-full">
+                            <span className="text-xs font-bold text-gray-500 leading-tight">先生</span>
+                            <span className="text-2xl font-black text-gray-600 leading-tight">{totalTeacher}</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex-1 flex items-center justify-center w-full">
                         <span className="text-sm text-gray-300 font-bold">未入力</span>
-                    )}
-                </div>
+                    </div>
+                )}
                 {isLocked && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="w-1/2 h-[2px] bg-gray-300 rotate-45"></div>
@@ -348,11 +361,11 @@ function MiniCounter({ label, value, onChange, color = "text-gray-900" }: {
 }) {
     return (
         <div className="flex flex-col items-center">
-            <span className="text-[9px] text-gray-400 mb-0.5">{label}</span>
-            <div className="flex items-center gap-0.5 bg-white rounded-lg border border-gray-200 p-0.5">
-                <button onClick={() => onChange(-1)} className="p-0.5 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Minus className="w-3 h-3" /></button>
-                <span className={`font-bold text-sm w-6 text-center ${color}`}>{value}</span>
-                <button onClick={() => onChange(1)} className="p-0.5 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded"><Plus className="w-3 h-3" /></button>
+            <span className="text-xs text-gray-400 mb-0.5">{label}</span>
+            <div className="flex items-center gap-1 bg-white rounded-xl border border-gray-200 p-1">
+                <button onClick={() => onChange(-1)} className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg"><Minus className="w-3.5 h-3.5" /></button>
+                <span className={`font-bold text-base min-w-[2rem] text-center ${color}`}>{value}</span>
+                <button onClick={() => onChange(1)} className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg"><Plus className="w-3.5 h-3.5" /></button>
             </div>
         </div>
     );

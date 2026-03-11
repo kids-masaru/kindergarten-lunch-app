@@ -71,8 +71,8 @@ export default function CalendarCellClassless({
         }
         if (buttonRef.current) {
             const rect = buttonRef.current.getBoundingClientRect();
-            const popoverWidth = 300;
-            const popoverHeight = 400;
+            const popoverWidth = 420;
+            const popoverHeight = 460;
             const margin = 8;
             let left = rect.left + rect.width / 2 - popoverWidth / 2;
             left = Math.max(margin, Math.min(left, window.innerWidth - popoverWidth - margin));

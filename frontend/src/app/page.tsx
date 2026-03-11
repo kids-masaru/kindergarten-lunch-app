@@ -13,7 +13,7 @@ import CalendarCellWithClasses from '@/components/CalendarCellWithClasses';
 // Version: UI Layout V3 (Split & Tabs)
 
 // --- Classless Default Panel ---
-function ClasslessPanel({ user, orders, onRefresh }: { user: LoginUser, orders: Order[], onRefresh: () => void }) {
+function ClasslessPanel({ user, orders, onRefresh, pendingCount, isSubmittingPending, onSubmitPending }: { user: LoginUser, orders: Order[], onRefresh: () => void, pendingCount: number, isSubmittingPending: boolean, onSubmitPending: () => void }) {
   const firstOrder = orders.find(o => o.class_name === '共通');
   const [student, setStudent] = useState(firstOrder?.student_count ?? 0);
   const [allergy, setAllergy] = useState(firstOrder?.allergy_count ?? 0);
@@ -102,8 +102,17 @@ function ClasslessPanel({ user, orders, onRefresh }: { user: LoginUser, orders: 
             disabled={saving || !fromDate}
             className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-bold text-base hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg ring-4 ring-orange-100 active:scale-95 transition-all disabled:opacity-50"
           >
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Send className="w-4 h-4" /> 変更を申請する</>}
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-4 h-4" /> 保存</>}
           </button>
+          {pendingCount > 0 && (
+            <button
+              onClick={onSubmitPending}
+              disabled={isSubmittingPending}
+              className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-bold text-base hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg ring-4 ring-orange-100 active:scale-95 transition-all"
+            >
+              {isSubmittingPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Send className="w-4 h-4" /> 変更を申請する</>}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -305,8 +314,9 @@ export default function CalendarPage() {
         <div className="max-w-6xl mx-auto px-3 py-2 flex items-center gap-2">
           {/* ロゴ */}
           <img src="/icon-mamamire.png" className="w-9 h-9 shrink-0 pointer-events-none" alt="" />
-          {/* 園名 */}
-          <span className="font-bold text-gray-800 text-base leading-tight truncate flex-1 min-w-0">{user.name}</span>
+          {/* 園名 + 月ナビ まとめて左に */}
+          <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
+            <span className="font-bold text-gray-800 text-base leading-tight truncate min-w-0">{user.name}</span>
           {/* ＜ 年月 ＞ まとめて */}
           <div className="flex items-center gap-0.5 shrink-0">
             <button
@@ -322,6 +332,7 @@ export default function CalendarPage() {
             >
               <ChevronRight className="w-5 h-5" />
             </button>
+          </div>
           </div>
           {/* 申請済みバッジ */}
           {isSubmitted && (
@@ -367,22 +378,6 @@ export default function CalendarPage() {
 
             {/* Calendar Section */}
             <div className="flex-1">
-              {/* 未送信の変更がある場合の申請ボタン */}
-              {pendingChanges.size > 0 && (
-                <div className="mb-3">
-                  <button
-                    onClick={submitPendingChanges}
-                    disabled={isSubmittingPending}
-                    className="w-full bg-orange-500 text-white py-4 rounded-xl font-black text-lg hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
-                  >
-                    {isSubmittingPending
-                      ? <Loader2 className="w-5 h-5 animate-spin" />
-                      : <><Send className="w-5 h-5" />{pendingChanges.size}日分の変更を申請する</>
-                    }
-                  </button>
-                  <p className="text-center text-sm text-orange-600 font-bold mt-1">※ 上のボタンを押すまで変更は送信されません</p>
-                </div>
-              )}
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 overflow-x-auto">
                 {/* Calendar Grid（月〜金の5列） */}
                 <div className="min-w-[600px]">
@@ -474,6 +469,9 @@ export default function CalendarPage() {
                   user={user}
                   classes={classes}
                   onSaved={() => fetchMasters(user.kindergarten_id, year, month)}
+                  pendingCount={pendingChanges.size}
+                  isSubmittingPending={isSubmittingPending}
+                  onSubmitPending={submitPendingChanges}
                 />
               </div>
             ) : (
@@ -482,6 +480,9 @@ export default function CalendarPage() {
                 user={user}
                 orders={orders}
                 onRefresh={() => fetchOrders(user.kindergarten_id, year, month)}
+                pendingCount={pendingChanges.size}
+                isSubmittingPending={isSubmittingPending}
+                onSubmitPending={submitPendingChanges}
               />
             )}
 

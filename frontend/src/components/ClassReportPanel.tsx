@@ -9,9 +9,12 @@ interface ClassReportPanelProps {
     user: LoginUser;
     classes: ClassMaster[];
     onSaved: () => void;
+    pendingCount: number;
+    isSubmittingPending: boolean;
+    onSubmitPending: () => void;
 }
 
-export default function ClassReportPanel({ user, classes, onSaved }: ClassReportPanelProps) {
+export default function ClassReportPanel({ user, classes, onSaved, pendingCount, isSubmittingPending, onSubmitPending }: ClassReportPanelProps) {
     const [edits, setEdits] = useState<Record<string, ClassMaster>>({});
     const [saving, setSaving] = useState(false);
     const [effectiveDate, setEffectiveDate] = useState<string>('');
@@ -167,11 +170,8 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
                         ))}
                     </div>
                 )}
-            </div>
-
-            {/* Footer: date picker + submit */}
-            <div className="p-4 border-t border-gray-100 space-y-3">
-                <div>
+                {/* 変更の適用開始日（クラス一覧の下） */}
+                <div className="mt-8">
                     <label className="text-[10px] font-black text-gray-400 uppercase block mb-1 flex items-center gap-1">
                         <Calendar className="w-3 h-3" /> 変更の適用開始日（任意）
                     </label>
@@ -185,17 +185,32 @@ export default function ClassReportPanel({ user, classes, onSaved }: ClassReport
                         {effectiveDate ? `${effectiveDate} 以降の注文に反映されます` : '空白の場合は申請後すぐに反映されます'}
                     </p>
                 </div>
+            </div>
 
+            {/* Footer: ボタンのみ */}
+            <div className="p-4 border-t border-gray-100 space-y-2">
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-bold text-base hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg ring-4 ring-orange-100 active:scale-95 transition-all"
+                    className="w-full bg-gray-700 text-white py-3.5 rounded-xl font-bold text-base hover:bg-gray-800 flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
                     {saving
                         ? <Loader2 className="w-5 h-5 animate-spin" />
-                        : <><Send className="w-4 h-4" /> 変更を申請する</>
+                        : <><Send className="w-4 h-4" /> 保存</>
                     }
                 </button>
+                {pendingCount > 0 && (
+                    <button
+                        onClick={onSubmitPending}
+                        disabled={isSubmittingPending}
+                        className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-bold text-base hover:bg-orange-600 flex items-center justify-center gap-2 shadow-lg ring-4 ring-orange-100 active:scale-95 transition-all"
+                    >
+                        {isSubmittingPending
+                            ? <Loader2 className="w-5 h-5 animate-spin" />
+                            : <><Send className="w-4 h-4" /> 変更を申請する</>
+                        }
+                    </button>
+                )}
             </div>
         </div>
     );
