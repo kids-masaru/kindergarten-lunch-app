@@ -14,6 +14,7 @@ interface OrderData {
     allergy_count: number;
     teacher_count: number;
     memo?: string;
+    submitted_by?: string;
 }
 
 interface CalendarCellClasslessProps {
@@ -44,6 +45,9 @@ export default function CalendarCellClassless({
     const [teacherCount, setTeacherCount] = useState(existingOrder?.teacher_count || 0);
     const [memo, setMemo] = useState(existingOrder?.memo || '');
     const [isSaving, setIsSaving] = useState(false);
+    const [submittedBy, setSubmittedBy] = useState(() =>
+        typeof window !== 'undefined' ? localStorage.getItem('submitted_by_name') || '' : ''
+    );
 
     useEffect(() => {
         if (existingOrder) {
@@ -89,6 +93,7 @@ export default function CalendarCellClassless({
     };
 
     const handleSubmit = async () => {
+        localStorage.setItem('submitted_by_name', submittedBy);
         setIsSaving(true);
         try {
             await onSave({
@@ -101,6 +106,7 @@ export default function CalendarCellClassless({
                 allergy_count: allergyCount,
                 teacher_count: teacherCount,
                 memo,
+                submitted_by: submittedBy,
             });
             setIsOpen(false);
         } catch (e) {
@@ -220,6 +226,13 @@ export default function CalendarCellClassless({
                                 placeholder="備考"
                                 value={memo}
                                 onChange={e => setMemo(e.target.value)}
+                                className="w-full text-xs border border-gray-200 rounded-lg p-2 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-orange-100"
+                            />
+                            <input
+                                type="text"
+                                placeholder="担当者名（任意）"
+                                value={submittedBy}
+                                onChange={e => setSubmittedBy(e.target.value)}
                                 className="w-full text-xs border border-gray-200 rounded-lg p-2 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-orange-100"
                             />
                         </div>

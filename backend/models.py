@@ -92,6 +92,7 @@ class OrderData(BaseModel):
     teacher_count: int = 0
     memo: str = ""
     updated_at: str = ""
+    submitted_by: str = ""
 
     @field_validator('student_count', 'allergy_count', 'teacher_count', mode='before')
     def parse_int(cls, v):

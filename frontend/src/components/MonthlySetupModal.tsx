@@ -21,6 +21,9 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
     const [days, setDays] = useState<{ day: number, dateStr: string, mealType: string, studentCount: number, allergyCount: number, teacherCount: number }[]>([]);
     const [editableClasses, setEditableClasses] = useState<ClassMaster[]>([]);
     const [memo, setMemo] = useState('');
+    const [submittedBy, setSubmittedBy] = useState(() =>
+        typeof window !== 'undefined' ? localStorage.getItem('submitted_by_name') || '' : ''
+    );
     const [classlessDefaults, setClasslessDefaults] = useState({ student: 0, allergy: 0, teacher: 0 });
 
     useEffect(() => {
@@ -106,6 +109,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
     };
 
     const handleSubmit = async () => {
+        localStorage.setItem('submitted_by_name', submittedBy);
         setSubmitting(true);
         try {
             await updateKindergartenClasses(user.kindergarten_id, editableClasses, true);
@@ -130,7 +134,8 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                         student_count: isClassless ? dayInfo.studentCount : cls.default_student_count,
                         allergy_count: isClassless ? dayInfo.allergyCount : (cls.default_allergy_count || 0),
                         teacher_count: isClassless ? dayInfo.teacherCount : cls.default_teacher_count,
-                        memo: memo
+                        memo: memo,
+                        submitted_by: submittedBy,
                     });
                 });
             });
@@ -425,6 +430,16 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
                                     onChange={(e) => setMemo(e.target.value)}
                                     placeholder="急な欠席予定や、特定の日の人数変更など、何かあればご記入ください。"
                                     className="w-full h-40 p-5 bg-white rounded-2xl border border-gray-200 font-bold text-gray-700 focus:ring-4 focus:ring-orange-100 outline-none transition-all placeholder:text-gray-300"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-gray-500 ml-1">担当者名（任意）</label>
+                                <input
+                                    type="text"
+                                    value={submittedBy}
+                                    onChange={(e) => setSubmittedBy(e.target.value)}
+                                    placeholder="申請を行う担当者のお名前"
+                                    className="w-full p-4 bg-white rounded-2xl border border-gray-200 font-bold text-gray-700 focus:ring-4 focus:ring-orange-100 outline-none transition-all placeholder:text-gray-300"
                                 />
                             </div>
                         </div>

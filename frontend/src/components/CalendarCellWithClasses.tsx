@@ -15,6 +15,7 @@ interface OrderData {
     allergy_count: number;
     teacher_count: number;
     memo?: string;
+    submitted_by?: string;
     prev_student_count?: number;
     prev_allergy_count?: number;
     prev_teacher_count?: number;
@@ -55,6 +56,9 @@ export default function CalendarCellWithClasses({
     const [prevOrders, setPrevOrders] = useState<Record<string, { student: number; allergy: number; teacher: number } | null>>({});
     const [bulkMealType, setBulkMealType] = useState('通常');
     const [isSaving, setIsSaving] = useState(false);
+    const [submittedBy, setSubmittedBy] = useState(() =>
+        typeof window !== 'undefined' ? localStorage.getItem('submitted_by_name') || '' : ''
+    );
 
     const displayOptions = mealOptions.length > 0 ? mealOptions : ['通常'];
     const isToday = new Date().getDate() === day && new Date().getMonth() + 1 === month && new Date().getFullYear() === year;
@@ -140,6 +144,7 @@ export default function CalendarCellWithClasses({
     };
 
     const handleSubmit = async () => {
+        localStorage.setItem('submitted_by_name', submittedBy);
         setIsSaving(true);
         try {
             const orders: OrderData[] = classes.map(cls => {
@@ -155,6 +160,7 @@ export default function CalendarCellWithClasses({
                     allergy_count: data?.allergy || 0,
                     teacher_count: data?.teacher || 0,
                     memo: data?.memo || '',
+                    submitted_by: submittedBy,
                     ...(prev ? {
                         prev_student_count: prev.student,
                         prev_allergy_count: prev.allergy,
@@ -292,7 +298,14 @@ export default function CalendarCellWithClasses({
                         </div>
 
                         {/* Save button */}
-                        <div className="px-3 pb-3 pt-2 flex-shrink-0 border-t border-gray-50">
+                        <div className="px-3 pb-3 pt-2 flex-shrink-0 border-t border-gray-50 space-y-2">
+                            <input
+                                type="text"
+                                placeholder="担当者名（任意）"
+                                value={submittedBy}
+                                onChange={e => setSubmittedBy(e.target.value)}
+                                className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 focus:bg-white outline-none focus:ring-2 focus:ring-orange-100"
+                            />
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSaving}

@@ -351,6 +351,8 @@ def create_order(order: OrderItem):
             ])
             if order_snapshot.get("memo"):
                 details += f"\nメモ: {order_snapshot['memo']}"
+            if order_snapshot.get("submitted_by"):
+                details += f"\n担当者: {order_snapshot['submitted_by']}"
 
             contact_email = kg.contact_email if kg else ""
             print(f"[NOTIFY] class={order_snapshot['class_name']} contact_email={contact_email!r}")
