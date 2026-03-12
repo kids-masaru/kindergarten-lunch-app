@@ -52,9 +52,9 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                 <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl">
                     <ArrowLeft className="w-5 h-5 text-gray-500" />
                 </button>
-                <span className="font-black text-gray-700 text-sm">{year}年{month}月 注文カレンダー</span>
+                <span className="font-black text-gray-700 text-base">{year}年{month}月 注文カレンダー</span>
                 <div className="flex-1" />
-                <button onClick={() => window.print()} className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-orange-600">
+                <button onClick={() => window.print()} className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-xl text-base font-bold hover:bg-orange-600">
                     <Printer className="w-4 h-4" /> 全園一括印刷
                 </button>
             </div>
@@ -65,11 +65,11 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                         {/* Header */}
                         <div className="flex items-center justify-between mb-3">
                             <div>
-                                <span className="font-black text-gray-900 text-base">{k.name}</span>
-                                <span className="ml-3 text-sm text-gray-500">{year}年{month}月</span>
+                                <span className="font-black text-gray-900 text-lg">{k.name}</span>
+                                <span className="ml-3 text-base text-gray-500">{year}年{month}月</span>
                             </div>
                             <button onClick={() => printOnly(k.kindergarten_id)}
-                                className="no-print flex items-center gap-1.5 text-xs font-bold text-orange-500 border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-50">
+                                className="no-print flex items-center gap-1.5 text-sm font-bold text-orange-500 border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-50">
                                 <Printer className="w-3.5 h-3.5" /> この園のみ印刷
                             </button>
                         </div>
@@ -80,7 +80,7 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                             <div className="flex-1 border border-gray-200 rounded-lg overflow-hidden">
                                 <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
                                     {DOW.map((d, i) => (
-                                        <div key={d} className={`text-center text-xs font-black py-1.5 border-r border-gray-100 last:border-0
+                                        <div key={d} className={`text-center text-sm font-black py-1.5 border-r border-gray-100 last:border-0
                                             ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-600'}`}>
                                             {d}
                                         </div>
@@ -100,9 +100,9 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                                                     ${isWeekend ? 'bg-red-50/30' : ''}
                                                     ${!isServiceDay ? 'bg-gray-50/50' : ''}`}
                                                     style={{ minHeight: '52px' }}>
-                                                    <div className={`text-xs font-bold ${dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700'}`}>{day}</div>
+                                                    <div className={`text-sm font-bold ${dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700'}`}>{day}</div>
                                                     {specialType && (
-                                                        <div className="mt-0.5 text-[9px] font-black text-orange-600 bg-orange-50 border border-orange-100 rounded px-1 py-0.5 leading-tight">
+                                                        <div className="mt-0.5 text-sm font-black text-orange-600 bg-orange-50 border border-orange-100 rounded px-1 py-0.5 leading-tight">
                                                             {specialType}
                                                         </div>
                                                     )}
@@ -117,31 +117,31 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                             <div className="w-96 shrink-0">
                                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                                     <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
-                                        <span className="text-xs font-black text-gray-600">クラス別 基本人数</span>
+                                        <span className="text-sm font-black text-gray-600">クラス別 基本人数</span>
                                     </div>
                                     {k.classes && k.classes.length > 0 ? (
                                         <table className="w-full">
                                             <thead>
                                                 <tr className="border-b border-gray-100 bg-gray-50/50">
-                                                    <th className="text-left px-3 py-1.5 text-[10px] font-black text-gray-500">クラス</th>
-                                                    <th className="text-center px-2 py-1.5 text-[10px] font-black text-gray-500">園児</th>
-                                                    <th className="text-center px-2 py-1.5 text-[10px] font-black text-red-400">アレ</th>
-                                                    <th className="text-center px-2 py-1.5 text-[10px] font-black text-gray-500">先生</th>
+                                                    <th className="text-left px-3 py-1.5 text-sm font-black text-gray-500">クラス</th>
+                                                    <th className="text-center px-2 py-1.5 text-sm font-black text-gray-500">園児</th>
+                                                    <th className="text-center px-2 py-1.5 text-sm font-black text-red-400">アレ</th>
+                                                    <th className="text-center px-2 py-1.5 text-sm font-black text-gray-500">先生</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {k.classes.map((cls: any, idx: number) => (
                                                     <tr key={idx} className="border-b border-gray-50 last:border-0">
-                                                        <td className="px-3 py-2 font-bold text-gray-800 text-xs">{cls.class_name}</td>
-                                                        <td className="px-2 py-2 text-center font-bold text-gray-700 text-sm">{cls.default_student_count}</td>
-                                                        <td className="px-2 py-2 text-center font-bold text-red-500 text-sm">{cls.default_allergy_count ?? 0}</td>
-                                                        <td className="px-2 py-2 text-center font-bold text-gray-700 text-sm">{cls.default_teacher_count}</td>
+                                                        <td className="px-3 py-2 font-bold text-gray-800 text-sm">{cls.class_name}</td>
+                                                        <td className="px-2 py-2 text-center font-bold text-gray-700 text-base">{cls.default_student_count}</td>
+                                                        <td className="px-2 py-2 text-center font-bold text-red-500 text-base">{cls.default_allergy_count ?? 0}</td>
+                                                        <td className="px-2 py-2 text-center font-bold text-gray-700 text-base">{cls.default_teacher_count}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <div className="px-3 py-4 text-xs text-gray-400 text-center">クラスなし</div>
+                                        <div className="px-3 py-4 text-sm text-gray-400 text-center">クラスなし</div>
                                     )}
                                 </div>
                             </div>
@@ -271,8 +271,8 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                             <img src={k.icon_url || "/icon-mamamire.png"} className="w-6 h-6 object-contain" alt="Icon" />
                         </div>
                         <div>
-                            <h2 className="text-base font-black text-gray-800">{k.name} <span className="text-gray-400 font-medium text-xs">#{k.kindergarten_id}</span></h2>
-                            <p className="text-[9px] font-bold text-orange-400 uppercase tracking-widest">Master Data Editor</p>
+                            <h2 className="text-lg font-black text-gray-800">{k.name} <span className="text-gray-400 font-medium text-sm">#{k.kindergarten_id}</span></h2>
+                            <p className="text-sm font-bold text-orange-400 uppercase tracking-widest">Master Data Editor</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-1.5 hover:bg-white rounded-full transition-colors">
@@ -285,39 +285,39 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                     {/* Section: Basic Settings */}
                     <div className="grid md:grid-cols-2 gap-5 text-left">
                         <div className="space-y-3">
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">基本情報 <div className="h-px flex-1 bg-gray-100"></div></h3>
+                            <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">基本情報 <div className="h-px flex-1 bg-gray-100"></div></h3>
                             <div className="space-y-2">
                                 <div>
-                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block mb-0.5">表示名称</label>
+                                    <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">表示名称</label>
                                     <input
                                         type="text"
                                         value={formData.name || ''}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm focus:ring-2 focus:ring-orange-100 outline-none"
+                                        className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-base focus:ring-2 focus:ring-orange-100 outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block mb-0.5">連絡先メール</label>
+                                    <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">連絡先メール</label>
                                     <input type="email" value={formData.contact_email || ''} onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm focus:ring-2 focus:ring-orange-100 outline-none" placeholder="example@mail.com" />
+                                        className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-base focus:ring-2 focus:ring-orange-100 outline-none" placeholder="example@mail.com" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block mb-0.5">ログインID</label>
+                                        <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">ログインID</label>
                                         <input type="text" value={formData.login_id || ''} onChange={e => setFormData({ ...formData, login_id: e.target.value })}
-                                            className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm outline-none" />
+                                            className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-base outline-none" />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block mb-0.5">パスワード</label>
+                                        <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">パスワード</label>
                                         <input type="text" value={formData.password || ''} onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                            className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm outline-none" />
+                                            className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-base outline-none" />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-3">
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">稼働日・設定 <div className="h-px flex-1 bg-gray-100"></div></h3>
+                            <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">稼働日・設定 <div className="h-px flex-1 bg-gray-100"></div></h3>
                             <div className="flex gap-1.5 flex-wrap">
                                 {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => {
                                     const field = `service_${day}`;
@@ -325,7 +325,7 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                     const labels: any = { mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土', sun: '日' };
                                     return (
                                         <button key={day} onClick={() => toggleDay(field)}
-                                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${active ? 'bg-orange-500 text-white shadow-md shadow-orange-100' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}>
+                                            className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${active ? 'bg-orange-500 text-white shadow-md shadow-orange-100' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}>
                                             {labels[day]}
                                         </button>
                                     );
@@ -336,14 +336,14 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                             <div className="flex items-center gap-3 flex-wrap py-1">
                                 {/* 赤 / キャラ */}
                                 <select value={formData.plan_type || ''} onChange={e => setFormData({ ...formData, plan_type: e.target.value })}
-                                    className="px-3 py-1.5 rounded-xl text-xs font-bold border border-gray-200 bg-white text-gray-600 outline-none">
+                                    className="px-3 py-1.5 rounded-xl text-sm font-bold border border-gray-200 bg-white text-gray-600 outline-none">
                                     <option value="">タイプ未設定</option>
                                     <option value="赤">赤</option>
                                     <option value="キャラ">キャラ</option>
                                 </select>
                                 {/* 飯あり / 飯なし */}
                                 <select value={formData.has_no_rice ? '飯なし' : '飯あり'} onChange={e => setFormData({ ...formData, has_no_rice: e.target.value === '飯なし' })}
-                                    className="px-3 py-1.5 rounded-xl text-xs font-bold border border-gray-200 bg-white text-gray-600 outline-none">
+                                    className="px-3 py-1.5 rounded-xl text-sm font-bold border border-gray-200 bg-white text-gray-600 outline-none">
                                     <option value="飯あり">飯あり</option>
                                     <option value="飯なし">飯なし</option>
                                 </select>
@@ -351,17 +351,17 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                     <input type="checkbox" checked={formData.has_soup || false} onChange={e => setFormData({ ...formData, has_soup: e.target.checked })}
                                         className="w-4 h-4 rounded accent-orange-500" />
-                                    <span className="text-xs font-bold text-gray-600">スープ有</span>
+                                    <span className="text-sm font-bold text-gray-600">スープ有</span>
                                 </label>
-                                <p className="text-[9px] text-gray-400 w-full">※ 管理用設定です（先生側には表示されません）</p>
+                                <p className="text-sm text-gray-400 w-full">※ 管理用設定です（先生側には表示されません）</p>
                             </div>
 
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 pt-1">個別献立 <div className="h-px flex-1 bg-gray-100"></div></h3>
+                            <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 pt-1">個別献立 <div className="h-px flex-1 bg-gray-100"></div></h3>
                             <div className="space-y-2">
                                 {/* 登録済みタグ（上に表示） */}
                                 <div className="flex flex-wrap gap-1.5 min-h-[24px]">
                                     {(formData.services || []).filter((s: string) => s !== 'スープ付き').map((s: string) => (
-                                        <div key={s} className="bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full text-xs font-bold border border-orange-100 flex items-center gap-1">
+                                        <div key={s} className="bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full text-sm font-bold border border-orange-100 flex items-center gap-1">
                                             {s}
                                             <button onClick={() => removeService(s)} className="hover:bg-orange-200 rounded-full p-0.5"><X className="w-2.5 h-2.5" /></button>
                                         </div>
@@ -371,7 +371,7 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                 <div className="flex gap-2">
                                     <input type="text" placeholder="例: お誕生日会" value={newService} onChange={e => setNewService(e.target.value)}
                                         onKeyPress={e => e.key === 'Enter' && addService()}
-                                        className="flex-1 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-sm font-bold outline-none" />
+                                        className="flex-1 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-base font-bold outline-none" />
                                     <button onClick={addService} className="p-2 bg-orange-100 text-orange-600 rounded-xl hover:bg-orange-200 transition-colors">
                                         <Plus className="w-4 h-4" />
                                     </button>
@@ -380,10 +380,10 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
 
                             {formData.services?.includes('カレー') && (
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-bold text-gray-500 uppercase ml-1 block">カレー識別キーワード（この園のメニュー上の文字列）</label>
+                                    <label className="text-sm font-bold text-gray-500 uppercase ml-1 block">カレー識別キーワード（この園のメニュー上の文字列）</label>
                                     <input type="text" placeholder="例: 壺漬け" value={formData.curry_trigger || ''}
                                         onChange={e => setFormData({ ...formData, curry_trigger: e.target.value })}
-                                        className="w-full bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-sm font-bold outline-none focus:ring-2 ring-orange-200" />
+                                        className="w-full bg-orange-50 border border-orange-100 rounded-xl px-3 py-2 text-base font-bold outline-none focus:ring-2 ring-orange-200" />
                                 </div>
                             )}
                         </div>
@@ -392,10 +392,10 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                     {/* Section: Classes */}
                     <div className="space-y-3 text-left">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 flex-1">
+                            <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 flex-1">
                                 クラス・人数 <div className="h-px flex-1 bg-gray-100 ml-2"></div>
                             </h3>
-                            <button onClick={addClass} className="ml-4 flex items-center gap-1 text-[10px] font-black text-orange-600 hover:text-orange-700 uppercase tracking-widest">
+                            <button onClick={addClass} className="ml-4 flex items-center gap-1 text-sm font-black text-orange-600 hover:text-orange-700 uppercase tracking-widest">
                                 <Plus className="w-3.5 h-3.5" /> クラス追加
                             </button>
                         </div>
@@ -408,13 +408,13 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                             <>
                             {classes.length === 0 && (
                                 <div className="space-y-3">
-                                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs text-blue-700 space-y-1">
+                                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm text-blue-700 space-y-1">
                                         <p className="font-black">クラスなしモード（現在の設定）</p>
                                         <p className="font-medium text-blue-500">クラスを追加するとクラス別モードになります。クラスなしの場合、以下で基本人数を設定してください。</p>
                                     </div>
                                     {/* 基本人数設定パネル */}
                                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-3">
-                                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                             基本人数設定 <div className="h-px flex-1 bg-gray-200"></div>
                                         </h4>
                                         <div className="grid grid-cols-3 gap-3">
@@ -424,37 +424,37 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                                 { label: '先生', value: classlessTeacher, setter: setClasslessTeacher },
                                             ].map(({ label, value, setter }) => (
                                                 <div key={label}>
-                                                    <label className="text-[9px] font-bold text-gray-500 block mb-1">{label}</label>
+                                                    <label className="text-sm font-bold text-gray-500 block mb-1">{label}</label>
                                                     <input
                                                         type="number" min={0} value={value}
                                                         onChange={e => setter(Math.max(0, parseInt(e.target.value) || 0))}
-                                                        className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-orange-100"
+                                                        className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-base font-bold text-center outline-none focus:ring-2 focus:ring-orange-100"
                                                     />
                                                 </div>
                                             ))}
                                         </div>
                                         <div className="flex items-end gap-3">
                                             <div className="flex-1">
-                                                <label className="text-[9px] font-bold text-gray-500 block mb-1">適用開始日（この日以降の注文を一括更新）</label>
+                                                <label className="text-sm font-bold text-gray-500 block mb-1">適用開始日（この日以降の注文を一括更新）</label>
                                                 <input
                                                     type="date" value={classlessFromDate}
                                                     onChange={e => setClasslessFromDate(e.target.value)}
-                                                    className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-sm font-bold outline-none focus:ring-2 focus:ring-orange-100"
+                                                    className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
                                                 />
                                             </div>
                                             <button
                                                 onClick={handleSaveDefaults}
                                                 disabled={isSavingDefaults}
-                                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-black text-white transition-all ${isSavingDefaults ? 'bg-gray-300 cursor-not-allowed' : defaultsSaveSuccess ? 'bg-green-500' : 'bg-orange-500 hover:bg-orange-600'}`}
+                                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-black text-white transition-all ${isSavingDefaults ? 'bg-gray-300 cursor-not-allowed' : defaultsSaveSuccess ? 'bg-green-500' : 'bg-orange-500 hover:bg-orange-600'}`}
                                             >
                                                 {isSavingDefaults ? <Loader2 className="w-4 h-4 animate-spin" /> : defaultsSaveSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                                                 {defaultsSaveSuccess ? '保存済み' : '適用'}
                                             </button>
                                         </div>
                                         {defaultsSaveSuccess && (
-                                            <p className="text-xs font-bold text-green-600">{classlessFromDate} 以降の注文を更新しました</p>
+                                            <p className="text-sm font-bold text-green-600">{classlessFromDate} 以降の注文を更新しました</p>
                                         )}
-                                        <p className="text-[9px] text-gray-400">※ 適用開始日以降にすでに入っている注文の人数を上書きします。未来の日付から適用することをお勧めします。</p>
+                                        <p className="text-sm text-gray-400">※ 適用開始日以降にすでに入っている注文の人数を上書きします。未来の日付から適用することをお勧めします。</p>
                                     </div>
                                 </div>
                             )}
@@ -466,28 +466,28 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                             <Trash2 className="w-3 h-3" />
                                         </button>
                                         <input value={cls.class_name} onChange={e => updateClass(idx, 'class_name', e.target.value)}
-                                            className="w-full bg-white px-2 py-1.5 rounded-lg text-xs font-bold border border-transparent focus:border-orange-200 outline-none"
+                                            className="w-full bg-white px-2 py-1.5 rounded-lg text-sm font-bold border border-transparent focus:border-orange-200 outline-none"
                                             placeholder="クラス名" />
                                         <div className="grid grid-cols-2 gap-1">
                                             <div>
-                                                <label className="text-[9px] font-bold text-gray-400 block">学年</label>
+                                                <label className="text-sm font-bold text-gray-400 block">学年</label>
                                                 <input value={cls.grade} onChange={e => updateClass(idx, 'grade', e.target.value)}
-                                                    className="w-full bg-white px-2 py-1 rounded-lg text-xs font-bold border border-transparent focus:border-orange-200 outline-none" />
+                                                    className="w-full bg-white px-2 py-1 rounded-lg text-sm font-bold border border-transparent focus:border-orange-200 outline-none" />
                                             </div>
                                             <div>
-                                                <label className="text-[9px] font-bold text-gray-400 block">園児数</label>
+                                                <label className="text-sm font-bold text-gray-400 block">園児数</label>
                                                 <input type="number" value={cls.default_student_count} onChange={e => updateClass(idx, 'default_student_count', parseInt(e.target.value))}
-                                                    className="w-full bg-white px-2 py-1 rounded-lg text-xs font-bold border border-transparent focus:border-orange-200 outline-none" />
+                                                    className="w-full bg-white px-2 py-1 rounded-lg text-sm font-bold border border-transparent focus:border-orange-200 outline-none" />
                                             </div>
                                             <div>
-                                                <label className="text-[9px] font-bold text-gray-400 block">アレルギー</label>
+                                                <label className="text-sm font-bold text-gray-400 block">アレルギー</label>
                                                 <input type="number" value={cls.default_allergy_count} onChange={e => updateClass(idx, 'default_allergy_count', parseInt(e.target.value))}
-                                                    className="w-full bg-white px-2 py-1 rounded-lg text-xs font-bold border border-transparent focus:border-orange-200 outline-none" />
+                                                    className="w-full bg-white px-2 py-1 rounded-lg text-sm font-bold border border-transparent focus:border-orange-200 outline-none" />
                                             </div>
                                             <div>
-                                                <label className="text-[9px] font-bold text-gray-400 block">先生</label>
+                                                <label className="text-sm font-bold text-gray-400 block">先生</label>
                                                 <input type="number" value={cls.default_teacher_count} onChange={e => updateClass(idx, 'default_teacher_count', parseInt(e.target.value))}
-                                                    className="w-full bg-white px-2 py-1 rounded-lg text-xs font-bold border border-transparent focus:border-orange-200 outline-none" />
+                                                    className="w-full bg-white px-2 py-1 rounded-lg text-sm font-bold border border-transparent focus:border-orange-200 outline-none" />
                                             </div>
                                         </div>
                                     </div>
@@ -500,16 +500,16 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
 
                 {/* Footer */}
                 <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/20 flex items-center justify-between">
-                    <p className="text-[10px] text-gray-400">※ Googleスプレッドシートに同期されます</p>
+                    <p className="text-sm text-gray-400">※ Googleスプレッドシートに同期されます</p>
                     <div className="flex gap-3 items-center">
                         {saveSuccess && (
-                            <span className="text-xs font-bold text-green-600 flex items-center gap-1">
+                            <span className="text-sm font-bold text-green-600 flex items-center gap-1">
                                 <Check className="w-3.5 h-3.5" /> 保存しました
                             </span>
                         )}
-                        <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors">閉じる</button>
+                        <button onClick={onClose} className="px-4 py-2 rounded-xl text-base font-bold text-gray-400 hover:text-gray-600 transition-colors">閉じる</button>
                         <button onClick={handleSave} disabled={isSaving}
-                            className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-black text-white shadow-md transition-all active:scale-[0.98]
+                            className={`flex items-center gap-2 px-6 py-2 rounded-xl text-base font-black text-white shadow-md transition-all active:scale-[0.98]
                                 ${isSaving ? 'bg-gray-300 cursor-not-allowed shadow-none' : saveSuccess ? 'bg-green-500 hover:bg-green-600' : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:shadow-orange-200'}`}>
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : saveSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                             {saveSuccess ? '保存済み' : '変更を保存'}
@@ -555,13 +555,13 @@ function SystemSettingsModal({ info, onClose, onSave }: { info: any, onClose: ()
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden flex flex-col scale-in">
                 <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-orange-50/30">
-                    <h2 className="text-xl font-black text-gray-800">システム設定</h2>
+                    <h2 className="text-2xl font-black text-gray-800">システム設定</h2>
                     <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors"><X className="w-6 h-6 text-gray-400" /></button>
                 </div>
                 <div className="p-8 space-y-6 overflow-y-auto max-h-[60vh] custom-scrollbar">
                     {/* Admin Emails */}
                     <div>
-                        <label className="text-xs font-black text-gray-400 uppercase block mb-2">管理者通知先メールアドレス</label>
+                        <label className="text-sm font-black text-gray-400 uppercase block mb-2">管理者通知先メールアドレス</label>
                         <div className="space-y-2">
                             {emails.split(',').map((email: string, idx: number) => (
                                 <div key={idx} className="flex gap-2">
@@ -589,7 +589,7 @@ function SystemSettingsModal({ info, onClose, onSave }: { info: any, onClose: ()
                             ))}
                             <button
                                 onClick={() => setEmails(emails ? emails + ', ' : ' ')}
-                                className="flex items-center gap-2 text-xs font-bold text-orange-600 hover:text-orange-700 px-2 py-1"
+                                className="flex items-center gap-2 text-sm font-bold text-orange-600 hover:text-orange-700 px-2 py-1"
                             >
                                 <Plus className="w-4 h-4" /> メールアドレスを追加
                             </button>
@@ -598,37 +598,37 @@ function SystemSettingsModal({ info, onClose, onSave }: { info: any, onClose: ()
 
                     {/* Deadline Settings */}
                     <div className="space-y-4 pt-4 border-t border-gray-100">
-                        <h4 className="text-xs font-black text-gray-400 uppercase">期限・リマインダー設定</h4>
+                        <h4 className="text-sm font-black text-gray-400 uppercase">期限・リマインダー設定</h4>
                         <div>
-                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">注文締切日</label>
+                            <label className="text-sm font-bold text-gray-500 uppercase block mb-1">注文締切日</label>
                             <div className="flex items-center gap-3">
-                                <span className="text-sm font-bold text-gray-600">提供日の</span>
+                                <span className="text-base font-bold text-gray-600">提供日の</span>
                                 <input type="number" className="w-16 p-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-center outline-none" defaultValue="3" disabled />
-                                <span className="text-sm font-bold text-gray-600">日前 15:00 まで</span>
+                                <span className="text-base font-bold text-gray-600">日前 15:00 まで</span>
                             </div>
-                            <p className="text-[10px] text-gray-400 mt-1">※ 現在はシステム固定値です</p>
+                            <p className="text-sm text-gray-400 mt-1">※ 現在はシステム固定値です</p>
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">リマインダー通知 (締切の何日前)</label>
+                            <label className="text-sm font-bold text-gray-500 uppercase block mb-1">リマインダー通知 (締切の何日前)</label>
                             <input type="text" value={days} onChange={e => setDays(e.target.value)}
                                 className="w-full p-3 bg-gray-50 rounded-xl border border-gray-100 font-bold focus:ring-2 ring-orange-100 outline-none" placeholder="1, 0" />
-                            <p className="text-[10px] text-gray-400 mt-1">※ 「1, 0」の場合、締切の1日前と当日に通知が飛びます</p>
+                            <p className="text-sm text-gray-400 mt-1">※ 「1, 0」の場合、締切の1日前と当日に通知が飛びます</p>
                         </div>
                     </div>
 
                     {/* Email Templates */}
                     <div className="space-y-3 pt-4 border-t border-gray-100">
-                        <h4 className="text-xs font-black text-gray-400 uppercase">メール通知テンプレート</h4>
-                        <p className="text-[10px] text-gray-400 leading-relaxed">
+                        <h4 className="text-sm font-black text-gray-400 uppercase">メール通知テンプレート</h4>
+                        <p className="text-sm text-gray-400 leading-relaxed">
                             使用できる変数: <code className="bg-gray-100 px-1 rounded">{'{kindergarten_name}'}</code> <code className="bg-gray-100 px-1 rounded">{'{class_name}'}</code> <code className="bg-gray-100 px-1 rounded">{'{date}'}</code> <code className="bg-gray-100 px-1 rounded">{'{details}'}</code> <code className="bg-gray-100 px-1 rounded">{'{action}'}</code> <code className="bg-gray-100 px-1 rounded">{'{timestamp}'}</code> <code className="bg-gray-100 px-1 rounded">{'{contact_name}'}</code>
                         </p>
                         <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
                             <button onClick={() => setTemplateTab('admin')}
-                                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${templateTab === 'admin' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500'}`}>
+                                className={`flex-1 py-1.5 rounded-lg text-sm font-bold transition-all ${templateTab === 'admin' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500'}`}>
                                 管理者向け
                             </button>
                             <button onClick={() => setTemplateTab('customer')}
-                                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${templateTab === 'customer' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500'}`}>
+                                className={`flex-1 py-1.5 rounded-lg text-sm font-bold transition-all ${templateTab === 'customer' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500'}`}>
                                 園担当者向け
                             </button>
                         </div>
@@ -636,28 +636,28 @@ function SystemSettingsModal({ info, onClose, onSave }: { info: any, onClose: ()
                         {templateTab === 'admin' && (
                             <div className="space-y-2">
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">件名</label>
+                                    <label className="text-sm font-bold text-gray-500 uppercase block mb-1">件名</label>
                                     <input type="text" value={adminSubject} onChange={e => setAdminSubject(e.target.value)}
-                                        className="w-full p-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-xs focus:ring-2 ring-orange-100 outline-none" />
+                                        className="w-full p-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm focus:ring-2 ring-orange-100 outline-none" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">本文</label>
+                                    <label className="text-sm font-bold text-gray-500 uppercase block mb-1">本文</label>
                                     <textarea rows={6} value={adminBody} onChange={e => setAdminBody(e.target.value)}
-                                        className="w-full p-2 bg-gray-50 rounded-xl border border-gray-100 font-mono text-xs focus:ring-2 ring-orange-100 outline-none resize-none" />
+                                        className="w-full p-2 bg-gray-50 rounded-xl border border-gray-100 font-mono text-sm focus:ring-2 ring-orange-100 outline-none resize-none" />
                                 </div>
                             </div>
                         )}
                         {templateTab === 'customer' && (
                             <div className="space-y-2">
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">件名</label>
+                                    <label className="text-sm font-bold text-gray-500 uppercase block mb-1">件名</label>
                                     <input type="text" value={customerSubject} onChange={e => setCustomerSubject(e.target.value)}
-                                        className="w-full p-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-xs focus:ring-2 ring-orange-100 outline-none" />
+                                        className="w-full p-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-sm focus:ring-2 ring-orange-100 outline-none" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">本文</label>
+                                    <label className="text-sm font-bold text-gray-500 uppercase block mb-1">本文</label>
                                     <textarea rows={6} value={customerBody} onChange={e => setCustomerBody(e.target.value)}
-                                        className="w-full p-2 bg-gray-50 rounded-xl border border-gray-100 font-mono text-xs focus:ring-2 ring-orange-100 outline-none resize-none" />
+                                        className="w-full p-2 bg-gray-50 rounded-xl border border-gray-100 font-mono text-sm focus:ring-2 ring-orange-100 outline-none resize-none" />
                                 </div>
                             </div>
                         )}
@@ -833,17 +833,17 @@ export default function AdminConsole() {
                         )}
                         <img src="/icon-mamamire.png" className="w-7 h-7 object-contain" alt="MamaMiRe" />
                         <div>
-                            <h1 className="text-base font-black text-gray-800 leading-tight">
+                            <h1 className="text-lg font-black text-gray-800 leading-tight">
                                 <span className="text-orange-600">ママミレ</span> 管理ポータル
                             </h1>
-                            {activeSection === 'menu' && <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">献立作成</p>}
-                            {activeSection === 'kindergarten' && <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">幼稚園マスター</p>}
-                            {activeSection === 'orders' && <p className="text-[10px] text-orange-400 font-bold uppercase tracking-wider">注文確認・印刷</p>}
+                            {activeSection === 'menu' && <p className="text-sm text-orange-400 font-bold uppercase tracking-wider">献立作成</p>}
+                            {activeSection === 'kindergarten' && <p className="text-sm text-orange-400 font-bold uppercase tracking-wider">幼稚園マスター</p>}
+                            {activeSection === 'orders' && <p className="text-sm text-orange-400 font-bold uppercase tracking-wider">注文確認・印刷</p>}
                         </div>
                     </div>
                     <button
                         onClick={() => setShowSettings(true)}
-                        className="flex items-center gap-2 bg-white text-gray-500 px-4 py-2 rounded-xl font-bold text-xs hover:bg-orange-50 transition-all border border-orange-100 shadow-sm"
+                        className="flex items-center gap-2 bg-white text-gray-500 px-4 py-2 rounded-xl font-bold text-sm hover:bg-orange-50 transition-all border border-orange-100 shadow-sm"
                     >
                         <SettingsIcon className="w-3.5 h-3.5" /> システム設定
                     </button>
@@ -858,10 +858,10 @@ export default function AdminConsole() {
                                 <Upload className="w-6 h-6 text-gray-400" />
                             </div>
                             <div className="text-center">
-                                <p className="font-black text-gray-500 text-sm">献立作成</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">マスターアップロード</p>
+                                <p className="font-black text-gray-500 text-base">献立作成</p>
+                                <p className="text-sm text-gray-400 mt-0.5">マスターアップロード</p>
                             </div>
-                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
+                            <span className="text-sm font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
                         </div>
 
                         {/* 注文確認・印刷 */}
@@ -873,8 +873,8 @@ export default function AdminConsole() {
                                 <Printer className="w-6 h-6 text-green-500" />
                             </div>
                             <div className="text-center">
-                                <p className="font-black text-gray-800 text-sm">注文確認・印刷</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">月別注文カレンダー</p>
+                                <p className="font-black text-gray-800 text-base">注文確認・印刷</p>
+                                <p className="text-sm text-gray-400 mt-0.5">月別注文カレンダー</p>
                             </div>
                             <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-500 transition-colors" />
                         </button>
@@ -888,8 +888,8 @@ export default function AdminConsole() {
                                 <Building2 className="w-6 h-6 text-blue-500" />
                             </div>
                             <div className="text-center">
-                                <p className="font-black text-gray-800 text-sm">幼稚園マスター</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">施設・クラス管理</p>
+                                <p className="font-black text-gray-800 text-base">幼稚園マスター</p>
+                                <p className="text-sm text-gray-400 mt-0.5">施設・クラス管理</p>
                             </div>
                             <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-500 transition-colors" />
                         </button>
@@ -900,10 +900,10 @@ export default function AdminConsole() {
                                 <FileDown className="w-6 h-6 text-gray-400" />
                             </div>
                             <div className="text-center">
-                                <p className="font-black text-gray-500 text-sm">数出表・納品書</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">集計・帳票出力</p>
+                                <p className="font-black text-gray-500 text-base">数出表・納品書</p>
+                                <p className="text-sm text-gray-400 mt-0.5">集計・帳票出力</p>
                             </div>
-                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
+                            <span className="text-sm font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
                         </div>
 
                         {/* シール作成 - grayed out */}
@@ -912,10 +912,10 @@ export default function AdminConsole() {
                                 <Copy className="w-6 h-6 text-gray-400" />
                             </div>
                             <div className="text-center">
-                                <p className="font-black text-gray-500 text-sm">シール作成</p>
-                                <p className="text-[10px] text-gray-400 mt-0.5">ラベル印刷</p>
+                                <p className="font-black text-gray-500 text-base">シール作成</p>
+                                <p className="text-sm text-gray-400 mt-0.5">ラベル印刷</p>
                             </div>
-                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
+                            <span className="text-sm font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">製作中</span>
                         </div>
                     </div>
                 )}
@@ -926,12 +926,12 @@ export default function AdminConsole() {
                         {/* Upload card */}
                         <div className="bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden">
                             <div className="bg-orange-50/50 px-6 py-4 border-b border-orange-50 flex items-center justify-between">
-                                <h2 className="text-sm font-bold text-orange-700 flex items-center gap-2">
+                                <h2 className="text-base font-bold text-orange-700 flex items-center gap-2">
                                     <Upload className="w-4 h-4" />
                                     献立マスターのアップロード
                                 </h2>
                                 {systemInfo && (
-                                    <div className="text-[10px] text-gray-400 font-bold flex items-center gap-2">
+                                    <div className="text-sm text-gray-400 font-bold flex items-center gap-2">
                                         Drive API:
                                         <span className={systemInfo.drive_folder_config.includes("Configured") ? "text-green-500" : "text-red-400"}>
                                             {systemInfo.drive_folder_config.includes("Configured") ? "CONNECTED" : "OFFLINE"}
@@ -942,7 +942,7 @@ export default function AdminConsole() {
                             <div className="p-6">
                                 <div className="flex flex-col md:flex-row gap-4 items-end">
                                     <div className="w-full md:w-32">
-                                        <label className="text-[10px] uppercase font-bold text-gray-400 mb-2 block">対象年月</label>
+                                        <label className="text-sm uppercase font-bold text-gray-400 mb-2 block">対象年月</label>
                                         <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-xl border border-gray-100 focus-within:ring-2 ring-orange-100 transition-all">
                                             <input type="number" value={year} onChange={e => setYear(parseInt(e.target.value))} className="bg-transparent w-full font-bold text-gray-700 outline-none text-center" />
                                             <span className="text-gray-300">/</span>
@@ -958,7 +958,7 @@ export default function AdminConsole() {
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                             />
                                             <Upload className={`w-5 h-5 ${file ? 'text-green-500' : 'text-orange-300'}`} />
-                                            <span className="text-xs font-bold text-gray-500 truncate">
+                                            <span className="text-sm font-bold text-gray-500 truncate">
                                                 {file ? file.name : "メニューExcelを選択またはドラッグ＆ドロップ"}
                                             </span>
                                         </div>
@@ -973,7 +973,7 @@ export default function AdminConsole() {
                                     </button>
                                 </div>
                                 {status && (
-                                    <div className={`mt-4 p-3 rounded-xl flex items-center gap-3 text-xs ${status.includes('Failed') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                                    <div className={`mt-4 p-3 rounded-xl flex items-center gap-3 text-sm ${status.includes('Failed') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
                                         {status.includes('Failed') ? <AlertCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                                         <span className="font-medium">{status}</span>
                                     </div>
@@ -984,7 +984,7 @@ export default function AdminConsole() {
                         {/* 献立生成 (result) */}
                         {result && (
                             <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-                                <h3 className="text-sm font-bold text-green-700 mb-4 flex items-center gap-2">
+                                <h3 className="text-base font-bold text-green-700 mb-4 flex items-center gap-2">
                                     <CheckCircle className="w-4 h-4" /> 取り込み完了 — 幼稚園別に献立表を生成
                                 </h3>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -997,8 +997,8 @@ export default function AdminConsole() {
                                         >
                                             <img src={k.icon_url || "/icon-mamamire.png"} className="w-7 h-7 object-contain rounded-lg flex-shrink-0" alt="" />
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-bold text-gray-700 truncate">{k.name}</p>
-                                                <p className="text-[10px] text-orange-500 font-bold">献立表(Excel)</p>
+                                                <p className="text-sm font-bold text-gray-700 truncate">{k.name}</p>
+                                                <p className="text-sm text-orange-500 font-bold">献立表(Excel)</p>
                                             </div>
                                             {downloadingId === k.kindergarten_id ? <Loader2 className="w-4 h-4 animate-spin text-orange-400 flex-shrink-0" /> : <FileDown className="w-4 h-4 text-orange-300 flex-shrink-0" />}
                                         </button>
@@ -1009,8 +1009,8 @@ export default function AdminConsole() {
 
                         {/* その他 開発中 */}
                         <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 flex flex-col items-center gap-2 text-center">
-                            <p className="text-sm font-bold text-gray-300">その他の献立機能</p>
-                            <p className="text-xs text-gray-300">開発中</p>
+                            <p className="text-base font-bold text-gray-300">その他の献立機能</p>
+                            <p className="text-sm text-gray-300">開発中</p>
                         </div>
                     </div>
                 )}
@@ -1019,16 +1019,16 @@ export default function AdminConsole() {
                 {activeSection === 'orders' && (
                     <div className="space-y-4">
                         <div className="bg-white rounded-2xl shadow-sm border border-orange-100 p-5">
-                            <h2 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2">
+                            <h2 className="text-base font-black text-gray-700 mb-4 flex items-center gap-2">
                                 <Calendar className="w-4 h-4 text-orange-500" /> 対象年月を選択
                             </h2>
                             <div className="flex flex-wrap gap-3 items-end">
                                 <div className="w-36">
-                                    <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">年月</label>
+                                    <label className="text-sm font-bold text-gray-400 uppercase block mb-1">年月</label>
                                     <div className="flex gap-2 items-center bg-gray-50 p-3 rounded-xl border border-gray-100 focus-within:ring-2 ring-orange-100">
-                                        <input type="number" value={ordersYear} onChange={e => setOrdersYear(parseInt(e.target.value))} className="bg-transparent w-full font-bold text-gray-700 outline-none text-center text-sm" />
+                                        <input type="number" value={ordersYear} onChange={e => setOrdersYear(parseInt(e.target.value))} className="bg-transparent w-full font-bold text-gray-700 outline-none text-center text-base" />
                                         <span className="text-gray-300">/</span>
-                                        <input type="number" min={1} max={12} value={ordersMonth} onChange={e => setOrdersMonth(parseInt(e.target.value))} className="bg-transparent w-16 font-bold text-gray-700 outline-none text-center text-sm" />
+                                        <input type="number" min={1} max={12} value={ordersMonth} onChange={e => setOrdersMonth(parseInt(e.target.value))} className="bg-transparent w-16 font-bold text-gray-700 outline-none text-center text-base" />
                                     </div>
                                 </div>
                                 <button
@@ -1045,14 +1045,14 @@ export default function AdminConsole() {
                                         }
                                     }}
                                     disabled={ordersLoading}
-                                    className="px-5 py-3 bg-orange-500 text-white text-sm font-black rounded-xl hover:bg-orange-600 transition-all flex items-center gap-2 disabled:opacity-50"
+                                    className="px-5 py-3 bg-orange-500 text-white text-base font-black rounded-xl hover:bg-orange-600 transition-all flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {ordersLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : '読み込む'}
                                 </button>
                                 {ordersData && (
                                     <button
                                         onClick={() => { setPrintData(ordersData); setShowPrintView(true); }}
-                                        className="px-5 py-3 bg-green-500 text-white text-sm font-black rounded-xl hover:bg-green-600 transition-all flex items-center gap-2"
+                                        className="px-5 py-3 bg-green-500 text-white text-base font-black rounded-xl hover:bg-green-600 transition-all flex items-center gap-2"
                                     >
                                         <Printer className="w-4 h-4" /> 全園一括印刷
                                     </button>
@@ -1069,15 +1069,15 @@ export default function AdminConsole() {
                                         <div key={k.kindergarten_id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="font-black text-gray-800 text-sm">{k.name}</p>
-                                                    <p className="text-[10px] text-gray-400 mt-0.5">
+                                                    <p className="font-black text-gray-800 text-base">{k.name}</p>
+                                                    <p className="text-sm text-gray-400 mt-0.5">
                                                         {orderedDays}日分 / {totalOrders}件の注文
                                                         {k.classes.length === 0 && <span className="ml-2 text-blue-400">（クラスなし）</span>}
                                                     </p>
                                                 </div>
                                                 <button
                                                     onClick={() => { setPrintData([k]); setShowPrintView(true); }}
-                                                    className="flex items-center gap-1.5 text-xs font-bold text-orange-500 hover:text-orange-700 border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-50 transition-all"
+                                                    className="flex items-center gap-1.5 text-sm font-bold text-orange-500 hover:text-orange-700 border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-50 transition-all"
                                                 >
                                                     <Printer className="w-3.5 h-3.5" /> 印刷
                                                 </button>
@@ -1096,24 +1096,24 @@ export default function AdminConsole() {
                         {/* Monthly Common Item Panel */}
                         <div className="bg-white rounded-2xl border border-orange-100 shadow-sm p-4">
                             <div className="flex items-center gap-2 mb-3">
-                                <h3 className="text-xs font-black text-gray-700 uppercase tracking-wide">月別カレー共通項目</h3>
-                                <span className="text-[10px] text-orange-500 font-bold bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">全園共通</span>
+                                <h3 className="text-sm font-black text-gray-700 uppercase tracking-wide">月別カレー共通項目</h3>
+                                <span className="text-sm text-orange-500 font-bold bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">全園共通</span>
                             </div>
                             <div className="flex flex-col md:flex-row gap-4">
                                 {/* Input form (left) */}
                                 <div className="flex flex-col gap-2 md:w-64">
                                     <div>
-                                        <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">対象年月</label>
+                                        <label className="text-sm font-bold text-gray-400 uppercase block mb-1">対象年月</label>
                                         <input type="month" value={newCommon.year_month}
                                             onChange={e => setNewCommon(p => ({ ...p, year_month: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100" />
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold outline-none focus:ring-2 ring-orange-100" />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] font-bold text-gray-400 uppercase block mb-1">共通項目名（ヤクルト・副菜漬け など）</label>
+                                        <label className="text-sm font-bold text-gray-400 uppercase block mb-1">共通項目名（ヤクルト・副菜漬け など）</label>
                                         <input type="text" placeholder="例: ヤクルト"
                                             value={newCommon.item}
                                             onChange={e => setNewCommon(p => ({ ...p, item: e.target.value }))}
-                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100" />
+                                            className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold outline-none focus:ring-2 ring-orange-100" />
                                     </div>
                                     <button
                                         onClick={async () => {
@@ -1128,7 +1128,7 @@ export default function AdminConsole() {
                                             finally { setMonthlyCommonSaving(false); }
                                         }}
                                         disabled={monthlyCommonSaving || !newCommon.item || !newCommon.year_month}
-                                        className="px-4 py-2 bg-orange-500 text-white text-xs font-black rounded-xl hover:bg-orange-600 flex items-center justify-center gap-1.5 disabled:opacity-40"
+                                        className="px-4 py-2 bg-orange-500 text-white text-sm font-black rounded-xl hover:bg-orange-600 flex items-center justify-center gap-1.5 disabled:opacity-40"
                                     >
                                         {monthlyCommonSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                                         保存（同月は上書き）
@@ -1136,22 +1136,22 @@ export default function AdminConsole() {
                                 </div>
                                 {/* History list (right) */}
                                 <div className="flex-1">
-                                    <label className="text-[9px] font-bold text-gray-400 uppercase block mb-2">登録済み一覧</label>
+                                    <label className="text-sm font-bold text-gray-400 uppercase block mb-2">登録済み一覧</label>
                                     {monthlyCommonItems.length === 0 ? (
-                                        <p className="text-xs text-gray-300 font-bold">まだ登録がありません</p>
+                                        <p className="text-sm text-gray-300 font-bold">まだ登録がありません</p>
                                     ) : (
                                         <div className="space-y-1.5">
                                             {monthlyCommonItems.map(item => (
                                                 <div key={item.year_month} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
-                                                    <span className="text-[10px] font-black text-gray-500 w-20 shrink-0">{item.year_month}</span>
-                                                    <span className="text-xs font-bold text-gray-700 flex-1">{item.item}</span>
+                                                    <span className="text-sm font-black text-gray-500 w-20 shrink-0">{item.year_month}</span>
+                                                    <span className="text-sm font-bold text-gray-700 flex-1">{item.item}</span>
                                                     <button onClick={() => setNewCommon({ year_month: item.year_month, item: item.item })}
-                                                        className="text-[10px] text-orange-500 font-bold hover:text-orange-700 shrink-0">編集</button>
+                                                        className="text-sm text-orange-500 font-bold hover:text-orange-700 shrink-0">編集</button>
                                                     <button onClick={async () => {
                                                         if (!confirm(`${item.year_month} の登録を削除しますか？`)) return;
                                                         await deleteMonthlyCommon(item.year_month);
                                                         setMonthlyCommonItems(p => p.filter(i => i.year_month !== item.year_month));
-                                                    }} className="text-[10px] text-gray-300 font-bold hover:text-red-500 shrink-0">削除</button>
+                                                    }} className="text-sm text-gray-300 font-bold hover:text-red-500 shrink-0">削除</button>
                                                 </div>
                                             ))}
                                         </div>
@@ -1169,37 +1169,37 @@ export default function AdminConsole() {
                                     value={kSearch}
                                     onChange={e => setKSearch(e.target.value)}
                                     placeholder="園名で検索..."
-                                    className="w-full pl-8 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100"
+                                    className="w-full pl-8 pr-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold outline-none focus:ring-2 ring-orange-100"
                                 />
                             </div>
                             <select value={kFilterDay} onChange={e => setKFilterDay(e.target.value)}
-                                className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100 text-gray-600">
+                                className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold outline-none focus:ring-2 ring-orange-100 text-gray-600">
                                 <option value="">曜日（全て）</option>
                                 {[['service_mon','月'],['service_tue','火'],['service_wed','水'],['service_thu','木'],['service_fri','金'],['service_sat','土'],['service_sun','日']].map(([v,l]) => (
                                     <option key={v} value={v}>{l}曜日稼働</option>
                                 ))}
                             </select>
                             <select value={kFilterSoup} onChange={e => setKFilterSoup(e.target.value)}
-                                className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100 text-gray-600">
+                                className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold outline-none focus:ring-2 ring-orange-100 text-gray-600">
                                 <option value="">スープ（全て）</option>
                                 <option value="yes">スープあり</option>
                                 <option value="no">スープなし</option>
                             </select>
                             {kAllServices.length > 0 && (
                                 <select value={kFilterService} onChange={e => setKFilterService(e.target.value)}
-                                    className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold outline-none focus:ring-2 ring-orange-100 text-gray-600">
+                                    className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold outline-none focus:ring-2 ring-orange-100 text-gray-600">
                                     <option value="">個別献立（全て）</option>
                                     {kAllServices.map((s: string) => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             )}
-                            <p className="self-center text-xs font-bold text-gray-400 ml-1">{kFiltered.length}件</p>
+                            <p className="self-center text-sm font-bold text-gray-400 ml-1">{kFiltered.length}件</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {kFiltered.length === 0 ? (
                                 <div className="col-span-2 py-12 text-center">
                                     <AlertCircle className="w-8 h-8 mx-auto text-gray-200 mb-2" />
-                                    <p className="text-sm text-gray-300 font-bold">該当する施設が見つかりません</p>
+                                    <p className="text-base text-gray-300 font-bold">該当する施設が見つかりません</p>
                                 </div>
                             ) : kFiltered.map((k: any) => (
                                 <button
@@ -1211,12 +1211,12 @@ export default function AdminConsole() {
                                         <img src={k.icon_url || "/icon-mamamire.png"} className="w-8 h-8 object-contain" alt="" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-black text-gray-800 text-sm truncate">{k.name || '---'}</p>
-                                        <p className="text-[10px] text-gray-400 font-medium">{k.contact_email || ''}</p>
+                                        <p className="font-black text-gray-800 text-base truncate">{k.name || '---'}</p>
+                                        <p className="text-sm text-gray-400 font-medium">{k.contact_email || ''}</p>
                                         <div className="flex gap-1 mt-1 flex-wrap">
-                                            {k.has_soup && <span className="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-[9px] font-bold">スープ</span>}
+                                            {k.has_soup && <span className="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-sm font-bold">スープ</span>}
                                             {(k.services || []).map((s: string) => (
-                                                <span key={s} className="px-1.5 py-0.5 bg-blue-50 text-blue-500 rounded text-[9px] font-bold">{s}</span>
+                                                <span key={s} className="px-1.5 py-0.5 bg-blue-50 text-blue-500 rounded text-sm font-bold">{s}</span>
                                             ))}
                                         </div>
                                     </div>
