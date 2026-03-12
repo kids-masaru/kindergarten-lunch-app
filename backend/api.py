@@ -172,6 +172,9 @@ def get_masters(kindergarten_id: str, date: Optional[str] = None):
     return {
         "classes": [c.model_dump() for c in my_classes],
         "services": kg.services if kg else [],
+        "classless_student_count": kg.classless_student_count if kg else 0,
+        "classless_allergy_count": kg.classless_allergy_count if kg else 0,
+        "classless_teacher_count": kg.classless_teacher_count if kg else 0,
     }
 
 @router.post("/masters/class")

@@ -251,15 +251,19 @@ export default function CalendarPage() {
       const dateStr = `${y}-${String(m).padStart(2, '0')}-01`;
       const data = await getMasters(kid, dateStr);
       setClasses(data.classes);
-      // Always refresh services from backend so meal type options are up to date
-      if (data.services && data.services.length > 0) {
-        setUser(prev => {
-          if (!prev) return prev;
-          const updated = { ...prev, services: data.services };
-          localStorage.setItem('user', JSON.stringify(updated));
-          return updated;
-        });
-      }
+      // Always refresh services and classless counts from backend
+      setUser(prev => {
+        if (!prev) return prev;
+        const updated = {
+          ...prev,
+          ...(data.services && data.services.length > 0 ? { services: data.services } : {}),
+          classless_student_count: data.classless_student_count ?? prev.classless_student_count,
+          classless_allergy_count: data.classless_allergy_count ?? prev.classless_allergy_count,
+          classless_teacher_count: data.classless_teacher_count ?? prev.classless_teacher_count,
+        };
+        localStorage.setItem('user', JSON.stringify(updated));
+        return updated;
+      });
     } catch (e) {
       console.error('Failed to fetch masters:', e);
     }
