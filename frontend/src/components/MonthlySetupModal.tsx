@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Check, Loader2, Calendar as CalendarIcon, ArrowRight, ArrowLeft, Users, ClipboardList, Plus, Trash2 } from 'lucide-react';
 import { LoginUser, ClassMaster, Order } from '@/types';
 import { createOrdersBulk, updateKindergartenClasses, updateAdminKindergarten } from '@/lib/api';
@@ -16,6 +16,8 @@ interface MonthlySetupModalProps {
 }
 
 export default function MonthlySetupModal({ isOpen, onClose, user, classes: initialClasses, year, month, onComplete }: MonthlySetupModalProps) {
+    const userRef = useRef(user);
+    userRef.current = user;
     const [step, setStep] = useState(1);
     const [submitting, setSubmitting] = useState(false);
     const [days, setDays] = useState<{ day: number, dateStr: string, mealType: string, studentCount: number, allergyCount: number, teacherCount: number }[]>([]);
@@ -32,21 +34,23 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
 
     useEffect(() => {
         if (isOpen) {
+            const u = userRef.current;
             setEditableClasses(initialClasses.map(c => ({ ...c })));
             setClasslessDefaults({
-                student: user.classless_student_count ?? 0,
-                allergy: user.classless_allergy_count ?? 0,
-                teacher: user.classless_teacher_count ?? 0,
+                student: u.classless_student_count ?? 0,
+                allergy: u.classless_allergy_count ?? 0,
+                teacher: u.classless_teacher_count ?? 0,
             });
         } else {
             setStep(1);
             setMemo('');
         }
-    }, [isOpen, initialClasses, user]);
+    }, [isOpen, initialClasses]);
 
     useEffect(() => {
         if (!isOpen) return;
 
+        const u = userRef.current;
         const daysInMonth = new Date(year, month, 0).getDate();
         const serviceDays = [];
 
@@ -56,8 +60,8 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
             let isServiceDay = true;
-            if (user && user.settings) {
-                const s = user.settings as any;
+            if (u && u.settings) {
+                const s = u.settings as any;
                 const mapping: any = { 0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat' };
                 isServiceDay = s[`service_${mapping[dayOfWeek]}`] !== false;
             }
@@ -74,7 +78,7 @@ export default function MonthlySetupModal({ isOpen, onClose, user, classes: init
             }
         }
         setDays(serviceDays);
-    }, [isOpen, year, month, user]);
+    }, [isOpen, year, month]);
 
     if (!isOpen) return null;
 

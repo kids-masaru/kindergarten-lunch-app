@@ -272,10 +272,10 @@ export default function CalendarPage() {
   // Removed duplicate useEffect
 
   useEffect(() => {
-    if (user) {
+    if (user?.kindergarten_id) {
       fetchMasters(user.kindergarten_id, year, month);
     }
-  }, [user, year, month, fetchMasters]);
+  }, [user?.kindergarten_id, year, month, fetchMasters]);
 
   const fetchOrders = async (kid: string, y: number, m: number) => {
     try {
