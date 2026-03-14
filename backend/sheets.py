@@ -708,6 +708,8 @@ def update_kindergarten_master(data: Dict) -> bool:
 
         if missing_cols:
             print(f"[INFO] Auto-creating missing columns: {missing_cols}")
+            # シートの列数を拡張してから書き込む
+            ws.resize(cols=len(headers) + len(missing_cols))
             # batch_update でヘッダーとデータを一括書き込み（gspread 5/6 両対応）
             new_col_updates = []
             for i, col_name in enumerate(missing_cols):
