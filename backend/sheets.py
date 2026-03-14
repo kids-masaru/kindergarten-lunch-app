@@ -746,6 +746,8 @@ def update_kindergarten_master(data: Dict) -> bool:
         return True
     except Exception as e:
         print(f"Error in update_kindergarten_master: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def get_system_settings() -> Dict:
