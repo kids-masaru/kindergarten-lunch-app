@@ -740,6 +740,9 @@ def get_admin_orders(year: int, month: int):
             "name": k.name,
             "classes": [c.model_dump() for c in classes],
             "orders": [o.model_dump() for o in orders],
+            "classless_student_count": k.classless_student_count,
+            "classless_allergy_count": k.classless_allergy_count,
+            "classless_teacher_count": k.classless_teacher_count,
         })
     return {"data": result}
 

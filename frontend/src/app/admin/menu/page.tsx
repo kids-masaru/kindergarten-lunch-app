@@ -162,22 +162,14 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                                         </table>
                                     ) : (
                                         <div className="p-3">
-                                            {(() => {
-                                                const clOrders = k.orders.filter((o: any) => o.class_name === '共通');
-                                                const totalStudent = clOrders.reduce((s: number, o: any) => s + (o.student_count || 0), 0);
-                                                const totalAllergy = clOrders.reduce((s: number, o: any) => s + (o.allergy_count || 0), 0);
-                                                const totalTeacher = clOrders.reduce((s: number, o: any) => s + (o.teacher_count || 0), 0);
-                                                return (
-                                                    <div className="text-center space-y-2">
-                                                        <div className="text-xs font-black text-gray-500 border-b border-gray-100 pb-1">月間合計</div>
-                                                        <div className="grid grid-cols-3 gap-2">
-                                                            <div><div className="text-xs text-gray-500">園児</div><div className="text-xl font-black text-gray-800">{totalStudent}</div></div>
-                                                            <div><div className="text-xs text-red-400">アレルギー</div><div className="text-xl font-black text-red-500">{totalAllergy}</div></div>
-                                                            <div><div className="text-xs text-gray-500">先生</div><div className="text-xl font-black text-gray-700">{totalTeacher}</div></div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })()}
+                                            <div className="text-center space-y-2">
+                                                <div className="text-xs font-black text-gray-500 border-b border-gray-100 pb-1">基本人数</div>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <div><div className="text-xs text-gray-500">園児</div><div className="text-xl font-black text-gray-800">{k.classless_student_count ?? 0}</div></div>
+                                                    <div><div className="text-xs text-red-400">アレルギー</div><div className="text-xl font-black text-red-500">{k.classless_allergy_count ?? 0}</div></div>
+                                                    <div><div className="text-xs text-gray-500">先生</div><div className="text-xl font-black text-gray-700">{k.classless_teacher_count ?? 0}</div></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
