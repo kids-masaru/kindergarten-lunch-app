@@ -86,31 +86,51 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                                         </div>
                                     ))}
                                 </div>
-                                {weeks.map((week, wi) => (
-                                    <div key={wi} className="grid grid-cols-7 border-b border-gray-100 last:border-0" style={{ minHeight: '52px' }}>
-                                        {week.map((day, di) => {
-                                            if (!day) return <div key={di} className="border-r border-gray-100 last:border-0 bg-gray-50/50" />;
-                                            const dow = di;
-                                            const dayOrders = getDayOrders(k.orders, day);
-                                            const specialType = getSpecialMealType(dayOrders);
-                                            const isWeekend = dow === 0 || dow === 6;
-                                            const isServiceDay = dayOrders.length > 0;
-                                            return (
-                                                <div key={di} className={`border-r border-gray-100 last:border-0 p-1.5
-                                                    ${isWeekend ? 'bg-red-50/30' : ''}
-                                                    ${!isServiceDay ? 'bg-gray-50/50' : ''}`}
-                                                    style={{ minHeight: '52px' }}>
-                                                    <div className={`text-sm font-bold ${dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700'}`}>{day}</div>
-                                                    {specialType && (
-                                                        <div className="mt-0.5 text-sm font-black text-orange-600 bg-orange-50 border border-orange-100 rounded px-1 py-0.5 leading-tight">
-                                                            {specialType}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                ))}
+                                {(() => {
+                                    const isClassless = !k.classes || k.classes.length === 0;
+                                    const cellHeight = isClassless ? '76px' : '52px';
+                                    return weeks.map((week, wi) => (
+                                        <div key={wi} className="grid grid-cols-7 border-b border-gray-100 last:border-0" style={{ minHeight: cellHeight }}>
+                                            {week.map((day, di) => {
+                                                if (!day) return <div key={di} className="border-r border-gray-100 last:border-0 bg-gray-50/50" />;
+                                                const dow = di;
+                                                const dayOrders = getDayOrders(k.orders, day);
+                                                const specialType = getSpecialMealType(dayOrders);
+                                                const isWeekend = dow === 0 || dow === 6;
+                                                const isServiceDay = dayOrders.length > 0;
+                                                const classlessOrder = isClassless ? dayOrders.find((o: any) => o.class_name === '共通') : null;
+                                                const clTotal = classlessOrder ? (classlessOrder.student_count + classlessOrder.allergy_count) : 0;
+                                                return (
+                                                    <div key={di} className={`border-r border-gray-100 last:border-0 p-1.5
+                                                        ${isWeekend ? 'bg-red-50/30' : ''}
+                                                        ${!isServiceDay ? 'bg-gray-50/50' : ''}`}
+                                                        style={{ minHeight: cellHeight }}>
+                                                        <div className={`text-sm font-bold ${dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700'}`}>{day}</div>
+                                                        {specialType && (
+                                                            <div className="mt-0.5 text-xs font-black text-orange-600 bg-orange-50 border border-orange-100 rounded px-1 py-0.5 leading-tight">
+                                                                {specialType}
+                                                            </div>
+                                                        )}
+                                                        {classlessOrder && (
+                                                            <div className="mt-0.5">
+                                                                <div className="text-[9px] text-gray-500 leading-none">園児</div>
+                                                                <div className="font-black text-gray-800 leading-tight whitespace-nowrap text-xs">
+                                                                    <span>{classlessOrder.student_count}</span>
+                                                                    <span className="text-red-500">+ア{classlessOrder.allergy_count}＝</span>
+                                                                    <span>{clTotal}</span>
+                                                                </div>
+                                                                <div className="flex justify-between items-baseline">
+                                                                    <span className="text-[9px] text-gray-500">先生</span>
+                                                                    <span className="text-xs font-black text-gray-600">{classlessOrder.teacher_count}</span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ));
+                                })()}
                             </div>
 
                             {/* 右：クラス別 基本人数表 */}
@@ -141,7 +161,24 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                                             </tbody>
                                         </table>
                                     ) : (
-                                        <div className="px-3 py-4 text-sm text-gray-400 text-center">クラスなし</div>
+                                        <div className="p-3">
+                                            {(() => {
+                                                const clOrders = k.orders.filter((o: any) => o.class_name === '共通');
+                                                const totalStudent = clOrders.reduce((s: number, o: any) => s + (o.student_count || 0), 0);
+                                                const totalAllergy = clOrders.reduce((s: number, o: any) => s + (o.allergy_count || 0), 0);
+                                                const totalTeacher = clOrders.reduce((s: number, o: any) => s + (o.teacher_count || 0), 0);
+                                                return (
+                                                    <div className="text-center space-y-2">
+                                                        <div className="text-xs font-black text-gray-500 border-b border-gray-100 pb-1">月間合計</div>
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <div><div className="text-xs text-gray-500">園児</div><div className="text-xl font-black text-gray-800">{totalStudent}</div></div>
+                                                            <div><div className="text-xs text-red-400">アレルギー</div><div className="text-xl font-black text-red-500">{totalAllergy}</div></div>
+                                                            <div><div className="text-xs text-gray-500">先生</div><div className="text-xl font-black text-gray-700">{totalTeacher}</div></div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
                                     )}
                                 </div>
                             </div>
