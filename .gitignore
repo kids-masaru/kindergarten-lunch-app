@@ -17,3 +17,6 @@ node_modules/
 *.json
 service-account-*.json
 lunch-order-app-*.json
+
+# Debug output
+debug_output.txt
