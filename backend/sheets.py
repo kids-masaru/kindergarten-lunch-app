@@ -144,7 +144,8 @@ def get_kindergartens() -> List[KindergartenMaster]:
                     "icon_url": str(r.get("icon_url", "")),
                     "classless_student_count": r.get("classless_student_count", 0),
                     "classless_allergy_count": r.get("classless_allergy_count", 0),
-                    "classless_teacher_count": r.get("classless_teacher_count", 0)
+                    "classless_teacher_count": r.get("classless_teacher_count", 0),
+                    "plan_type": str(r.get("plan_type", "")),
                 }
                 results.append(KindergartenMaster(**data))
             except Exception as row_err:
@@ -742,7 +743,9 @@ def update_kindergarten_master(data: Dict) -> bool:
             kid_id = data.get('kindergarten_id')
             all_k = get_kindergartens()
             k_name = next((k.name for k in all_k if k.kindergarten_id == kid_id), kid_id)
-            send_admin_notification("園情報・設定更新", k_name, f"更新内容: {list(data.keys())}")
+            tracked_keys = set(mapping.keys()) | {"services"}
+            updated_keys = [k for k in data if k in tracked_keys]
+            send_admin_notification("園情報・設定更新", k_name, f"更新内容: {updated_keys}")
         except Exception as ne:
             print(f"[ERROR] Notification failed: {ne}")
         return True
