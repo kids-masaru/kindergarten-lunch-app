@@ -746,6 +746,25 @@ def get_admin_orders(year: int, month: int):
         })
     return {"data": result}
 
+@router.get("/admin/kindergartens/{kindergarten_id}/print/{year}/{month}")
+def get_kindergarten_print_data(kindergarten_id: str, year: int, month: int):
+    """Get orders + classes + basic counts for a single kindergarten (for single-kinder print view)."""
+    all_k = get_kindergarten_master()
+    k = next((kg for kg in all_k if kg.kindergarten_id == kindergarten_id), None)
+    if not k:
+        raise HTTPException(status_code=404, detail="Kindergarten not found")
+    orders = get_orders_for_month(kindergarten_id, year, month)
+    classes = get_classes_for_kindergarten(kindergarten_id)
+    return {
+        "kindergarten_id": k.kindergarten_id,
+        "name": k.name,
+        "classes": [c.model_dump() for c in classes],
+        "orders": [o.model_dump() for o in orders],
+        "classless_student_count": k.classless_student_count,
+        "classless_allergy_count": k.classless_allergy_count,
+        "classless_teacher_count": k.classless_teacher_count,
+    }
+
 @router.get("/admin/system-info")
 def get_system_info():
     """Returns system config info including Service Account Email."""

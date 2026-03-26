@@ -159,3 +159,8 @@ export const getAdminOrdersForMonth = async (year: number, month: number) => {
     const res = await api.get(`/admin/orders/${year}/${month}`);
     return res.data;
 };
+
+export const getKindergartenPrintData = async (kindergartenId: string, year: number, month: number) => {
+    const res = await api.get(`/admin/kindergartens/${kindergartenId}/print/${year}/${month}`);
+    return res.data;
+};
