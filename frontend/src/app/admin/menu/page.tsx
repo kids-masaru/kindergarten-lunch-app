@@ -191,21 +191,22 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
         return special ? special.meal_type : null;
     };
 
-    const printOnly = (kidId: string) => {
-        const allPages = document.querySelectorAll<HTMLElement>('.print-page');
-        allPages.forEach(el => { el.style.display = el.dataset.kid === kidId ? '' : 'none'; });
-        window.print();
-        allPages.forEach(el => { el.style.display = ''; });
-    };
-
     return (
         <div className="fixed inset-0 bg-white z-50 overflow-auto">
             <style>{`
                 @media print {
                     @page { size: A4 landscape; margin: 6mm; }
                     .no-print { display: none !important; }
-                    .print-page { page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; }
-                    .print-container { padding: 0 !important; }
+                    .print-page {
+                        height: 198mm;
+                        width: 100%;
+                        overflow: hidden;
+                        page-break-after: always;
+                        break-after: page;
+                        box-sizing: border-box;
+                        margin-top: 0 !important;
+                    }
+                    .print-container { padding: 0 !important; margin: 0 !important; }
                 }
             `}</style>
 
@@ -225,15 +226,9 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                 {data.filter((k: any) => k.orders && k.orders.length > 0).map((k: any) => (
                     <div key={k.kindergarten_id} className="print-page" data-kid={k.kindergarten_id}>
                         {/* Header */}
-                        <div className="flex items-center justify-between mb-3">
-                            <div>
-                                <span className="font-black text-gray-900 text-lg">{k.name}</span>
-                                <span className="ml-3 text-base text-gray-500">{year}年{month}月</span>
-                            </div>
-                            <button onClick={() => printOnly(k.kindergarten_id)}
-                                className="no-print flex items-center gap-1.5 text-sm font-bold text-orange-500 border border-orange-200 px-3 py-1.5 rounded-xl hover:bg-orange-50">
-                                <Printer className="w-3.5 h-3.5" /> この園のみ印刷
-                            </button>
+                        <div className="flex items-center mb-3">
+                            <span className="font-black text-gray-900 text-lg">{k.name}</span>
+                            <span className="ml-3 text-base text-gray-500">{year}年{month}月</span>
                         </div>
 
                         {/* 2カラムレイアウト：左=カレンダー、右=クラス人数表 */}
