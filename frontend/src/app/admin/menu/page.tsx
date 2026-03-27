@@ -453,9 +453,7 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                 {/* Header */}
                 <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-orange-50/30">
                     <div className="flex items-center gap-3">
-                        <div className="p-1.5 bg-white rounded-xl shadow-sm border border-orange-100 flex items-center justify-center overflow-hidden">
-                            <img src={k.icon_url || "/icon-mamamire.png"} className="w-6 h-6 object-contain" alt="Icon" />
-                        </div>
+                        <span className="text-2xl leading-none">{formData.icon_url || '🏫'}</span>
                         <div>
                             <h2 className="text-lg font-black text-gray-800">{k.name} <span className="text-gray-400 font-medium text-sm">#{k.kindergarten_id}</span></h2>
                             <p className="text-sm font-bold text-orange-400 uppercase tracking-widest">Master Data Editor</p>
@@ -483,9 +481,16 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">連絡先メール</label>
-                                    <input type="email" value={formData.contact_email || ''} onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-base focus:ring-2 focus:ring-orange-100 outline-none" placeholder="example@mail.com" />
+                                    <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">アイコン絵文字</label>
+                                    <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 rounded-xl border border-gray-100">
+                                        {['🏫','🌸','🌻','🌈','⭐','🐣','🦋','🐸','🍀','🎠','🎨','🎵','🌺','🦊','🐧','🐨','🐼','🦁','🐰','🌙','🌼','🦄','🍎','🍊','🌊'].map(emoji => (
+                                            <button key={emoji} type="button"
+                                                onClick={() => setFormData({ ...formData, icon_url: emoji })}
+                                                className={`w-8 h-8 text-lg rounded-lg transition-all ${formData.icon_url === emoji ? 'bg-orange-100 ring-2 ring-orange-400' : 'hover:bg-orange-50'}`}>
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">住所</label>
@@ -1716,28 +1721,35 @@ export default function AdminConsole() {
                                     <AlertCircle className="w-8 h-8 mx-auto text-gray-200 mb-2" />
                                     <p className="text-base text-gray-300 font-bold">該当する施設が見つかりません</p>
                                 </div>
-                            ) : kFiltered.map((k: any) => (
+                            ) : kFiltered.map((k: any) => {
+                                const activeDays = (['mon','tue','wed','thu','fri','sat','sun'] as const)
+                                    .map((d, i) => k[`service_${d}`] ? ['月','火','水','木','金','土','日'][i] : null)
+                                    .filter(Boolean).join('');
+                                return (
                                 <button
                                     key={k.kindergarten_id}
                                     onClick={() => { setEditingK(k); setShowEditor(true); }}
-                                    className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center gap-4 hover:border-orange-200 hover:shadow-md transition-all text-left group"
+                                    className="bg-white rounded-xl border border-gray-100 shadow-sm px-3 py-2 flex items-center gap-2.5 hover:border-orange-200 hover:shadow-md transition-all text-left group"
                                 >
-                                    <div className="p-2 bg-orange-50 rounded-xl border border-orange-100 flex-shrink-0">
-                                        <img src={k.icon_url || "/icon-mamamire.png"} className="w-8 h-8 object-contain" alt="" />
-                                    </div>
+                                    <span className="text-xl leading-none flex-shrink-0">{k.icon_url || '🏫'}</span>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-black text-gray-800 text-base truncate">{k.name || '---'}</p>
-                                        <p className="text-sm text-gray-400 font-medium">{k.contact_email || ''}</p>
-                                        <div className="flex gap-1 mt-1 flex-wrap">
-                                            {k.has_soup && <span className="px-1.5 py-0.5 bg-green-50 text-green-600 rounded text-sm font-bold">スープ</span>}
+                                        <div className="flex items-center gap-1.5">
+                                            <p className="font-black text-gray-800 text-sm truncate">{k.name || '---'}</p>
+                                            {k.area && <span className="text-xs text-gray-400 font-medium flex-shrink-0">{k.area}</span>}
+                                        </div>
+                                        <div className="flex gap-1 mt-0.5 flex-wrap items-center">
+                                            {k.plan_type && <span className="px-1.5 py-0 bg-orange-50 text-orange-500 rounded text-xs font-bold">{k.plan_type}</span>}
+                                            {k.has_soup && <span className="px-1.5 py-0 bg-green-50 text-green-600 rounded text-xs font-bold">スープ</span>}
                                             {(k.services || []).map((s: string) => (
-                                                <span key={s} className="px-1.5 py-0.5 bg-blue-50 text-blue-500 rounded text-sm font-bold">{s}</span>
+                                                <span key={s} className="px-1.5 py-0 bg-blue-50 text-blue-500 rounded text-xs font-bold">{s}</span>
                                             ))}
+                                            {activeDays && <span className="text-xs text-gray-300 font-medium">{activeDays}</span>}
                                         </div>
                                     </div>
-                                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-orange-400 transition-colors flex-shrink-0" />
+                                    <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-orange-400 transition-colors flex-shrink-0" />
                                 </button>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}
