@@ -1068,23 +1068,23 @@ export default function AdminConsole() {
                     {/* クイックナビ */}
                     <div className="flex items-center gap-1.5 flex-1 justify-center">
                         {[
-                            { key: 'daily', icon: <ClipboardList className="w-4 h-4" />, label: '今日の注文', enabled: true },
-                            { key: 'orders', icon: <Printer className="w-4 h-4" />, label: '注文確認・印刷', enabled: true },
-                            { key: 'kindergarten', icon: <Building2 className="w-4 h-4" />, label: '幼稚園マスター', enabled: true },
-                            { key: 'menu', icon: <Upload className="w-4 h-4" />, label: '献立作成（製作中）', enabled: false },
-                            { key: 'daily2', icon: <FileDown className="w-4 h-4" />, label: '数出表・納品書（製作中）', enabled: false },
-                            { key: 'daily3', icon: <Copy className="w-4 h-4" />, label: 'シール作成（製作中）', enabled: false },
-                        ].map(({ key, icon, label, enabled }) => (
+                            { key: 'daily',        icon: <ClipboardList className="w-4 h-4" />, label: '今日の注文',        enabled: true,  active: 'bg-orange-500 text-white shadow-orange-200', inactive: 'bg-orange-50 text-orange-500 border-orange-100 hover:bg-orange-100' },
+                            { key: 'orders',       icon: <Printer       className="w-4 h-4" />, label: '注文確認・印刷',    enabled: true,  active: 'bg-green-500  text-white shadow-green-200',  inactive: 'bg-green-50  text-green-500  border-green-100  hover:bg-green-100'  },
+                            { key: 'kindergarten', icon: <Building2     className="w-4 h-4" />, label: '幼稚園マスター',    enabled: true,  active: 'bg-blue-500   text-white shadow-blue-200',   inactive: 'bg-blue-50   text-blue-500   border-blue-100   hover:bg-blue-100'   },
+                            { key: '_menu',        icon: <Upload        className="w-4 h-4" />, label: '献立作成（製作中）',       enabled: false, active: '', inactive: '' },
+                            { key: '_filedown',    icon: <FileDown      className="w-4 h-4" />, label: '数出表・納品書（製作中）',  enabled: false, active: '', inactive: '' },
+                            { key: '_copy',        icon: <Copy          className="w-4 h-4" />, label: 'シール作成（製作中）',      enabled: false, active: '', inactive: '' },
+                        ].map(({ key, icon, label, enabled, active, inactive }) => (
                             <div key={key} className="relative group">
                                 <button
                                     onClick={() => enabled && setActiveSection(key as any)}
                                     disabled={!enabled}
-                                    className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all
-                                        ${activeSection === key
-                                            ? 'bg-orange-500 text-white shadow-sm shadow-orange-200'
-                                            : enabled
-                                                ? 'bg-gray-50 text-gray-400 hover:bg-orange-50 hover:text-orange-500 border border-gray-100'
-                                                : 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed opacity-50'
+                                    className={`w-9 h-9 flex items-center justify-center rounded-xl border transition-all shadow-sm
+                                        ${!enabled
+                                            ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed opacity-50'
+                                            : activeSection === key
+                                                ? `${active} shadow-sm`
+                                                : inactive
                                         }`}
                                 >
                                     {icon}
