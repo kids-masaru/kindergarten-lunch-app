@@ -127,6 +127,7 @@ export const getPendingClassSnapshots = async (kindergartenId: string) => {
 export const updateOrderDefaults = async (data: {
     kindergarten_id: string;
     from_date: string;
+    to_date?: string;
     student_count: number;
     allergy_count: number;
     teacher_count: number;

@@ -422,27 +422,51 @@ def create_orders_bulk(orders: List[OrderItem]):
 class ClasslessDefaultUpdateRequest(BaseModel):
     kindergarten_id: str
     from_date: str
+    to_date: Optional[str] = None  # Noneなら「ずっと」（マスター更新＋6ヶ月先まで）
     student_count: int
     allergy_count: int
     teacher_count: int
 
 @router.put("/orders/update-defaults")
 def update_order_defaults(request: ClasslessDefaultUpdateRequest):
-    """Update all 共通 orders for a classless kindergarten from a given date."""
+    """Update 共通 orders for a classless kindergarten.
+    - to_date=None: ずっと。from_date以降6ヶ月分の注文を更新。
+    - to_date指定: その期間内の注文のみ更新。マスターは変えない。
+    """
     try:
         from_date_obj = datetime.strptime(request.from_date, "%Y-%m-%d")
 
-        # Fetch orders for the month of from_date (and next month)
-        all_orders = get_orders_for_month(request.kindergarten_id, from_date_obj.year, from_date_obj.month)
-        next_month = from_date_obj.month % 12 + 1
-        next_year = from_date_obj.year + (1 if from_date_obj.month == 12 else 0)
-        all_orders += get_orders_for_month(request.kindergarten_id, next_year, next_month)
+        def advance_month(base, n):
+            m = base.month + n
+            y = base.year + (m - 1) // 12
+            m = (m - 1) % 12 + 1
+            return y, m
 
-        # Filter 共通 orders from from_date onwards
-        to_update = [
-            o for o in all_orders
-            if o.class_name == '共通' and o.date >= request.from_date
-        ]
+        all_orders = []
+        if request.to_date:
+            # 期間指定: from_dateとto_dateにまたがる月を取得
+            to_date_obj = datetime.strptime(request.to_date, "%Y-%m-%d")
+            cur = from_date_obj.replace(day=1)
+            end = to_date_obj.replace(day=1)
+            while cur <= end:
+                all_orders += get_orders_for_month(request.kindergarten_id, cur.year, cur.month)
+                y, m = cur.year, cur.month + 1
+                if m > 12: y, m = y + 1, 1
+                cur = cur.replace(year=y, month=m)
+            to_update = [
+                o for o in all_orders
+                if o.class_name == '共通'
+                and request.from_date <= o.date <= request.to_date
+            ]
+        else:
+            # ずっと: 6ヶ月分取得してfrom_date以降を全更新
+            for i in range(6):
+                yr, mo = advance_month(from_date_obj, i)
+                all_orders += get_orders_for_month(request.kindergarten_id, yr, mo)
+            to_update = [
+                o for o in all_orders
+                if o.class_name == '共通' and o.date >= request.from_date
+            ]
 
         if not to_update:
             return {"status": "success", "updated": 0, "message": "対象の注文がありませんでした"}
@@ -463,6 +487,7 @@ def update_order_defaults(request: ClasslessDefaultUpdateRequest):
         kid_id = request.kindergarten_id
         snap = {
             "from_date": request.from_date,
+            "to_date": request.to_date,
             "student_count": request.student_count,
             "allergy_count": request.allergy_count,
             "teacher_count": request.teacher_count,
@@ -473,8 +498,10 @@ def update_order_defaults(request: ClasslessDefaultUpdateRequest):
                 from backend.notifications import send_change_notification
                 kindergartens = get_kindergartens()
                 kg = next((k for k in kindergartens if k.kindergarten_id == kid_id), None)
+                period = (f"{snap['from_date']}〜{snap['to_date']}" if snap['to_date']
+                          else f"{snap['from_date']} 以降（ずっと）")
                 details = (
-                    f"{snap['from_date']} 以降の基本人数を変更しました\n"
+                    f"{period} の基本人数を変更しました\n"
                     f"園児数: {snap['student_count']}名\n"
                     f"アレルギー: {snap['allergy_count']}名\n"
                     f"先生: {snap['teacher_count']}名\n"

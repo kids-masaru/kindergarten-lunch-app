@@ -355,6 +355,8 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
     const [classlessTeacher, setClasslessTeacher] = useState<number>(k.classless_teacher_count ?? 0);
     const today = new Date().toISOString().slice(0, 10);
     const [classlessFromDate, setClasslessFromDate] = useState(today);
+    const [showToDate, setShowToDate] = useState(false);
+    const [classlessToDate, setClasslessToDate] = useState('');
     const [isSavingDefaults, setIsSavingDefaults] = useState(false);
     const [defaultsSaveSuccess, setDefaultsSaveSuccess] = useState(false);
 
@@ -371,25 +373,32 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
 
     const handleSaveDefaults = async () => {
         if (!classlessFromDate) { alert('適用開始日を選択してください'); return; }
+        if (showToDate && classlessToDate && classlessToDate < classlessFromDate) {
+            alert('終了日は開始日より後の日付にしてください'); return;
+        }
         setIsSavingDefaults(true);
         setDefaultsSaveSuccess(false);
+        const isForever = !showToDate || !classlessToDate;
         try {
-            // 1. kindergartenシートに永続保存（classlessフィールドのみ送信）
-            await updateAdminKindergarten(k.kindergarten_id, {
-                classless_student_count: classlessStudent,
-                classless_allergy_count: classlessAllergy,
-                classless_teacher_count: classlessTeacher,
-            });
-            // 2. 既存の注文にも適用（注文がなくてもエラーにならない）
+            if (isForever) {
+                // ずっと: マスターを更新（次月以降の月申請に反映される）
+                await updateAdminKindergarten(k.kindergarten_id, {
+                    classless_student_count: classlessStudent,
+                    classless_allergy_count: classlessAllergy,
+                    classless_teacher_count: classlessTeacher,
+                });
+            }
+            // 既存の注文を更新（ずっと=全未来, 期間指定=範囲内のみ）
             await updateOrderDefaults({
                 kindergarten_id: k.kindergarten_id,
                 from_date: classlessFromDate,
+                to_date: isForever ? undefined : classlessToDate,
                 student_count: classlessStudent,
                 allergy_count: classlessAllergy,
                 teacher_count: classlessTeacher,
-            }).catch(() => {}); // 注文がなくても無視
+            }).catch(() => {});
             setDefaultsSaveSuccess(true);
-            onSave(); // 一覧を更新してk.classless_*を最新化
+            if (isForever) onSave();
             setTimeout(() => setDefaultsSaveSuccess(false), 3000);
         } catch (err) {
             console.error(err);
@@ -662,28 +671,59 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                                 </div>
                                             ))}
                                         </div>
-                                        <div className="flex items-end gap-3">
-                                            <div className="flex-1">
-                                                <label className="text-sm font-bold text-gray-500 block mb-1">適用開始日（この日以降の注文を一括更新）</label>
-                                                <input
-                                                    type="date" value={classlessFromDate}
-                                                    onChange={e => setClasslessFromDate(e.target.value)}
-                                                    className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
-                                                />
+                                        <div className="space-y-2">
+                                            <div className="flex items-end gap-3">
+                                                <div className="flex-1">
+                                                    <label className="text-sm font-bold text-gray-500 block mb-1">適用開始日</label>
+                                                    <input
+                                                        type="date" value={classlessFromDate}
+                                                        onChange={e => setClasslessFromDate(e.target.value)}
+                                                        className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
+                                                    />
+                                                </div>
+                                                {!showToDate ? (
+                                                    <button type="button"
+                                                        onClick={() => setShowToDate(true)}
+                                                        className="px-3 py-2 rounded-xl text-sm font-bold text-gray-400 border border-dashed border-gray-200 hover:border-orange-200 hover:text-orange-400 transition-all whitespace-nowrap">
+                                                        ＋ 終了日を設定
+                                                    </button>
+                                                ) : (
+                                                    <div className="flex-1">
+                                                        <label className="text-sm font-bold text-gray-500 block mb-1">終了日</label>
+                                                        <div className="flex gap-2 items-center">
+                                                            <input
+                                                                type="date" value={classlessToDate}
+                                                                onChange={e => setClasslessToDate(e.target.value)}
+                                                                className="flex-1 bg-white px-3 py-2 rounded-xl border border-orange-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
+                                                            />
+                                                            <button type="button"
+                                                                onClick={() => { setShowToDate(false); setClasslessToDate(''); }}
+                                                                className="text-gray-300 hover:text-gray-500 transition-colors text-lg leading-none">×</button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <button
+                                                    onClick={handleSaveDefaults}
+                                                    disabled={isSavingDefaults}
+                                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-black text-white transition-all whitespace-nowrap ${isSavingDefaults ? 'bg-gray-300 cursor-not-allowed' : defaultsSaveSuccess ? 'bg-green-500' : 'bg-orange-500 hover:bg-orange-600'}`}
+                                                >
+                                                    {isSavingDefaults ? <Loader2 className="w-4 h-4 animate-spin" /> : defaultsSaveSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                                                    {defaultsSaveSuccess ? '保存済み' : '適用'}
+                                                </button>
                                             </div>
-                                            <button
-                                                onClick={handleSaveDefaults}
-                                                disabled={isSavingDefaults}
-                                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-black text-white transition-all ${isSavingDefaults ? 'bg-gray-300 cursor-not-allowed' : defaultsSaveSuccess ? 'bg-green-500' : 'bg-orange-500 hover:bg-orange-600'}`}
-                                            >
-                                                {isSavingDefaults ? <Loader2 className="w-4 h-4 animate-spin" /> : defaultsSaveSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                                                {defaultsSaveSuccess ? '保存済み' : '適用'}
-                                            </button>
+                                            <p className="text-xs text-gray-400">
+                                                {showToDate && classlessToDate
+                                                    ? `※ ${classlessFromDate}〜${classlessToDate} の注文のみ更新。基本人数は変わりません。`
+                                                    : `※ ${classlessFromDate} 以降の注文を更新し、基本人数も更新します（次月申請に反映）。`}
+                                            </p>
                                         </div>
                                         {defaultsSaveSuccess && (
-                                            <p className="text-sm font-bold text-green-600">{classlessFromDate} 以降の注文を更新しました</p>
+                                            <p className="text-sm font-bold text-green-600">
+                                                {showToDate && classlessToDate
+                                                    ? `${classlessFromDate}〜${classlessToDate} の注文を更新しました`
+                                                    : `${classlessFromDate} 以降の注文と基本人数を更新しました`}
+                                            </p>
                                         )}
-                                        <p className="text-sm text-gray-400">※ 適用開始日以降にすでに入っている注文の人数を上書きします。未来の日付から適用することをお勧めします。</p>
                                     </div>
                                 </div>
                             )}
