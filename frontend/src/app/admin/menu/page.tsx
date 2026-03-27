@@ -98,7 +98,6 @@ function SingleKindergartenPrintView({ kindergartenId, kindergartenName, initial
                                                 return (
                                                     <div key={di} className={`border-r border-gray-100 last:border-0 p-1.5 ${isWeekend ? 'bg-red-50/30' : ''} ${!isServiceDay ? 'bg-gray-50/50' : ''}`} style={{ minHeight: cellHeight }}>
                                                         <div className={`text-sm font-bold ${dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700'}`}>{day}</div>
-                                                        {specialType && <div className="mt-0.5 text-xs font-black text-orange-600 bg-orange-50 border border-orange-100 rounded px-1 py-0.5 leading-tight">{specialType}</div>}
                                                         {classlessOrder && (
                                                             <div className="mt-0.5">
                                                                 <div className="text-[9px] text-gray-500 leading-none">園児</div>
@@ -109,6 +108,7 @@ function SingleKindergartenPrintView({ kindergartenId, kindergartenName, initial
                                                                     <span className="text-[9px] text-gray-500">先生</span>
                                                                     <span className="text-xs font-black text-gray-600">{classlessOrder.teacher_count}</span>
                                                                 </div>
+                                                                {specialType && <div className="mt-0.5 text-xs font-black text-orange-600 bg-orange-50 border border-orange-100 rounded px-1 py-0.5 leading-tight">{specialType}</div>}
                                                             </div>
                                                         )}
                                                     </div>
@@ -263,11 +263,6 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                                                         ${!isServiceDay ? 'bg-gray-50/50' : ''}`}
                                                         style={{ minHeight: cellHeight }}>
                                                         <div className={`text-sm font-bold ${dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700'}`}>{day}</div>
-                                                        {specialType && (
-                                                            <div className="mt-0.5 text-xs font-black text-orange-600 bg-orange-50 border border-orange-100 rounded px-1 py-0.5 leading-tight">
-                                                                {specialType}
-                                                            </div>
-                                                        )}
                                                         {classlessOrder && (
                                                             <div className="mt-0.5">
                                                                 <div className="text-[9px] text-gray-500 leading-none">園児</div>
@@ -280,6 +275,11 @@ function OrderPrintView({ data, year, month, onClose }: { data: any[], year: num
                                                                     <span className="text-[9px] text-gray-500">先生</span>
                                                                     <span className="text-xs font-black text-gray-600">{classlessOrder.teacher_count}</span>
                                                                 </div>
+                                                                {specialType && (
+                                                                    <div className="mt-0.5 text-xs font-black text-orange-600 bg-orange-50 border border-orange-100 rounded px-1 py-0.5 leading-tight">
+                                                                        {specialType}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
