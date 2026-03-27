@@ -198,3 +198,4 @@ type ActiveSection = 'menu' | 'kindergarten' | 'orders' | 'daily' | null
 - 配送順の保存・固定
 - 地図連携（Google Maps等）
 - 過去の注文履歴集計
+- **注文ゼロ園への期待値表示**：未注文の園に対して「予定人数」を表示する場合は、`get_classes_for_kindergarten(kid_id, date)` を用いてその日付で有効なクラス構成（`effective_from` ベース）から期待人数を算出する必要がある。現状の日次ビューは実注文の集計のみのため不要だが、「実注文 vs 期待値の比較」機能を追加する際は考慮が必要。
