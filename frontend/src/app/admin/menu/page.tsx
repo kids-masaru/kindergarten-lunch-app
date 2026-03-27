@@ -346,6 +346,7 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [newService, setNewService] = useState('');
 
     // クラスなしモード用：基本人数（kindergartenデータから初期値を読む）
@@ -480,17 +481,23 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                         className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-base focus:ring-2 focus:ring-orange-100 outline-none"
                                     />
                                 </div>
-                                <div>
+                                <div className="relative">
                                     <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">アイコン絵文字</label>
-                                    <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 rounded-xl border border-gray-100">
-                                        {['🏫','🌸','🌻','🌈','⭐','🐣','🦋','🐸','🍀','🎠','🎨','🎵','🌺','🦊','🐧','🐨','🐼','🦁','🐰','🌙','🌼','🦄','🍎','🍊','🌊'].map(emoji => (
-                                            <button key={emoji} type="button"
-                                                onClick={() => setFormData({ ...formData, icon_url: emoji })}
-                                                className={`w-8 h-8 text-lg rounded-lg transition-all ${formData.icon_url === emoji ? 'bg-orange-100 ring-2 ring-orange-400' : 'hover:bg-orange-50'}`}>
-                                                {emoji}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    <button type="button" onClick={() => setShowEmojiPicker(p => !p)}
+                                        className="w-10 h-10 text-2xl rounded-xl bg-gray-50 border border-gray-100 hover:bg-orange-50 hover:border-orange-200 transition-all flex items-center justify-center">
+                                        {formData.icon_url || '🏫'}
+                                    </button>
+                                    {showEmojiPicker && (
+                                        <div className="absolute top-full left-0 mt-1 z-10 bg-white rounded-xl shadow-lg border border-gray-100 p-2 flex flex-wrap gap-1 w-56">
+                                            {['🏫','🌸','🌻','🌈','⭐','🐣','🦋','🐸','🍀','🎠','🎨','🎵','🌺','🦊','🐧','🐨','🐼','🦁','🐰','🌙','🌼','🦄','🍎','🍊','🌊'].map(emoji => (
+                                                <button key={emoji} type="button"
+                                                    onClick={() => { setFormData({ ...formData, icon_url: emoji }); setShowEmojiPicker(false); }}
+                                                    className={`w-8 h-8 text-lg rounded-lg transition-all ${formData.icon_url === emoji ? 'bg-orange-100 ring-2 ring-orange-400' : 'hover:bg-orange-50'}`}>
+                                                    {emoji}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">住所</label>
@@ -1735,6 +1742,7 @@ export default function AdminConsole() {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5">
                                             <p className="font-black text-gray-800 text-sm truncate">{k.name || '---'}</p>
+                                            {activeDays && <span className="text-xs text-gray-300 font-medium flex-shrink-0">{activeDays}</span>}
                                             {k.area && <span className="text-xs text-gray-400 font-medium flex-shrink-0">{k.area}</span>}
                                         </div>
                                         <div className="flex gap-1 mt-0.5 flex-wrap items-center">
@@ -1743,7 +1751,6 @@ export default function AdminConsole() {
                                             {(k.services || []).map((s: string) => (
                                                 <span key={s} className="px-1.5 py-0 bg-blue-50 text-blue-500 rounded text-xs font-bold">{s}</span>
                                             ))}
-                                            {activeDays && <span className="text-xs text-gray-300 font-medium">{activeDays}</span>}
                                         </div>
                                     </div>
                                     <ChevronRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-orange-400 transition-colors flex-shrink-0" />
