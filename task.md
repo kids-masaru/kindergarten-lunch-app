@@ -16,29 +16,56 @@
 
 ---
 
-## Phase 1：エリアフィールド追加
+## Phase 1：住所・エリアフィールド追加
 
-### T-1-1：`KindergartenMaster` モデルに `area` フィールド追加
+### T-1-1：`KindergartenMaster` モデルに `address`・`area` フィールド追加
 - **ファイル:** `backend/models.py`
-- **変更:** `area: str = ""` を `KindergartenMaster` クラスに追加（`plan_type` の近くに配置）
-- **確認:** 既存コードへの影響なし（デフォルト空文字なので後方互換）
+- **変更:** `plan_type` の下に以下を追加
+  ```python
+  address: str = ""
+  area: str = ""
+  ```
+- **確認:** デフォルト空文字なので後方互換あり
 
-### T-1-2：`get_kindergartens()` に `area` の読み込みを追加
+### T-1-2：`get_kindergartens()` に `address`・`area` の読み込みを追加
 - **ファイル:** `backend/sheets.py`
-- **変更:** `data` ディクショナリに `"area": str(r.get("area", ""))` を追加（`plan_type` の下）
-- **確認:** スプレッドシートに `area` カラムがなくてもエラーにならないこと
+- **変更:** `data` ディクショナリに以下を追加（`plan_type` の下）
+  ```python
+  "address": str(r.get("address", "")),
+  "area": str(r.get("area", "")),
+  ```
+- **確認:** スプレッドシートに該当カラムがなくてもエラーにならないこと
 
-### T-1-3：`update_kindergarten_master()` に `area` を追加
+### T-1-3：`update_kindergarten_master()` に `address`・`area` を追加
 - **ファイル:** `backend/sheets.py`
-- **変更①:** `mapping` ディクショナリに `"area": "area"` を追加
-- **変更②:** auto-create リストに `"area"` を追加
-- **確認:** 保存時にスプレッドシートへ `area` が書き込まれること
+- **変更①:** `mapping` に追加
+  ```python
+  "address": "address",
+  "area": "area",
+  ```
+- **変更②:** auto-create リストに `"address"`・`"area"` を追加
+- **確認:** 保存時にスプレッドシートへ書き込まれること
 
-### T-1-4：管理画面の幼稚園編集UIに `area` 入力欄を追加
+### T-1-4：管理画面の幼稚園編集UIに住所・エリア入力欄を追加
 - **ファイル:** `frontend/src/app/admin/menu/page.tsx`
 - **対象:** `KindergartenEditor` コンポーネントの設定フォーム部分
-- **変更:** `area` のテキスト入力フィールドを追加（エリア名・自由入力、プレースホルダー「例：北区、中央エリア」）
-- **確認:** 入力・保存後に値が保持されること
+- **変更①:** 住所入力フィールドを追加（`address`、プレースホルダー「例：大阪府大阪市北区梅田1-2-3」）
+- **変更②:** エリアフィールドを追加（`area`、読み取り用表示 + 手動修正可能）
+- **変更③:** 住所入力の `onChange` で以下のエリア自動抽出ロジックを実行
+  ```typescript
+  function extractArea(address: string): string {
+      if (!address) return '';
+      const ku = address.match(/[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff]+区/);
+      if (ku) return ku[0];
+      const shi = address.match(/[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff]+市/);
+      if (shi) return shi[0];
+      const cho = address.match(/[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff]+[町村]/);
+      if (cho) return cho[0];
+      return '';
+  }
+  ```
+  住所変更時に `area` を自動セット。エリアは上書き可能。
+- **確認:** 住所入力→エリア自動抽出→保存→再表示でエリアが保持されること
 
 ---
 

@@ -35,19 +35,35 @@
 
 ---
 
-## 前提：エリアフィールドの追加
+## 前提：住所・エリアフィールドの追加
 
-配送計画に必要なため、幼稚園マスターに `area`（エリア）フィールドを新設する。
+配送計画に必要なため、幼稚園マスターに `address`（住所）と `area`（エリア）フィールドを新設する。
+
+### エリア自動抽出の仕組み
+
+住所フィールドへの入力をトリガーに、JavaScriptが自動でエリアを抽出する。
+
+**抽出優先順位：区 → 市 → 町/村**
+
+| 入力住所例 | 自動抽出されるエリア |
+|---|---|
+| 大阪府大阪市北区梅田1-2-3 | 北区 |
+| 東京都新宿区西新宿2-8-1 | 新宿区 |
+| 神奈川県横浜市港北区日吉4-1-1 | 港北区 |
+| 北海道函館市本町12-3 | 函館市（区なし → 市） |
+| 長野県松本市大手1-2-3 | 松本市 |
+
+エリアは自動入力後も手動で修正可能（自動抽出がうまくいかない場合のフォールバック）。
+
+### 変更対象
 
 | 対象 | 変更内容 |
 |---|---|
-| Googleスプレッドシート `kindergartens` シート | `area` カラムを自動追加（既存の auto-create 機構を活用） |
-| `backend/models.py` | `KindergartenMaster` に `area: str = ""` を追加 |
-| `backend/sheets.py` | `get_kindergartens()` の読み込みに `area` を追加 |
-| `backend/sheets.py` | `update_kindergarten_master()` の mapping・auto-create に `area` を追加 |
-| 管理画面 幼稚園マスター編集UI | `area` 入力欄を追加 |
-
-エリアの値は自由入力（例：「北区」「中央エリア」「A地区」）。
+| Googleスプレッドシート `kindergartens` シート | `address`・`area` カラムを自動追加（auto-create 機構を活用） |
+| `backend/models.py` | `KindergartenMaster` に `address: str = ""`・`area: str = ""` を追加 |
+| `backend/sheets.py` | `get_kindergartens()` の読み込みに `address`・`area` を追加 |
+| `backend/sheets.py` | `update_kindergarten_master()` の mapping・auto-create に `address`・`area` を追加 |
+| 管理画面 幼稚園マスター編集UI | 住所入力欄を追加し、入力時にエリアを自動抽出・セット |
 
 ---
 
