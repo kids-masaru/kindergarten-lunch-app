@@ -671,52 +671,53 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                                 </div>
                                             ))}
                                         </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-end gap-3">
+                                        {/* 適用開始日 + 終了日 + 適用ボタン */}
+                                        <div className="flex items-end gap-2">
+                                            <div className="flex-1">
+                                                <label className="text-sm font-bold text-gray-500 block mb-1">適用開始日</label>
+                                                <input
+                                                    type="date" value={classlessFromDate}
+                                                    onChange={e => setClasslessFromDate(e.target.value)}
+                                                    className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
+                                                />
+                                            </div>
+                                            {showToDate && (
                                                 <div className="flex-1">
-                                                    <label className="text-sm font-bold text-gray-500 block mb-1">適用開始日</label>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <label className="text-sm font-bold text-gray-500">終了日</label>
+                                                        <button type="button"
+                                                            onClick={() => { setShowToDate(false); setClasslessToDate(''); }}
+                                                            className="text-xs text-gray-400 hover:text-gray-600">× 閉じる</button>
+                                                    </div>
                                                     <input
-                                                        type="date" value={classlessFromDate}
-                                                        onChange={e => setClasslessFromDate(e.target.value)}
-                                                        className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
+                                                        type="date" value={classlessToDate}
+                                                        onChange={e => setClasslessToDate(e.target.value)}
+                                                        className="w-full bg-white px-3 py-2 rounded-xl border border-orange-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
                                                     />
                                                 </div>
-                                                {!showToDate ? (
-                                                    <button type="button"
-                                                        onClick={() => setShowToDate(true)}
-                                                        className="px-3 py-2 rounded-xl text-sm font-bold text-gray-400 border border-dashed border-gray-200 hover:border-orange-200 hover:text-orange-400 transition-all whitespace-nowrap">
-                                                        ＋ 終了日を設定
-                                                    </button>
-                                                ) : (
-                                                    <div className="flex-1">
-                                                        <label className="text-sm font-bold text-gray-500 block mb-1">終了日</label>
-                                                        <div className="flex gap-2 items-center">
-                                                            <input
-                                                                type="date" value={classlessToDate}
-                                                                onChange={e => setClasslessToDate(e.target.value)}
-                                                                className="flex-1 bg-white px-3 py-2 rounded-xl border border-orange-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
-                                                            />
-                                                            <button type="button"
-                                                                onClick={() => { setShowToDate(false); setClasslessToDate(''); }}
-                                                                className="text-gray-300 hover:text-gray-500 transition-colors text-lg leading-none">×</button>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                <button
-                                                    onClick={handleSaveDefaults}
-                                                    disabled={isSavingDefaults}
-                                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-black text-white transition-all whitespace-nowrap ${isSavingDefaults ? 'bg-gray-300 cursor-not-allowed' : defaultsSaveSuccess ? 'bg-green-500' : 'bg-orange-500 hover:bg-orange-600'}`}
-                                                >
-                                                    {isSavingDefaults ? <Loader2 className="w-4 h-4 animate-spin" /> : defaultsSaveSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                                                    {defaultsSaveSuccess ? '保存済み' : '適用'}
-                                                </button>
-                                            </div>
-                                            <p className="text-xs text-gray-400">
-                                                {showToDate && classlessToDate
-                                                    ? `※ ${classlessFromDate}〜${classlessToDate} の注文のみ更新。基本人数は変わりません。`
-                                                    : `※ ${classlessFromDate} 以降の注文を更新し、基本人数も更新します（次月申請に反映）。`}
-                                            </p>
+                                            )}
+                                            <button
+                                                onClick={handleSaveDefaults}
+                                                disabled={isSavingDefaults}
+                                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-black text-white transition-all whitespace-nowrap ${isSavingDefaults ? 'bg-gray-300 cursor-not-allowed' : defaultsSaveSuccess ? 'bg-green-500' : 'bg-orange-500 hover:bg-orange-600'}`}
+                                            >
+                                                {isSavingDefaults ? <Loader2 className="w-4 h-4 animate-spin" /> : defaultsSaveSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                                                {defaultsSaveSuccess ? '保存済み' : '適用'}
+                                            </button>
                                         </div>
+                                        {/* 終了日トグル */}
+                                        {!showToDate && (
+                                            <button type="button"
+                                                onClick={() => setShowToDate(true)}
+                                                className="text-sm font-bold text-gray-400 hover:text-orange-400 transition-colors">
+                                                ＋ 終了日を設定する（期間指定）
+                                            </button>
+                                        )}
+                                        <p className="text-xs text-gray-400">
+                                            {showToDate && classlessToDate
+                                                ? `※ ${classlessFromDate}〜${classlessToDate} の注文のみ更新。基本人数は変わりません。`
+                                                : `※ ${classlessFromDate} 以降の注文を更新し、基本人数も更新します（次月申請に反映）。`}
+                                        </p>
                                         {defaultsSaveSuccess && (
                                             <p className="text-sm font-bold text-green-600">
                                                 {showToDate && classlessToDate
