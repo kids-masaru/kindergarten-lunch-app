@@ -1064,6 +1064,39 @@ export default function AdminConsole() {
                             {activeSection === 'daily' && <p className="text-sm text-orange-400 font-bold uppercase tracking-wider">今日の注文</p>}
                         </div>
                     </div>
+
+                    {/* クイックナビ */}
+                    <div className="flex items-center gap-1.5 flex-1 justify-center">
+                        {[
+                            { key: 'daily', icon: <ClipboardList className="w-4 h-4" />, label: '今日の注文', enabled: true },
+                            { key: 'orders', icon: <Printer className="w-4 h-4" />, label: '注文確認・印刷', enabled: true },
+                            { key: 'kindergarten', icon: <Building2 className="w-4 h-4" />, label: '幼稚園マスター', enabled: true },
+                            { key: 'menu', icon: <Upload className="w-4 h-4" />, label: '献立作成（製作中）', enabled: false },
+                            { key: 'daily2', icon: <FileDown className="w-4 h-4" />, label: '数出表・納品書（製作中）', enabled: false },
+                            { key: 'daily3', icon: <Copy className="w-4 h-4" />, label: 'シール作成（製作中）', enabled: false },
+                        ].map(({ key, icon, label, enabled }) => (
+                            <div key={key} className="relative group">
+                                <button
+                                    onClick={() => enabled && setActiveSection(key as any)}
+                                    disabled={!enabled}
+                                    className={`w-9 h-9 flex items-center justify-center rounded-xl transition-all
+                                        ${activeSection === key
+                                            ? 'bg-orange-500 text-white shadow-sm shadow-orange-200'
+                                            : enabled
+                                                ? 'bg-gray-50 text-gray-400 hover:bg-orange-50 hover:text-orange-500 border border-gray-100'
+                                                : 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed opacity-50'
+                                        }`}
+                                >
+                                    {icon}
+                                </button>
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1.5 bg-gray-800 text-white text-xs font-bold rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                    {label}
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-800" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
                     <button
                         onClick={() => setShowSettings(true)}
                         className="flex items-center gap-2 bg-white text-gray-500 px-4 py-2 rounded-xl font-bold text-sm hover:bg-orange-50 transition-all border border-orange-100 shadow-sm"
