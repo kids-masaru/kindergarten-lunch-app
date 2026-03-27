@@ -487,6 +487,33 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                     <input type="email" value={formData.contact_email || ''} onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
                                         className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-base focus:ring-2 focus:ring-orange-100 outline-none" placeholder="example@mail.com" />
                                 </div>
+                                <div>
+                                    <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">住所</label>
+                                    <input
+                                        type="text"
+                                        value={formData.address || ''}
+                                        onChange={(e) => {
+                                            const addr = e.target.value;
+                                            const ku = addr.match(/[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff]+区/);
+                                            const shi = addr.match(/[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff]+市/);
+                                            const cho = addr.match(/[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff]+[町村]/);
+                                            const extracted = ku?.[0] ?? shi?.[0] ?? cho?.[0] ?? '';
+                                            setFormData({ ...formData, address: addr, area: extracted || formData.area || '' });
+                                        }}
+                                        className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-base focus:ring-2 focus:ring-orange-100 outline-none"
+                                        placeholder="例：大阪府大阪市北区梅田1-2-3"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">エリア <span className="text-orange-400 normal-case font-medium">（住所から自動入力）</span></label>
+                                    <input
+                                        type="text"
+                                        value={formData.area || ''}
+                                        onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                                        className="w-full px-3 py-2 bg-orange-50 rounded-xl border border-orange-100 font-bold text-base focus:ring-2 focus:ring-orange-100 outline-none"
+                                        placeholder="例：北区"
+                                    />
+                                </div>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
                                         <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">ログインID</label>
