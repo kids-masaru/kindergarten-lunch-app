@@ -1469,12 +1469,104 @@ export default function AdminConsole() {
                                     );
                                 })()}
 
-                                {/* 配送リストタブ（Phase 4で実装） */}
-                                {dailyTab === 'delivery' && (
-                                    <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400 font-bold">
-                                        配送リストは次のフェーズで実装予定です
-                                    </div>
-                                )}
+                                {/* 配送リストタブ */}
+                                {dailyTab === 'delivery' && (() => {
+                                    const deliveryKindergartens = dailyData.kindergartens.filter((k: any) => k.has_orders);
+                                    const grouped: Record<string, any[]> = {};
+                                    deliveryKindergartens.forEach((k: any) => {
+                                        const area = k.area || 'エリア未設定';
+                                        if (!grouped[area]) grouped[area] = [];
+                                        grouped[area].push(k);
+                                    });
+                                    const areas = Object.keys(grouped).sort((a, b) =>
+                                        a === 'エリア未設定' ? 1 : b === 'エリア未設定' ? -1 : a.localeCompare(b)
+                                    );
+                                    let seq = 1;
+
+                                    if (deliveryKindergartens.length === 0) return (
+                                        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400 font-bold">この日の注文データがありません</div>
+                                    );
+
+                                    return (
+                                        <>
+                                            <style>{`
+                                                @media print {
+                                                    @page { size: A4 portrait; margin: 12mm; }
+                                                    .no-print { display: none !important; }
+                                                    .delivery-print { background: white !important; }
+                                                }
+                                            `}</style>
+                                            <div className="delivery-print bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                                {/* ヘッダー */}
+                                                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                                                    <div>
+                                                        <h3 className="font-black text-gray-800 text-base">配送リスト</h3>
+                                                        <p className="text-sm text-gray-400 mt-0.5">{dailyDate.replace(/-/g, '/')}　計 <span className="font-black text-orange-600">{dailyData.grand_total}</span> 食</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => window.print()}
+                                                        className="no-print flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-orange-600 transition-all"
+                                                    >
+                                                        <Printer className="w-4 h-4" /> 印刷
+                                                    </button>
+                                                </div>
+
+                                                {/* エリア別リスト */}
+                                                <div className="divide-y divide-gray-100">
+                                                    {areas.map(area => {
+                                                        const areaTotal = grouped[area].reduce((s: number, k: any) => s + k.totals.grand_total, 0);
+                                                        return (
+                                                            <div key={area}>
+                                                                {/* エリアヘッダー */}
+                                                                <div className="px-5 py-2 bg-gray-50 flex items-center gap-3">
+                                                                    <span className="font-black text-gray-700 text-sm">{area}</span>
+                                                                    <span className="text-xs text-gray-400 font-bold">{grouped[area].length}園 ／ {areaTotal}食</span>
+                                                                </div>
+                                                                {/* 園リスト */}
+                                                                {grouped[area].map((k: any) => {
+                                                                    const num = seq++;
+                                                                    const mealTypes = [...new Set(k.orders.map((o: any) => o.meal_type))].filter((t: any) => t !== '通常');
+                                                                    return (
+                                                                        <div key={k.kindergarten_id} className="px-5 py-3 flex items-center gap-4 border-b border-gray-50 last:border-0 hover:bg-orange-50/20 transition-colors">
+                                                                            {/* 番号 */}
+                                                                            <span className="text-base font-black text-gray-300 w-6 text-right shrink-0">{num}</span>
+                                                                            {/* 園名 */}
+                                                                            <span className="font-black text-gray-800 text-base flex-1">{k.name}</span>
+                                                                            {/* 特別メニュー */}
+                                                                            <div className="flex gap-1 shrink-0">
+                                                                                {mealTypes.map((t: any) => (
+                                                                                    <span key={t} className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1.5 py-0.5 rounded">{t}</span>
+                                                                                ))}
+                                                                            </div>
+                                                                            {/* 内訳 */}
+                                                                            <div className="text-sm text-gray-500 font-bold shrink-0 text-right">
+                                                                                <span>園児 {k.totals.student + k.totals.allergy}</span>
+                                                                                <span className="mx-1.5 text-gray-300">/</span>
+                                                                                <span>先生 {k.totals.teacher}</span>
+                                                                            </div>
+                                                                            {/* 合計 */}
+                                                                            <div className="text-right shrink-0 w-16">
+                                                                                <span className="text-2xl font-black text-orange-600">{k.totals.grand_total}</span>
+                                                                                <span className="text-xs text-gray-400 ml-0.5">食</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {/* フッター合計 */}
+                                                <div className="px-5 py-4 bg-orange-50 border-t border-orange-100 flex items-center justify-end gap-3">
+                                                    <span className="font-black text-gray-600 text-base">本日合計</span>
+                                                    <span className="text-3xl font-black text-orange-600">{dailyData.grand_total}</span>
+                                                    <span className="text-base text-gray-500 font-bold">食</span>
+                                                </div>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </>
                         )}
                     </div>
