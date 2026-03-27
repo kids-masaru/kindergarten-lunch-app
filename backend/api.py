@@ -746,6 +746,56 @@ def get_admin_orders(year: int, month: int):
         })
     return {"data": result}
 
+@router.get("/admin/daily-orders/{date}")
+def get_daily_orders(date: str):
+    """Get all kindergartens' orders for a specific date (YYYY-MM-DD)."""
+    try:
+        year, month, _ = date.split("-")
+        year, month = int(year), int(month)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    all_k = get_kindergarten_master()
+    result = []
+    grand_total = 0
+
+    for k in all_k:
+        month_orders = get_orders_for_month(k.kindergarten_id, year, month)
+        day_orders = [o for o in month_orders if o.date == date]
+
+        total_student = sum(o.student_count for o in day_orders)
+        total_allergy = sum(o.allergy_count for o in day_orders)
+        total_teacher = sum(o.teacher_count for o in day_orders)
+        grand = total_student + total_allergy + total_teacher
+
+        grand_total += grand
+        result.append({
+            "kindergarten_id": k.kindergarten_id,
+            "name": k.name,
+            "area": k.area,
+            "address": k.address,
+            "has_orders": len(day_orders) > 0,
+            "orders": [
+                {
+                    "class_name": o.class_name,
+                    "meal_type": o.meal_type,
+                    "student_count": o.student_count,
+                    "allergy_count": o.allergy_count,
+                    "teacher_count": o.teacher_count,
+                    "memo": o.memo,
+                }
+                for o in day_orders
+            ],
+            "totals": {
+                "student": total_student,
+                "allergy": total_allergy,
+                "teacher": total_teacher,
+                "grand_total": grand,
+            },
+        })
+
+    return {"date": date, "kindergartens": result, "grand_total": grand_total}
+
 @router.get("/admin/kindergartens/{kindergarten_id}/print/{year}/{month}")
 def get_kindergarten_print_data(kindergarten_id: str, year: int, month: int):
     """Get orders + classes + basic counts for a single kindergarten (for single-kinder print view)."""

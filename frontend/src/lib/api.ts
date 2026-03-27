@@ -164,3 +164,8 @@ export const getKindergartenPrintData = async (kindergartenId: string, year: num
     const res = await api.get(`/admin/kindergartens/${kindergartenId}/print/${year}/${month}`);
     return res.data;
 };
+
+export const getDailyOrders = async (date: string) => {
+    const res = await api.get(`/admin/daily-orders/${date}`);
+    return res.data;
+};
