@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon, deleteMonthlyCommon, getAdminOrdersForMonth, getCalendar, updateOrderDefaults, getKindergartenPrintData } from '@/lib/api';
-import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, ChevronLeft, ArrowLeft, Save, Trash2, Building2, Search, Filter, Printer, Calendar } from 'lucide-react';
+import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon, deleteMonthlyCommon, getAdminOrdersForMonth, getCalendar, updateOrderDefaults, getKindergartenPrintData, getDailyOrders } from '@/lib/api';
+import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, ChevronLeft, ArrowLeft, Save, Trash2, Building2, Search, Filter, Printer, Calendar, ClipboardList } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
 
 // --- Single Kindergarten Print View (with month navigation) ---
@@ -907,7 +907,7 @@ export default function AdminConsole() {
     const [showSettings, setShowSettings] = useState(false);
 
     // Dashboard navigation
-    const [activeSection, setActiveSection] = useState<'menu' | 'kindergarten' | 'orders' | null>(null);
+    const [activeSection, setActiveSection] = useState<'menu' | 'kindergarten' | 'orders' | 'daily' | null>(null);
 
     // Orders section
     const [ordersYear, setOrdersYear] = useState<number>(new Date().getFullYear());
@@ -918,6 +918,13 @@ export default function AdminConsole() {
     const [printData, setPrintData] = useState<any[] | null>(null);
     const [showSinglePrint, setShowSinglePrint] = useState(false);
     const [singlePrintKid, setSinglePrintKid] = useState<{ id: string, name: string } | null>(null);
+
+    // Daily orders section
+    const [dailyDate, setDailyDate] = useState<string>(new Date().toISOString().slice(0, 10));
+    const [dailyData, setDailyData] = useState<any | null>(null);
+    const [dailyLoading, setDailyLoading] = useState(false);
+    const [dailyTab, setDailyTab] = useState<'list' | 'delivery'>('list');
+    const [dailyShowAll, setDailyShowAll] = useState(false);
 
     // Monthly common items (list + new entry form)
     const [monthlyCommonItems, setMonthlyCommonItems] = useState<{ year_month: string, item: string }[]>([]);
@@ -1054,6 +1061,7 @@ export default function AdminConsole() {
                             {activeSection === 'menu' && <p className="text-sm text-orange-400 font-bold uppercase tracking-wider">献立作成</p>}
                             {activeSection === 'kindergarten' && <p className="text-sm text-orange-400 font-bold uppercase tracking-wider">幼稚園マスター</p>}
                             {activeSection === 'orders' && <p className="text-sm text-orange-400 font-bold uppercase tracking-wider">注文確認・印刷</p>}
+                            {activeSection === 'daily' && <p className="text-sm text-orange-400 font-bold uppercase tracking-wider">今日の注文</p>}
                         </div>
                     </div>
                     <button
@@ -1105,6 +1113,21 @@ export default function AdminConsole() {
                             <div className="text-center">
                                 <p className="font-black text-gray-800 text-base">幼稚園マスター</p>
                                 <p className="text-sm text-gray-400 mt-0.5">施設・クラス管理</p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-500 transition-colors" />
+                        </button>
+
+                        {/* 今日の注文 */}
+                        <button
+                            onClick={() => setActiveSection('daily')}
+                            className="bg-white rounded-2xl border border-orange-100 shadow-sm p-6 flex flex-col items-center gap-3 hover:bg-orange-50/50 hover:shadow-md hover:border-orange-200 transition-all group"
+                        >
+                            <div className="p-3 bg-orange-50 rounded-xl group-hover:bg-orange-100 transition-colors">
+                                <ClipboardList className="w-6 h-6 text-orange-500" />
+                            </div>
+                            <div className="text-center">
+                                <p className="font-black text-gray-800 text-base">今日の注文</p>
+                                <p className="text-sm text-gray-400 mt-0.5">注文確認・配送計画</p>
                             </div>
                             <ChevronRight className="w-4 h-4 text-orange-300 group-hover:text-orange-500 transition-colors" />
                         </button>
@@ -1301,6 +1324,158 @@ export default function AdminConsole() {
                                     );
                                 })}
                             </div>
+                        )}
+                    </div>
+                )}
+
+                {/* 今日の注文 Section */}
+                {activeSection === 'daily' && (
+                    <div className="space-y-4">
+                        {/* 日付選択 */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-orange-100 p-5">
+                            <h2 className="text-base font-black text-gray-700 mb-4 flex items-center gap-2">
+                                <ClipboardList className="w-4 h-4 text-orange-500" /> 対象日を選択
+                            </h2>
+                            <div className="flex flex-wrap gap-3 items-center">
+                                <input
+                                    type="date"
+                                    value={dailyDate}
+                                    onChange={e => setDailyDate(e.target.value)}
+                                    className="px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl font-bold text-gray-700 outline-none focus:ring-2 ring-orange-100 text-base"
+                                />
+                                <button
+                                    onClick={async () => {
+                                        setDailyLoading(true);
+                                        setDailyData(null);
+                                        try {
+                                            const res = await getDailyOrders(dailyDate);
+                                            setDailyData(res);
+                                        } catch {
+                                            alert('データの取得に失敗しました');
+                                        } finally {
+                                            setDailyLoading(false);
+                                        }
+                                    }}
+                                    disabled={dailyLoading}
+                                    className="px-5 py-2.5 bg-orange-500 text-white text-base font-black rounded-xl hover:bg-orange-600 transition-all flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    {dailyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : '読み込む'}
+                                </button>
+                                {dailyData && (
+                                    <span className="text-sm text-gray-500 font-bold">
+                                        合計 <span className="text-orange-600 text-base">{dailyData.grand_total}</span> 食
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {dailyData && (
+                            <>
+                                {/* タブ切り替え */}
+                                <div className="flex gap-2">
+                                    <button onClick={() => setDailyTab('list')}
+                                        className={`px-4 py-2 rounded-xl text-sm font-black transition-all ${dailyTab === 'list' ? 'bg-orange-500 text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-200 hover:bg-orange-50'}`}>
+                                        注文一覧
+                                    </button>
+                                    <button onClick={() => setDailyTab('delivery')}
+                                        className={`px-4 py-2 rounded-xl text-sm font-black transition-all ${dailyTab === 'delivery' ? 'bg-orange-500 text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-200 hover:bg-orange-50'}`}>
+                                        配送リスト
+                                    </button>
+                                    <div className="flex-1" />
+                                    <button onClick={() => setDailyShowAll(v => !v)}
+                                        className="px-3 py-2 rounded-xl text-sm font-bold text-gray-500 border border-gray-200 bg-white hover:bg-gray-50 transition-all">
+                                        {dailyShowAll ? '注文あり園のみ表示' : '全園表示'}
+                                    </button>
+                                </div>
+
+                                {/* 注文一覧タブ */}
+                                {dailyTab === 'list' && (() => {
+                                    const grouped: Record<string, any[]> = {};
+                                    dailyData.kindergartens.forEach((k: any) => {
+                                        if (!dailyShowAll && !k.has_orders) return;
+                                        const area = k.area || 'エリア未設定';
+                                        if (!grouped[area]) grouped[area] = [];
+                                        grouped[area].push(k);
+                                    });
+                                    const areas = Object.keys(grouped).sort((a, b) =>
+                                        a === 'エリア未設定' ? 1 : b === 'エリア未設定' ? -1 : a.localeCompare(b)
+                                    );
+                                    if (areas.length === 0) return (
+                                        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400 font-bold">この日の注文データがありません</div>
+                                    );
+                                    return (
+                                        <div className="space-y-4">
+                                            {areas.map(area => (
+                                                <div key={area} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                                                    {/* エリアヘッダー */}
+                                                    <div className="px-4 py-2.5 bg-orange-50 border-b border-orange-100 flex items-center gap-2">
+                                                        <span className="text-sm font-black text-orange-700">{area}</span>
+                                                        <span className="text-xs text-orange-400 font-bold">
+                                                            {grouped[area].filter((k: any) => k.has_orders).length}園 ／
+                                                            {grouped[area].filter((k: any) => k.has_orders).reduce((s: number, k: any) => s + k.totals.grand_total, 0)}食
+                                                        </span>
+                                                    </div>
+                                                    {/* テーブル */}
+                                                    <table className="w-full text-sm">
+                                                        <thead>
+                                                            <tr className="border-b border-gray-100 bg-gray-50/50">
+                                                                <th className="text-left px-4 py-2 font-black text-gray-500">園名</th>
+                                                                <th className="text-left px-3 py-2 font-black text-gray-500">クラス</th>
+                                                                <th className="text-left px-3 py-2 font-black text-gray-500">タイプ</th>
+                                                                <th className="text-center px-2 py-2 font-black text-gray-500">園児</th>
+                                                                <th className="text-center px-2 py-2 font-black text-red-400">アレ</th>
+                                                                <th className="text-center px-2 py-2 font-black text-gray-500">先生</th>
+                                                                <th className="text-center px-2 py-2 font-black text-orange-500">合計</th>
+                                                                <th className="text-left px-3 py-2 font-black text-gray-400">メモ</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {grouped[area].map((k: any) => (
+                                                                k.has_orders ? (
+                                                                    k.orders.map((o: any, idx: number) => (
+                                                                        <tr key={`${k.kindergarten_id}-${idx}`} className="border-b border-gray-50 hover:bg-orange-50/30 transition-colors">
+                                                                            <td className="px-4 py-2 font-bold text-gray-800">
+                                                                                {idx === 0 ? k.name : ''}
+                                                                            </td>
+                                                                            <td className="px-3 py-2 text-gray-600">{o.class_name}</td>
+                                                                            <td className="px-3 py-2">
+                                                                                {o.meal_type !== '通常' ? (
+                                                                                    <span className="text-xs font-black text-orange-600 bg-orange-50 border border-orange-200 px-1.5 py-0.5 rounded">{o.meal_type}</span>
+                                                                                ) : (
+                                                                                    <span className="text-xs text-gray-400">通常</span>
+                                                                                )}
+                                                                            </td>
+                                                                            <td className="px-2 py-2 text-center font-bold text-gray-700">{o.student_count}</td>
+                                                                            <td className="px-2 py-2 text-center font-bold text-red-500">{o.allergy_count}</td>
+                                                                            <td className="px-2 py-2 text-center font-bold text-gray-600">{o.teacher_count}</td>
+                                                                            <td className="px-2 py-2 text-center font-black text-orange-600">
+                                                                                {idx === k.orders.length - 1 ? k.totals.grand_total : ''}
+                                                                            </td>
+                                                                            <td className="px-3 py-2 text-gray-400 text-xs">{o.memo || ''}</td>
+                                                                        </tr>
+                                                                    ))
+                                                                ) : (
+                                                                    <tr key={k.kindergarten_id} className="border-b border-gray-50 opacity-40">
+                                                                        <td className="px-4 py-2 font-bold text-gray-500">{k.name}</td>
+                                                                        <td colSpan={7} className="px-3 py-2 text-gray-400 text-xs">注文なし</td>
+                                                                    </tr>
+                                                                )
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* 配送リストタブ（Phase 4で実装） */}
+                                {dailyTab === 'delivery' && (
+                                    <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400 font-bold">
+                                        配送リストは次のフェーズで実装予定です
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 )}
