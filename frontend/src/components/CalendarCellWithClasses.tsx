@@ -99,7 +99,11 @@ export default function CalendarCellWithClasses({
     }, [existingOrders, classes, isOpen]);
 
     const handleOpen = () => {
-        if (!isServiceDay || isLocked) return;
+        if (!isServiceDay) return;
+        if (isLocked) {
+            alert("前日の15時を過ぎているため、キャンセル料が発生する可能性がございます。\n変更は電話でご連絡ください。");
+            return;
+        }
         if (isGraceLocked) {
             if (!confirm("3日前を過ぎた変更です。電話連絡が必要な場合があります。続けますか？")) return;
         }
@@ -198,8 +202,7 @@ export default function CalendarCellWithClasses({
             <button
                 ref={buttonRef}
                 onClick={handleOpen}
-                disabled={isLocked}
-                className={`h-full w-full rounded-xl flex flex-col items-start justify-start p-1.5 relative border transition-all shadow-sm active:scale-95
+                className={`h-full w-full rounded-xl flex flex-col items-start justify-start p-1.5 relative border transition-all shadow-sm ${isLocked ? '' : 'active:scale-95'}
                     ${isPending
                         ? 'bg-blue-50 border-blue-400 border-2'
                         : isLocked
