@@ -1067,8 +1067,7 @@ export default function AdminConsole() {
 
                     {/* クイックナビ（各ページ表示時のみ） */}
                     <div className="flex items-center gap-1.5 flex-1 justify-center">
-                    {activeSection &&
-                        {[
+                    {activeSection && [
                             { key: 'daily',        icon: <ClipboardList className="w-4 h-4" />, label: '今日の注文',        enabled: true,  active: 'bg-orange-500 text-white shadow-orange-200', inactive: 'bg-orange-50 text-orange-500 border-orange-100 hover:bg-orange-100' },
                             { key: 'orders',       icon: <Printer       className="w-4 h-4" />, label: '注文確認・印刷',    enabled: true,  active: 'bg-green-500  text-white shadow-green-200',  inactive: 'bg-green-50  text-green-500  border-green-100  hover:bg-green-100'  },
                             { key: 'kindergarten', icon: <Building2     className="w-4 h-4" />, label: '幼稚園マスター',    enabled: true,  active: 'bg-blue-500   text-white shadow-blue-200',   inactive: 'bg-blue-50   text-blue-500   border-blue-100   hover:bg-blue-100'   },
@@ -1096,7 +1095,6 @@ export default function AdminConsole() {
                                 </div>
                             </div>
                         ))}
-                    }
                     </div>
 
                     <button
