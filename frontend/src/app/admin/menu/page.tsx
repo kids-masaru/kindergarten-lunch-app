@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon, deleteMonthlyCommon, getAdminOrdersForMonth, getCalendar, updateOrderDefaults, getKindergartenPrintData, getDailyOrders } from '@/lib/api';
+import { uploadMenu, getKindergartens, generateMenu, getSystemInfo, updateAdminKindergarten, getAdminClasses, updateAdminClasses, getMonthlyCommon, updateMonthlyCommon, deleteMonthlyCommon, getAdminOrdersForMonth, getCalendar, updateOrderDefaults, getKindergartenPrintData, getDailyOrders, updateKindergartenClasses } from '@/lib/api';
 import { FileDown, Upload, Loader2, AlertCircle, CheckCircle, Check, Copy, Plus, X, Settings as SettingsIcon, ChevronRight, ChevronLeft, ArrowLeft, Save, Trash2, Building2, Search, Filter, Printer, Calendar, ClipboardList } from 'lucide-react';
 import ImageUploader from '@/components/ImageUploader';
 
@@ -360,10 +360,19 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
     const [isSavingDefaults, setIsSavingDefaults] = useState(false);
     const [defaultsSaveSuccess, setDefaultsSaveSuccess] = useState(false);
 
+    // クラスありモード用：適用期間設定
+    const [originalClasses, setOriginalClasses] = useState<any[]>([]);
+    const [classfulFromDate, setClassfulFromDate] = useState(today);
+    const [showClassfulToDate, setShowClassfulToDate] = useState(false);
+    const [classfulToDate, setClassfulToDate] = useState('');
+    const [isApplyingClassful, setIsApplyingClassful] = useState(false);
+    const [classfulApplySuccess, setClassfulApplySuccess] = useState(false);
+
     useEffect(() => {
         setIsLoadingClasses(true);
         getAdminClasses(k.kindergarten_id).then(res => {
             setClasses(res.classes);
+            setOriginalClasses(res.classes);
             setIsLoadingClasses(false);
         }).catch(err => {
             console.error(err);
@@ -423,6 +432,42 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
             console.error(err);
             alert("保存に失敗しました");
             setIsSaving(false);
+        }
+    };
+
+    const handleApplyClassfulDates = async () => {
+        if (!classfulFromDate) { alert('適用開始日を選択してください'); return; }
+        if (showClassfulToDate && classfulToDate && classfulToDate < classfulFromDate) {
+            alert('終了日は開始日より後の日付にしてください'); return;
+        }
+        setIsApplyingClassful(true);
+        setClassfulApplySuccess(false);
+        try {
+            const snapshot = classes.map((cls: any) => ({
+                ...cls,
+                kindergarten_id: k.kindergarten_id,
+                effective_from: classfulFromDate,
+            }));
+            await updateKindergartenClasses(k.kindergarten_id, snapshot, true);
+
+            if (showClassfulToDate && classfulToDate) {
+                const d = new Date(classfulToDate);
+                d.setDate(d.getDate() + 1);
+                const revertDate = d.toISOString().slice(0, 10);
+                const revertSnapshot = originalClasses.map((cls: any) => ({
+                    ...cls,
+                    kindergarten_id: k.kindergarten_id,
+                    effective_from: revertDate,
+                }));
+                await updateKindergartenClasses(k.kindergarten_id, revertSnapshot, true);
+            }
+            setClassfulApplySuccess(true);
+            setTimeout(() => setClassfulApplySuccess(false), 3000);
+        } catch (err) {
+            console.error(err);
+            alert('適用に失敗しました');
+        } finally {
+            setIsApplyingClassful(false);
         }
     };
 
@@ -763,6 +808,63 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                     </div>
                                 ))}
                             </div>
+                            {/* クラスあり：適用期間設定 */}
+                            {classes.length > 0 && (
+                                <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-3 mt-2">
+                                    <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        変更の適用期間 <div className="h-px flex-1 bg-gray-200"></div>
+                                    </h4>
+                                    <div className="flex items-end gap-2">
+                                        <div className="flex-1">
+                                            <label className="text-sm font-bold text-gray-500 block mb-1">適用開始日</label>
+                                            <input type="date" value={classfulFromDate}
+                                                onChange={e => setClassfulFromDate(e.target.value)}
+                                                className="w-full bg-white px-3 py-2 rounded-xl border border-gray-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
+                                            />
+                                        </div>
+                                        {showClassfulToDate && (
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <label className="text-sm font-bold text-gray-500">終了日</label>
+                                                    <button type="button"
+                                                        onClick={() => { setShowClassfulToDate(false); setClassfulToDate(''); }}
+                                                        className="text-xs text-gray-400 hover:text-gray-600">× 閉じる</button>
+                                                </div>
+                                                <input type="date" value={classfulToDate}
+                                                    onChange={e => setClassfulToDate(e.target.value)}
+                                                    className="w-full bg-white px-3 py-2 rounded-xl border border-orange-200 text-base font-bold outline-none focus:ring-2 focus:ring-orange-100"
+                                                />
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={handleApplyClassfulDates}
+                                            disabled={isApplyingClassful}
+                                            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-base font-black text-white transition-all whitespace-nowrap ${isApplyingClassful ? 'bg-gray-300 cursor-not-allowed' : classfulApplySuccess ? 'bg-green-500' : 'bg-orange-500 hover:bg-orange-600'}`}
+                                        >
+                                            {isApplyingClassful ? <Loader2 className="w-4 h-4 animate-spin" /> : classfulApplySuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                                            {classfulApplySuccess ? '適用済み' : '適用'}
+                                        </button>
+                                    </div>
+                                    {!showClassfulToDate && (
+                                        <button type="button" onClick={() => setShowClassfulToDate(true)}
+                                            className="text-sm font-bold text-gray-400 hover:text-orange-400 transition-colors">
+                                            ＋ 終了日を設定する（期間指定）
+                                        </button>
+                                    )}
+                                    <p className="text-xs text-gray-400">
+                                        {showClassfulToDate && classfulToDate
+                                            ? `※ ${classfulFromDate}〜${classfulToDate} の注文のみ更新（スポット変更）。マスターは変わりません。`
+                                            : `※ ${classfulFromDate} 以降の注文に上記の人数が反映されます。`}
+                                    </p>
+                                    {classfulApplySuccess && (
+                                        <p className="text-sm font-bold text-green-600">
+                                            {showClassfulToDate && classfulToDate
+                                                ? `${classfulFromDate}〜${classfulToDate} の注文を更新しました`
+                                                : `${classfulFromDate} 以降のスナップショットを登録しました`}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                             </>
                         )}
                     </div>

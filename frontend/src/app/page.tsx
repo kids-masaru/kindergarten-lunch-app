@@ -19,6 +19,8 @@ function ClasslessPanel({ user, orders, onRefresh, pendingCount, isSubmittingPen
   const [allergy, setAllergy] = useState(firstOrder?.allergy_count ?? 0);
   const [teacher, setTeacher] = useState(firstOrder?.teacher_count ?? 0);
   const [fromDate, setFromDate] = useState('');
+  const [showToDate, setShowToDate] = useState(false);
+  const [toDate, setToDate] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -31,17 +33,24 @@ function ClasslessPanel({ user, orders, onRefresh, pendingCount, isSubmittingPen
 
   const handleSave = async () => {
     if (!fromDate) { alert("変更開始日を選択してください"); return; }
+    if (showToDate && toDate && toDate < fromDate) { alert('終了日は開始日より後の日付にしてください'); return; }
     setSaving(true);
     try {
       await updateOrderDefaults({
         kindergarten_id: user.kindergarten_id,
         from_date: fromDate,
+        to_date: showToDate && toDate ? toDate : undefined,
         student_count: student,
         allergy_count: allergy,
         teacher_count: teacher,
       });
-      alert(`${fromDate} 以降の基本人数を変更しました`);
+      const msg = showToDate && toDate
+        ? `${fromDate}〜${toDate} の注文を更新しました`
+        : `${fromDate} 以降の基本人数を変更しました`;
+      alert(msg);
       setFromDate('');
+      setShowToDate(false);
+      setToDate('');
       onRefresh();
     } catch (e) {
       alert('更新に失敗しました');
@@ -92,10 +101,34 @@ function ClasslessPanel({ user, orders, onRefresh, pendingCount, isSubmittingPen
               onChange={e => setFromDate(e.target.value)}
               className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-200 text-sm font-bold focus:ring-2 focus:ring-orange-100 outline-none"
             />
-            <p className="text-[9px] text-gray-400 mt-1">
-              {fromDate ? `${fromDate} 以降の注文に反映されます` : '開始日を選択してください'}
-            </p>
           </div>
+
+          {/* To date toggle */}
+          {!showToDate ? (
+            <button type="button" onClick={() => setShowToDate(true)}
+              className="text-sm font-bold text-gray-400 hover:text-orange-400 transition-colors -mt-1">
+              ＋ 終了日を設定する（期間指定）
+            </button>
+          ) : (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> 変更の終了日
+                </label>
+                <button type="button" onClick={() => { setShowToDate(false); setToDate(''); }}
+                  className="text-xs text-gray-400 hover:text-gray-600">× 閉じる</button>
+              </div>
+              <input
+                type="date" value={toDate} onChange={e => setToDate(e.target.value)}
+                className="w-full px-3 py-2 bg-orange-50 rounded-xl border border-orange-200 text-sm font-bold focus:ring-2 focus:ring-orange-100 outline-none"
+              />
+            </div>
+          )}
+          <p className="text-[9px] text-gray-400 -mt-1">
+            {showToDate && toDate
+              ? `${fromDate}〜${toDate} の注文のみ更新。基本人数は変わりません。`
+              : fromDate ? `${fromDate} 以降の注文に反映されます` : '開始日を選択してください'}
+          </p>
 
           <button
             onClick={handleSave}

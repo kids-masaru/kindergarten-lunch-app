@@ -18,6 +18,8 @@ export default function ClassReportPanel({ user, classes, onSaved, pendingCount,
     const [edits, setEdits] = useState<Record<string, ClassMaster>>({});
     const [saving, setSaving] = useState(false);
     const [effectiveDate, setEffectiveDate] = useState<string>('');
+    const [showToDate, setShowToDate] = useState(false);
+    const [toDate, setToDate] = useState('');
     const [pendingSnapshots, setPendingSnapshots] = useState<{ date: string, classes: any[] }[]>([]);
     const [deletingDate, setDeletingDate] = useState<string | null>(null);
 
@@ -60,9 +62,20 @@ export default function ClassReportPanel({ user, classes, onSaved, pendingCount,
         }
     };
 
+    const nextDay = (dateStr: string) => {
+        const d = new Date(dateStr);
+        d.setDate(d.getDate() + 1);
+        return d.toISOString().slice(0, 10);
+    };
+
     const handleSave = async () => {
+        if (showToDate && toDate && effectiveDate && toDate < effectiveDate) {
+            alert('終了日は開始日より後の日付にしてください'); return;
+        }
         const confirmMsg = effectiveDate
-            ? `${effectiveDate} 以降のクラス人数を変更します。\n既存の保存済み注文もこの日以降は新しい人数に更新されます。\nよろしいですか？`
+            ? showToDate && toDate
+                ? `${effectiveDate}〜${toDate} のクラス人数を一時的に変更します。よろしいですか？`
+                : `${effectiveDate} 以降のクラス人数を変更します。\n既存の保存済み注文もこの日以降は新しい人数に更新されます。\nよろしいですか？`
             : 'クラス人数を今すぐ変更します。よろしいですか？';
         if (!confirm(confirmMsg)) return;
 
@@ -73,11 +86,23 @@ export default function ClassReportPanel({ user, classes, onSaved, pendingCount,
                 effective_from: effectiveDate || undefined,
             }));
             await updateKindergartenClasses(user.kindergarten_id, dataToSave);
+
+            // If toDate: create revert snapshot at toDate+1 with original class counts
+            if (showToDate && toDate && effectiveDate) {
+                const revertDate = nextDay(toDate);
+                const revertData = classes.map(cls => ({ ...cls, effective_from: revertDate }));
+                await updateKindergartenClasses(user.kindergarten_id, revertData, true);
+            }
+
             const msg = effectiveDate
-                ? `${effectiveDate} 以降の基本人数と既存注文を更新しました`
+                ? showToDate && toDate
+                    ? `${effectiveDate}〜${toDate} の注文を一時的に更新しました`
+                    : `${effectiveDate} 以降の基本人数と既存注文を更新しました`
                 : '基本人数の変更を申請しました';
             alert(msg);
             setEffectiveDate('');
+            setShowToDate(false);
+            setToDate('');
             onSaved();
         } catch (e) {
             alert('更新に失敗しました');
@@ -181,8 +206,38 @@ export default function ClassReportPanel({ user, classes, onSaved, pendingCount,
                         onChange={e => setEffectiveDate(e.target.value)}
                         className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-200 text-sm font-bold focus:ring-2 focus:ring-orange-100 outline-none"
                     />
+
+                    {/* To date toggle */}
+                    {effectiveDate && (!showToDate ? (
+                        <button type="button" onClick={() => setShowToDate(true)}
+                            className="text-sm font-bold text-gray-400 hover:text-orange-400 transition-colors -mt-1 block">
+                            ＋ 終了日を設定する（期間指定）
+                        </button>
+                    ) : (
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-gray-400 uppercase flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" /> 変更の終了日
+                                </label>
+                                <button type="button" onClick={() => { setShowToDate(false); setToDate(''); }}
+                                    className="text-xs text-gray-400 hover:text-gray-600">× 閉じる</button>
+                            </div>
+                            <input
+                                type="date" value={toDate} onChange={e => setToDate(e.target.value)}
+                                className="w-full px-3 py-2 bg-orange-50 rounded-xl border border-orange-200 text-sm font-bold focus:ring-2 focus:ring-orange-100 outline-none"
+                            />
+                            <p className="text-[9px] text-gray-400">
+                                {toDate ? `${toDate} まで適用。翌日から元の人数に戻ります。` : '終了日未設定の場合はずっと適用されます'}
+                            </p>
+                        </div>
+                    ))}
+
                     <p className="text-[9px] text-gray-400 -mt-2">
-                        {effectiveDate ? `${effectiveDate} 以降の注文に反映されます` : '空白の場合は申請後すぐに反映されます'}
+                        {effectiveDate
+                            ? showToDate && toDate
+                                ? `${effectiveDate}〜${toDate} の注文のみ更新されます`
+                                : `${effectiveDate} 以降の注文に反映されます`
+                            : '空白の場合は申請後すぐに反映されます'}
                     </p>
                     <button
                         onClick={handleSave}
