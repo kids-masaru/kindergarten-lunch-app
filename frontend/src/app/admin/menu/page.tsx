@@ -454,7 +454,29 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                 {/* Header */}
                 <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between bg-orange-50/30">
                     <div className="flex items-center gap-3">
-                        <span className="text-2xl leading-none">{formData.icon_url || '🏫'}</span>
+                        <div className="relative">
+                            <button type="button" onClick={() => setShowEmojiPicker(p => !p)}
+                                className="text-2xl leading-none w-10 h-10 flex items-center justify-center rounded-xl hover:bg-orange-50 transition-all cursor-pointer"
+                                title="アイコンを変更">
+                                {formData.icon_url || '🏫'}
+                            </button>
+                            {showEmojiPicker && (
+                                <div className="absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-xl border border-gray-100 p-2 flex flex-wrap gap-1 w-72 max-h-48 overflow-y-auto">
+                                    {['🏫','🌸','🌺','🌻','🌼','🌷','🌹','🌾','🍀','🍁','🍂','🍃','🌿','🌱','🌲','🌳','🌴','🌵','🎋','🎍',
+                                      '🐣','🐥','🐤','🐦','🦆','🦋','🐸','🐨','🐼','🐻','🦁','🐯','🐮','🐷','🐰','🐹','🐭','🐱','🐶','🦊',
+                                      '🐧','🦉','🦚','🦜','🐬','🐟','🐠','🐡','🦀','🦞','🌙','⭐','🌟','✨','☀️','🌈','❄️','🌊','🔥','💧',
+                                      '🎠','🎡','🎢','🎪','🎨','🎵','🎶','🎸','🎺','🎻','🥁','🎹','🎲','🎯','🎃','🎄','🎆','🎇','🧸','🪆',
+                                      '🍎','🍊','🍋','🍇','🍓','🍒','🍑','🥭','🍍','🥝','🍌','🍉','🍏','🫐','🍔','🍕','🍣','🍜','🍩','🎂',
+                                      '🏠','🏡','🌃','🌄','🗼','🎡','🚌','🚎','✈️','🚂','⛵','🌏','🗾','🏔️','🌋','🏖️','🌅','🌠','🎑','🎆'].map(emoji => (
+                                        <button key={emoji} type="button"
+                                            onClick={() => { setFormData({ ...formData, icon_url: emoji }); setShowEmojiPicker(false); }}
+                                            className={`w-8 h-8 text-lg rounded-lg transition-all ${formData.icon_url === emoji ? 'bg-orange-100 ring-2 ring-orange-400' : 'hover:bg-orange-50'}`}>
+                                            {emoji}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         <div>
                             <h2 className="text-lg font-black text-gray-800">{k.name} <span className="text-gray-400 font-medium text-sm">#{k.kindergarten_id}</span></h2>
                             <p className="text-sm font-bold text-orange-400 uppercase tracking-widest">Master Data Editor</p>
@@ -480,24 +502,6 @@ function KindergartenEditor({ k, onClose, onSave }: { k: any, onClose: () => voi
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         className="w-full px-3 py-2 bg-gray-50 rounded-xl border border-gray-100 font-bold text-base focus:ring-2 focus:ring-orange-100 outline-none"
                                     />
-                                </div>
-                                <div className="relative">
-                                    <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">アイコン絵文字</label>
-                                    <button type="button" onClick={() => setShowEmojiPicker(p => !p)}
-                                        className="w-10 h-10 text-2xl rounded-xl bg-gray-50 border border-gray-100 hover:bg-orange-50 hover:border-orange-200 transition-all flex items-center justify-center">
-                                        {formData.icon_url || '🏫'}
-                                    </button>
-                                    {showEmojiPicker && (
-                                        <div className="absolute top-full left-0 mt-1 z-10 bg-white rounded-xl shadow-lg border border-gray-100 p-2 flex flex-wrap gap-1 w-56">
-                                            {['🏫','🌸','🌻','🌈','⭐','🐣','🦋','🐸','🍀','🎠','🎨','🎵','🌺','🦊','🐧','🐨','🐼','🦁','🐰','🌙','🌼','🦄','🍎','🍊','🌊'].map(emoji => (
-                                                <button key={emoji} type="button"
-                                                    onClick={() => { setFormData({ ...formData, icon_url: emoji }); setShowEmojiPicker(false); }}
-                                                    className={`w-8 h-8 text-lg rounded-lg transition-all ${formData.icon_url === emoji ? 'bg-orange-100 ring-2 ring-orange-400' : 'hover:bg-orange-50'}`}>
-                                                    {emoji}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                                 <div>
                                     <label className="text-sm font-bold text-gray-500 uppercase ml-1 block mb-0.5">住所</label>
